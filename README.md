@@ -3,6 +3,12 @@
 Quantifying the Commons
 
 
+## Overview
+
+This project seeks to quantify the size and diversity of the commons--the
+collection of works that are openly licensed or in the public domain.
+
+
 ## Code of Conduct
 
 [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md):
@@ -19,6 +25,11 @@ Quantifying the Commons
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+
+## History
+
+For information on past efforts, see [`history.md`](history.md).
 
 
 ## Copying & License
