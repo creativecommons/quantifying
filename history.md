@@ -40,6 +40,7 @@
   - [cc-archive/sotc-2015][repo-2015]: State Of The Commons 2015
     - See [`data.mdwn`][datamdwn] for information on the data gathered
 
+[state2015]: https://stateof.creativecommons.org/2015/
 [repo-2015]: https://github.com/cc-archive/sotc-2015
 [datamdwn]: https://github.com/cc-archive/sotc-2015/blob/main/data.mdwn
 
