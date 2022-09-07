@@ -41,6 +41,7 @@
     - See [`data.mdwn`][datamdwn] for information on the data gathered
 
 [repo-2015]: https://github.com/cc-archive/sotc-2015
+[datamdwn]: https://github.com/cc-archive/sotc-2015/blob/main/data.mdwn
 
 
 ## 2014 State of the Commons
