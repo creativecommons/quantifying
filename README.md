@@ -35,7 +35,7 @@ For information on past efforts, see [`history.md`](history.md).
 ## Copying & License
 
 
-## Code
+### Code
 
 [`LICENSE`](LICENSE): the code within this repository is licensed under the Expat/[MIT][mit] license.
 
