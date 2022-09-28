@@ -1,12 +1,12 @@
 import flickrapi
 import json
+import secrets
 
 with open('photos.json') as json_file:
     photo = json.load(json_file)
 
-api_key = u'69f154651c83944ef0b07b91c8b87706'
-api_secret = u'df4ab2a4358bc456'
-flickr = flickrapi.FlickrAPI(api_key, api_secret, format='json')
+
+flickr = flickrapi.FlickrAPI(secrets.api_key, secrets.api_secret, format='json')
 
 # be careful to run the below api call (3600 limits/hr)
 # dic = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 9: 0, 10: 0}
