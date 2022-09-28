@@ -1,12 +1,11 @@
 import flickrapi
 import json
-import pandas
 
 
 api_key = u'69f154651c83944ef0b07b91c8b87706'
 api_secret = u'df4ab2a4358bc456'
-
 flickr = flickrapi.FlickrAPI(api_key, api_secret, format='json')
+
 licenseJson = flickr.photos.licenses.getInfo()
 licenseInfo = json.loads(licenseJson.decode('utf-8'))
 
