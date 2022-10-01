@@ -13,8 +13,8 @@ import time
 CALLBACK_INDEX = 2
 CALLBACK_EXPO = 0
 MAX_WAIT = 64
-API_KEY = "AIzaSyBRjaskkknM-AZGKr-UcH1u03IDFVpseMA"
-PSE_KEY = "603f12cb449574599"
+API_KEY = "CENSORED"
+PSE_KEY = "CENSORED"
 DATA_WRITE_FILE = os.getcwd() + "/GoogleCustomSearch/data_20220925.txt"
 
 def expo_backoff():
