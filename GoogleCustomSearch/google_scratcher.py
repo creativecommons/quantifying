@@ -129,7 +129,7 @@ def get_request_url(license = None, cntr = None, lang = None):
         base_url += "&lr=" + lang
     return base_url
 
-def get_response_elems(license = None, cntr = None, lang = None):
+def get_response_elems(license = None, cntr = None, lang = None, eb = False):
     """ Provides the metadata for query of specified parameters
     
     Args:
@@ -147,13 +147,17 @@ def get_response_elems(license = None, cntr = None, lang = None):
             A string representing the language that the search results are 
             presented in. Alternatively, the default None value or "all" stands 
             for having no assumption about language of document.
+        eb:
+            A boolean indicating whether there should be exponential callback.
+            Is by default False.
     
     Returns:
         dict: A dictionary mapping metadata to its value provided from the API 
         query of specified parameters.
     """
     url = get_request_url(license = license, cntr = cntr, lang = lang)
-    #expo_backoff()
+    if eb:
+        expo_backoff()
     search_data = requests.get(url).json()
     search_data_dict = {
         "totalResults": search_data["queries"]["request"][0]["totalResults"]
