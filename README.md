@@ -53,6 +53,16 @@ The data within this repository is dedicated to the public domain under the
 [cc-zero-png]: https://licensebuttons.net/l/zero/1.0/88x31.png "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication button"
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
 
+### Documentation
+
+[![CC BY 4.0 license button][cc-by-png]][cc-by]
+
+The documentation within the project is licensed under a [Creative Commons
+Attribution 4.0 International License][cc-by].
+
+[cc-by-png]: https://licensebuttons.net/l/by/4.0/88x31.png#floatleft "CC BY 4.0 license button"
+[cc-by]: https://creativecommons.org/licenses/by/4.0/ "Creative Commons Attribution 4.0 International License"
+
 ## Data Sources:
 
 ### Google Custom Search JSON API
@@ -63,13 +73,3 @@ References of main technolofy used:
   https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
   https://developers.google.com/custom-search/docs/json_api_reference#countryCollections
   https://developers.google.com/custom-search/v1/reference/rest/v1/Search
-
-### Documentation
-
-[![CC BY 4.0 license button][cc-by-png]][cc-by]
-
-The documentation within the project is licensed under a [Creative Commons
-Attribution 4.0 International License][cc-by].
-
-[cc-by-png]: https://licensebuttons.net/l/by/4.0/88x31.png#floatleft "CC BY 4.0 license button"
-[cc-by]: https://creativecommons.org/licenses/by/4.0/ "Creative Commons Attribution 4.0 International License"
