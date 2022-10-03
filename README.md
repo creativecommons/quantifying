@@ -68,8 +68,8 @@ Attribution 4.0 International License][cc-by].
 ### Google Custom Search JSON API
 The Custom Search JSON API allows user-defined detailed query and access towards related query data using a programmable search engine.
 In short, it's coded Google Search!
-References of main technolofy used:
-  https://developers.google.com/custom-search/v1/overview
-  https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
-  https://developers.google.com/custom-search/docs/json_api_reference#countryCollections
-  https://developers.google.com/custom-search/v1/reference/rest/v1/Search
+References of main technolofy used:  
+https://developers.google.com/custom-search/v1/overview  
+https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list  
+https://developers.google.com/custom-search/docs/json_api_reference#countryCollections  
+https://developers.google.com/custom-search/v1/reference/rest/v1/Search  
