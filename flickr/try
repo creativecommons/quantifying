@@ -1,0 +1,10 @@
+import flickrapi
+import json
+import secrets
+import time
+
+flickr = flickrapi.FlickrAPI(secrets.api_key, secrets.api_secret, format='json')
+photosJson = flickr.photos.search(license=1, per_page=500, page=1)
+photos = json.loads(photosJson.decode('utf-8'))
+id = [x["id"] for x in photos["photos"]["photo"]]
+print (id)
