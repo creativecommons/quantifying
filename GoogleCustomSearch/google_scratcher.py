@@ -4,7 +4,6 @@ Data.
 '''
 
 import requests
-import numpy as np
 import pandas as pd
 import os
 import random
@@ -15,10 +14,10 @@ CALLBACK_EXPO = 0
 MAX_WAIT = 64
 API_KEY = "CENSORED"
 PSE_KEY = "CENSORED"
-DATA_WRITE_FILE = os.getcwd() + "/GoogleCustomSearch/data_20220925.txt"
+DATA_WRITE_FILE = os.getcwd() + "/GoogleCustomSearch/data_google.txt"
 
 def expo_backoff():
-    """Performs exponential backoff upon call.
+    """ Performs exponential backoff upon call.
     
     The function will force a wait of CALLBACK_INDEX ** CALLBACK_EXPO + r 
     seconds, where r is a decimal number between 0.001 and 0.999, inclusive.
@@ -32,13 +31,13 @@ def expo_backoff():
         CALLBACK_EXPO += 1
 
 def expo_backoff_reset():
-    """Resets the CALLBACK_EXPO to 0.
+    """ Resets the CALLBACK_EXPO to 0.
     """
     global CALLBACK_EXPO
     CALLBACK_EXPO = 0
 
 def get_license_list():
-    """Provides the list of license from 2018's record of Creative Commons.
+    """ Provides the list of license from 2018's record of Creative Commons.
 
     Returns:
         np.array: An np array containing all license types that should be 
@@ -57,7 +56,7 @@ def get_license_list():
     return license_list
 
 def get_lang_list():
-    """Provides the list of language to find Creative Commons usage data on.
+    """ Provides the list of language to find Creative Commons usage data on.
 
     Returns:
         pd.DataFrame: A Dataframe whose index is language name and has a column
@@ -73,7 +72,7 @@ def get_lang_list():
     return selected_langs
 
 def get_cntr_list():
-    """Provides the list of countries to find Creative Commons usage data on.
+    """ Provides the list of countries to find Creative Commons usage data on.
 
     Returns:
         pd.DataFrame: A Dataframe whose index is country name and has a column
@@ -182,9 +181,10 @@ def record_license_data(license_type = None):
     
     Args:
         license:
-            A string representing the type of license, and should be a segment of its
-            URL towards the license description. Alternatively, the default None value
-            stands for having no assumption about license type.
+            A string representing the type of license, and should be a segment 
+            of its URL towards the license description. Alternatively, the
+            default None value stands for having no assumption about license
+            type.
     """
     if license_type is None:
         data_log = "all" + ","
@@ -204,7 +204,7 @@ def record_license_data(license_type = None):
         f.write(data_log + "\n")
 
 def record_all_licenses():
-    """Records the data of all license types findable in the license list and
+    """ Records the data of all license types findable in the license list and
     records these data into the DATA_wRITE_FILE as specified in that constant.
     """
     license_list = get_license_list()
@@ -213,12 +213,10 @@ def record_all_licenses():
         record_license_data(license_type)
 
 def get_current_data():
-    """Return a DataFrame for the Creative Commons usage data collected.
+    """ Return a DataFrame for the Creative Commons usage data collected.
 
     Returns:
         pd.DataFrame: A DataFrame recording the number of CC-licensed documents
         per search query of assumption.
     """
     return pd.read_csv(DATA_WRITE_FILE).iloc[1:, :-1].set_index("LICENSE TYPE")
-
-record_all_licenses()
