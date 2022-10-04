@@ -31,6 +31,21 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 For information on past efforts, see [`history.md`](history.md).
 
+## Data Sources:
+
+### Google Custom Search JSON API
+The Custom Search JSON API allows user-defined detailed query and access towards related query data using a programmable search engine.
+In short, it's coded Google Search!  
+References of main technology used:  
+https://developers.google.com/custom-search/v1/overview  
+https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list  
+https://developers.google.com/custom-search/docs/json_api_reference#countryCollections  
+https://developers.google.com/custom-search/v1/reference/rest/v1/Search  
+
+### MediaWiki
+The MediaWiki API allows user-defined query on metadata and statistics of wikipedia addresses.  
+References of main technology used:  
+https://www.mediawiki.org/wiki/API:Main_page
 
 ## Copying & License
 
@@ -62,14 +77,3 @@ Attribution 4.0 International License][cc-by].
 
 [cc-by-png]: https://licensebuttons.net/l/by/4.0/88x31.png#floatleft "CC BY 4.0 license button"
 [cc-by]: https://creativecommons.org/licenses/by/4.0/ "Creative Commons Attribution 4.0 International License"
-
-## Data Sources:
-
-### Google Custom Search JSON API
-The Custom Search JSON API allows user-defined detailed query and access towards related query data using a programmable search engine.
-In short, it's coded Google Search!
-References of main technolofy used:  
-https://developers.google.com/custom-search/v1/overview  
-https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list  
-https://developers.google.com/custom-search/docs/json_api_reference#countryCollections  
-https://developers.google.com/custom-search/v1/reference/rest/v1/Search  
