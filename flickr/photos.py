@@ -7,6 +7,8 @@ flickr = flickrapi.FlickrAPI(secrets.api_key, secrets.api_secret, format='json')
 licenseJson = flickr.photos.licenses.getInfo()
 licenseInfo = json.loads(licenseJson.decode('utf-8'))
 
+# use search method to pull general photo info under each cc license
+# data saved in photos.json
 dic = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 9: 0, 10: 0}
 for i in dic.keys():
     photosJson = flickr.photos.search(license=i, per_page=500)
