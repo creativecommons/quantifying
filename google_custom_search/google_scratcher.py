@@ -48,16 +48,12 @@ def get_license_list():
         np.array: An np array containing all license types that should be 
         searched via Programmable Search Engine.
     """
-    data_2018 = pd.read_csv(CWD + "/data_2018.txt") \
-        .set_index("License Address") \
-        .iloc[:, :1] \
-        .sort_values(by = "License Address")
-    license_pattern = r"/creativecommons.org/((?:[^/]+/){3}).*"
-    license_list = pd.Series(data_2018.index)
-    license_list = license_list.str.extract(license_pattern, expand = False) \
-                    .dropna()\
-                    .unique()
-    license_list.sort()
+    cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header = None)
+    license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
+    license_list = cc_license_data[0].str.extract(
+        license_pattern,
+        expand = False
+    ).dropna().unique()
     return license_list
 
 def get_lang_list():
@@ -67,7 +63,7 @@ def get_lang_list():
         pd.DataFrame: A Dataframe whose index is language name and has a column
         for the corresponding language code.
     """
-    langs = pd.read_csv(CWD + "/google_lang.txt", sep = ":")
+    langs = pd.read_csv(f"{CWD}/google_lang.txt", sep = ":")
     langs = langs.set_index("Language")
     selected_langs = langs.iloc[[7, 33, 34, 8, 11, 0, 25, 14], :].sort_index()
     return selected_langs
@@ -164,6 +160,9 @@ def get_response_elems(license = None, cntr = None, lang = None, eb = False):
         if eb:
             expo_backoff()
             get_response_elems(license, cntr, lang)
+        elif "queries" not in search_data:
+            print(search_data)
+            sys.exit(1)
         else:
             print("ERROR (1) Unhandled exception:", file=sys.stderr)
             print(traceback.print_exc(), file=sys.stderr)
@@ -235,6 +234,7 @@ def main():
     DATA_WRITE_FILE += (
         f"/data_google_{today.year}_{today.month}_{today.day}.txt"
     )
+    set_up_data_file()
     record_all_licenses()
     DATA_WRITE_FILE = CWD
 
