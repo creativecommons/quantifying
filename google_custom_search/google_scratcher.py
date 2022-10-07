@@ -3,18 +3,23 @@ This file is dedicated to obtain a .csv record report for Google Custom Search
 Data.
 '''
 
+import traceback
+import datetime as dt
 import requests
 import pandas as pd
 import os
 import random
 import time
+import sys
+import query_secret
 
+CWD = os.path.dirname(os.path.abspath(__file__))
 CALLBACK_INDEX = 2
 CALLBACK_EXPO = 0
 MAX_WAIT = 64
-API_KEY = "CENSORED"
-PSE_KEY = "CENSORED"
-DATA_WRITE_FILE = os.getcwd() + "/GoogleCustomSearch/data_google.txt"
+DATA_WRITE_FILE = CWD
+API_KEY = query_secret.API_KEY
+PSE_KEY = query_secret.PSE_KEY
 
 def expo_backoff():
     """ Performs exponential backoff upon call.
@@ -43,7 +48,7 @@ def get_license_list():
         np.array: An np array containing all license types that should be 
         searched via Programmable Search Engine.
     """
-    data_2018 = pd.read_csv(os.getcwd() + "/GoogleCustomSearch/data_2018.txt") \
+    data_2018 = pd.read_csv(CWD + "/data_2018.txt") \
         .set_index("License Address") \
         .iloc[:, :1] \
         .sort_values(by = "License Address")
@@ -62,12 +67,8 @@ def get_lang_list():
         pd.DataFrame: A Dataframe whose index is language name and has a column
         for the corresponding language code.
     """
-    langs = pd.read_csv(
-        os.getcwd() + "/GoogleCustomSearch/google_lang.txt", 
-        sep = ":"
-    )
+    langs = pd.read_csv(CWD + "/google_lang.txt", sep = ":")
     langs = langs.set_index("Language")
-    print(f"There are {len(langs)} languages.")
     selected_langs = langs.iloc[[7, 33, 34, 8, 11, 0, 25, 14], :].sort_index()
     return selected_langs
 
@@ -78,12 +79,8 @@ def get_cntr_list():
         pd.DataFrame: A Dataframe whose index is country name and has a column
         for the corresponding country code.
     """
-    cntrs = pd.read_csv(
-        os.getcwd() + "/GoogleCustomSearch/google_cntrs.txt", 
-        sep = "\t"
-    )
+    cntrs = pd.read_csv(CWD + "/google_cntrs.txt", sep = "\t")
     cntrs = cntrs.set_index("Country")
-    print(f"There are {len(cntrs)} countries.")
     selected_cntrs = cntrs.loc[
         [
             'India', 'Japan', 'United States', 'Canada', 'Brazil', 
@@ -115,17 +112,19 @@ def get_request_url(license = None, cntr = None, lang = None):
         string: A string representing the API Endpoint URL for the query 
         specified by this function's parameters.
     """
-    base_url = r"https://customsearch.googleapis.com/customsearch/v1"
-    base_url += f"?key={API_KEY}&cx={PSE_KEY}"
-    base_url += r"&q=link%3Acreativecommons.org"
+    base_url = (
+        r"https://customsearch.googleapis.com/customsearch/v1"
+        f"?key={API_KEY}&cx={PSE_KEY}"
+        r"&q=link%3Acreativecommons.org"
+    )
     if license is not None:
         base_url += license.replace("/", "%2F")
     else:
         base_url += "/licenses".replace("/", "%2F")
     if cntr is not None:
-        base_url += "&cr=" + cntr
+        base_url += f"&cr={cntr}"
     if lang is not None:
-        base_url += "&lr=" + lang
+        base_url += f"&lr={lang}"
     return base_url
 
 def get_response_elems(license = None, cntr = None, lang = None, eb = False):
@@ -154,14 +153,21 @@ def get_response_elems(license = None, cntr = None, lang = None, eb = False):
         dict: A dictionary mapping metadata to its value provided from the API 
         query of specified parameters.
     """
-    url = get_request_url(license = license, cntr = cntr, lang = lang)
-    if eb:
-        expo_backoff()
-    search_data = requests.get(url).json()
-    search_data_dict = {
-        "totalResults": search_data["queries"]["request"][0]["totalResults"]
-    }
-    return search_data_dict
+    try:
+        url = get_request_url(license = license, cntr = cntr, lang = lang)
+        search_data = requests.get(url).json()
+        search_data_dict = {
+            "totalResults": search_data["queries"]["request"][0]["totalResults"]
+        }
+        return search_data_dict
+    except:
+        if eb:
+            expo_backoff()
+            get_response_elems(license, cntr, lang)
+        else:
+            print("ERROR (1) Unhandled exception:", file=sys.stderr)
+            print(traceback.print_exc(), file=sys.stderr)
+            sys.exit(1)
 
 def set_up_data_file():
     """ Writes the header row to file to contain Google Query data.
@@ -169,10 +175,11 @@ def set_up_data_file():
     header_title = "LICENSE TYPE,No Priori,"
     selected_cntrs = get_cntr_list()
     selected_langs = get_lang_list()
-    for title in selected_cntrs.index:
-        header_title += title + ","
-    for title in selected_langs.index:
-        header_title += title + ","
+    header_title = (
+        "LICENSE TYPE,No Priori,"
+        f"{','.join(selected_cntrs.index)}"
+        f"{','.join(selected_langs.index)}"
+    )
     with open(DATA_WRITE_FILE, 'a') as f:
         f.write(header_title + "\n")
 
@@ -187,21 +194,21 @@ def record_license_data(license_type = None):
             type.
     """
     if license_type is None:
-        data_log = "all" + ","
+        data_log = "all,"
     else:
-        data_log = license_type + ","
+        data_log = f"{license_type},"
     selected_cntrs = get_cntr_list()
     selected_langs = get_lang_list()
     no_priori_search = get_response_elems(license = license_type)
-    data_log += no_priori_search['totalResults'] + ","
+    data_log += f"{no_priori_search['totalResults']},"
     for cntr_name in selected_cntrs.iloc[:, 0]:
         response = get_response_elems(license = license_type, cntr = cntr_name)
-        data_log += response['totalResults'] + ","
+        data_log += f"{response['totalResults']},"
     for lang_name in selected_langs.iloc[:, 0]:
         response = get_response_elems(license = license_type, lang = lang_name)
-        data_log += response['totalResults'] + ","
+        data_log += f"{response['totalResults']},"
     with open(DATA_WRITE_FILE, 'a') as f:
-        f.write(data_log + "\n")
+        f.write(f"{data_log}\n")
 
 def record_all_licenses():
     """ Records the data of all license types findable in the license list and
@@ -220,3 +227,27 @@ def get_current_data():
         per search query of assumption.
     """
     return pd.read_csv(DATA_WRITE_FILE).iloc[1:, :-1].set_index("LICENSE TYPE")
+
+def main():
+    #TODO
+    global DATA_WRITE_FILE
+    today = dt.datetime.today()
+    DATA_WRITE_FILE += (
+        f"/data_google_{today.year}_{today.month}_{today.day}.txt"
+    )
+    record_all_licenses()
+    DATA_WRITE_FILE = CWD
+
+if __name__ == "__main__":
+    try:
+        main()
+    except SystemExit as e:
+        sys.exit(e.code)
+    except KeyboardInterrupt:
+        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        sys.exit(130)
+    except Exception:
+        print("ERROR (1) Unhandled exception:", file=sys.stderr)
+        print(traceback.print_exc(), file=sys.stderr)
+        sys.exit(1)
+
