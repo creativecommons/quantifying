@@ -1,2 +1,0 @@
-LICENSE TYPE,No Priori,Australia,Brazil,Canada,Egypt,Germany,India,Japan,Spain,United Kingdom,United StatesArabic,Chinese (Simplified),Chinese (Traditional),English,French,Indonesian,Portuguese,Spanish
-all,454000000,377000,1230000,1280000,20400,7960000,217000,190000,268000,12600000,364000000,293000,196000,144000,434000000,995000,337000,6820000,18400000,
