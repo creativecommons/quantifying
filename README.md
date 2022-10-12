@@ -26,14 +26,6 @@ collection of works that are openly licensed or in the public domain.
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-
-## Data Sources
-
-
-## History
-
-For information on past efforts, see [`history.md`](history.md).
-
 ## Data Sources:
 
 ### Google Custom Search JSON API
@@ -45,10 +37,10 @@ https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
 https://developers.google.com/custom-search/docs/json_api_reference#countryCollections  
 https://developers.google.com/custom-search/v1/reference/rest/v1/Search  
 
-### MediaWiki
-The MediaWiki API allows user-defined query on metadata and statistics of wikipedia addresses.  
-References of main technology used:  
-https://www.mediawiki.org/wiki/API:Main_page
+
+## History
+
+For information on past efforts, see [`history.md`](history.md).
 
 ## Copying & License
 
