@@ -4,18 +4,22 @@ Data.
 """
 
 # Standard library
+import datetime as dt
 import os
 import random
+import sys
 import time
+import traceback
 
 # Third-party
 import pandas as pd
 import requests
 
+CWD = os.path.dirname(os.path.abspath(__file__))
 CALLBACK_INDEX = 2
 CALLBACK_EXPO = 0
 MAX_WAIT = 64
-DATA_WRITE_FILE = os.getcwd() + "/GoogleCustomSearch/data_wikipedia.txt"
+DATA_WRITE_FILE = CWD
 
 
 def expo_backoff():
@@ -46,7 +50,7 @@ def get_wiki_langs():
         pd.DataFrame: A Dataframe containing information of each Wikipedia
         language and its respective encoding on web address.
     """
-    return pd.read_csv(os.getcwd() + r"/wiki_langs.txt", sep="\t")
+    return pd.read_csv(CWD + r"/wiki_langs.txt", sep="\t")
 
 
 def get_request_url(lang="en"):
@@ -70,7 +74,7 @@ def get_request_url(lang="en"):
     return base_url
 
 
-def get_response_elems(lang="en"):
+def get_response_elems(lang="en", eb=False):
     """Provides the metadata for query of specified parameters
 
     Args:
@@ -78,16 +82,32 @@ def get_response_elems(lang="en"):
             A string representing the language that the search results are
             presented in. Alternatively, the default value is by Wikipedia
             customs "en".
+        eb:
+            A boolean indicating whether there should be exponential callback.
+            Is by default False.
 
     Returns:
         dict: A dictionary mapping metadata to its value provided from the API
         query of specified parameters.
     """
-    url = get_request_url(lang)
-    search_data = requests.get(url).json()
-    search_data_dict = search_data["query"]["statistics"]
-    search_data_dict["language"] = lang
-    return search_data_dict
+    search_data = None
+    try:
+        url = get_request_url(lang)
+        search_data = requests.get(url).json()
+        search_data_dict = search_data["query"]["statistics"]
+        search_data_dict["language"] = lang
+        return search_data_dict
+    except:
+        if eb:
+            expo_backoff()
+            get_response_elems()
+        elif "pageInfo" not in search_data:
+            print(search_data)
+            sys.exit(1)
+        else:
+            print("ERROR (1) Unhandled exception:", file=sys.stderr)
+            print(traceback.print_exc(), file=sys.stderr)
+            sys.exit(1)
 
 
 def set_up_data_file():
@@ -112,7 +132,7 @@ def record_lang_data(lang="en"):
         f.write(",".join(response_str) + "\n")
 
 
-def record_all_langs():
+def record_all_licenses():
     """Records the data of all language types findable in the language list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
@@ -130,3 +150,29 @@ def get_current_data():
         per search query of assumption.
     """
     return pd.read_csv(DATA_WRITE_FILE).set_index("language")
+
+
+def main():
+    # TODO
+    global DATA_WRITE_FILE
+    today = dt.datetime.today()
+    DATA_WRITE_FILE += (
+        f"/data_wikipedia_{today.year}_{today.month}_{today.day}.txt"
+    )
+    set_up_data_file()
+    record_all_licenses()
+    DATA_WRITE_FILE = CWD
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except SystemExit as e:
+        sys.exit(e.code)
+    except KeyboardInterrupt:
+        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        sys.exit(130)
+    except Exception:
+        print("ERROR (1) Unhandled exception:", file=sys.stderr)
+        print(traceback.print_exc(), file=sys.stderr)
+        sys.exit(1)
