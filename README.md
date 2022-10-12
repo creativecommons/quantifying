@@ -28,7 +28,8 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 
 ## Data Sources
-
+YouTube Data API V3:
+https://developers.google.com/youtube/v3/docs/search/list?apix_params=%7B%22part%22%3A%5B%22snippet%22%5D%2C%22type%22%3A%5B%22video%22%5D%2C%22videoLicense%22%3A%22creativeCommon%22%7D
 
 ## History
 
