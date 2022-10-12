@@ -29,8 +29,10 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Data Sources
 
-YouTube Data API V3:  
-https://developers.google.com/youtube/v3/docs/search/list?apix_params=%7B%22part%22%3A%5B%22snippet%22%5D%2C%22type%22%3A%5B%22video%22%5D%2C%22videoLicense%22%3A%22creativeCommon%22%7D
+### MediaWiki
+The MediaWiki API allows user-defined query on metadata and statistics of wikipedia addresses.  
+References of main technology used:  
+https://www.mediawiki.org/wiki/API:Main_page
 
 ## History
 
