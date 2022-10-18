@@ -1,6 +1,8 @@
 """
+CURRENT BUG: to_df func doesn't work and df has the type of
+list instead of dataframe
 The following is a version of api call that still have bugs
-with saving json to datafram step included
+with saving json to dataframe step included
 and probably won't take up much too memories
 """
 
@@ -36,7 +38,7 @@ by iterating through the list of columns
 def to_df(linkedlis, namelis):
     df = [pd.DataFrame() for ind in range(len(linkedlis))]
     for count in range(len(linkedlis)):
-        df[j] = df[j].append({namelis[j]: linkedlis[j]}, ignore_index=True)
+        df[count] = df[count].append({namelis[j]: linkedlis[j]}, ignore_index=True)
     return df
 
 
@@ -79,7 +81,7 @@ while True:
         while i in license_lis:
             while j <= total:
                 # use search method to pull photo id included under each license
-                photosJson = flickr.photos.search(license=i, per_page=500, page=j)
+                photosJson = flickr.photos.search(license=i, per_page=10, page=j)
                 time.sleep(1)
                 photos = json.loads(photosJson.decode('utf-8'))
                 id = [x["id"] for x in photos["photos"]["photo"]]
@@ -97,7 +99,6 @@ while True:
                     time.sleep(1)
                     photos_detail = json.loads(detailJson.decode('utf-8'))
                     print(index, "id out of", len(id), "in license", i, "page", j, "out of", total)
-                    print(name_lis, temp_lis)
                     for a in range(0, len(name_lis)):
                         # name_lis = ["id", "dateuploaded", "isfavorite", "license", "realname",
                         #  "location", "title", "description", "dates", "views", "comments", "tags"]
@@ -110,7 +111,12 @@ while True:
                         if a == 8:
                             temp_lis = data_query(photos_detail, name_lis[a], "taken", temp_lis, a)
                         if a == 11:
-                            temp_lis = data_query(photos_detail, name_lis[a], "tag", temp_lis, a)
+                            if photos_detail["photo"]["tags"]["tag"]:
+                                # print(photos_detail["photo"]["tags"]["tag"][0])
+                                temp_lis[a].append([photos_detail["photo"]["tags"]["tag"][num]["raw"]
+                                                    for num in range(len(photos_detail["photo"]["tags"]["tag"]))])
+                            else:
+                                temp_lis = data_query(photos_detail, name_lis[a], "tag", temp_lis, a)
                     if index % 100 == 0:
                         # prevent laptop from sleeping
                         pyautogui.moveTo(random.randint(50, 300), random.randint(50, 300))
@@ -125,6 +131,8 @@ while True:
                  and update (j) the current page number in txt
                 """
                 df = to_df(temp_lis, name_lis)
+                # print(type(df))
+                # print(name_lis, temp_lis, df)
                 df.to_csv('hs.csv')
                 df = pd.concat(
                     map(pd.read_csv, ['hs.csv', 'final.csv']), ignore_index=True)
@@ -136,7 +144,7 @@ while True:
                 set list to empty everytime after saving the data into
                 the csv file to prevent from saving duplicate data
                 """
-                temp_lis = []
+                temp_lis = creat_linkedlis(len(name_lis))
 
                 '''
                 if current page number has reached the max limit of total pages
@@ -155,4 +163,5 @@ while True:
         retries += 1
         print(e)
         print("page", j, "out of", total, "in license", i, "with retry number", retries)
-        # continue
+        temp_lis = creat_linkedlis(len(name_lis))
+        continue
