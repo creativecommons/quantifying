@@ -28,7 +28,9 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 
 ## Data Sources
-
+### MetMuseum API
+Main Documentation Page: https://metmuseum.github.io/  
+Every object in the MetMuseum database is licensed under CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
 
 ## History
 
