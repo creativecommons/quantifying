@@ -28,7 +28,11 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 
 ## Data Sources
-
+### MediaWiki
+Provides metadata from search queries in WikiCommons.  
+Main documentation page: https://www.mediawiki.org/wiki/API:Main_page  
+Example query:  
+https://commons.wikimedia.org/w/api.php?action=query&cmtitle=Category:CC-BY&list=categorymembers  
 
 ## History
 
