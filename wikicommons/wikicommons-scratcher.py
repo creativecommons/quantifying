@@ -12,7 +12,6 @@ import time
 import traceback
 
 # Third-party
-import pandas as pd
 import requests
 
 CWD = os.path.dirname(os.path.abspath(__file__))
@@ -20,6 +19,8 @@ CALLBACK_INDEX = 2
 CALLBACK_EXPO = 0
 MAX_WAIT = 64
 DATA_WRITE_FILE = CWD
+LICENSE_CACHE = {}
+
 
 def expo_backoff():
     """Performs exponential backoff upon call.
@@ -40,93 +41,138 @@ def expo_backoff_reset():
     global CALLBACK_EXPO
     CALLBACK_EXPO = 0
 
+
 def get_content_request_url(license):
-    """_summary_
+    """Provides the API Endpoint URL for specified parameters' WikiCommons
+    contents.
 
     Args:
-        license (_type_): _description_
+        license:
+            A string representing the type of license, and should be a segment
+            of its URL towards the license description. Alternatively, the
+            default None value stands for having no assumption about license
+            type.
 
     Returns:
-        _type_: _description_
+        string: A string representing the API Endpoint URL for the query
+        specified by this function's parameters.
     """
     base_url = (
         r"https://commons.wikimedia.org/w/api.php?"
         r"action=query&prop=categoryinfo&titles="
-        f"Category:{license}"
+        f"Category:{license}&format=json"
     )
     return base_url
 
+
 def get_subcat_request_url(license):
-    """_summary_
+    """Provides the API Endpoint URL for specified parameters' WikiCommons
+    subcategories for recursive searching.
 
     Args:
-        license (_type_): _description_
+        license:
+            A string representing the type of license, and should be a segment
+            of its URL towards the license description. Alternatively, the
+            default None value stands for having no assumption about license
+            type.
 
     Returns:
-        _type_: _description_
+        string: A string representing the API Endpoint URL for the query
+        specified by this function's parameters.
     """
     base_url = (
         r"https://commons.wikimedia.org/w/api.php?"
         r"action=query&cmtitle="
         f"Category:{license}"
-        r"&cmtype=subcat&list=categorymembers"
+        r"&cmtype=subcat&list=categorymembers&format=json"
     )
     return base_url
 
+
 def get_subcategories(license, eb=False):
-    """_summary_
+    """Obtain the subcategories of LICENSE in WikiCommons Database for
+    recursive searching.
 
     Args:
-        license (_type_): _description_
-        eb (bool, optional): _description_. Defaults to False.
+        license:
+            A string representing the type of license, and should be a segment
+            of its URL towards the license description. Alternatively, the
+            default None value stands for having no assumption about license
+            type.
+        eb:
+            A boolean indicating whether there should be exponential callback.
+            Is by default False.
 
     Returns:
-        _type_: _description_
+        list: A list representing the subcategories of current license type
+        in WikiCommons dataset from a provided API Endpoint URL for the query
+        specified by this function's parameters.
     """
     try:
         request_url = get_subcat_request_url(license)
         search_data = requests.get(request_url).json()
         cat_list = []
         for members in search_data["query"]["categorymembers"]:
-            cat_list.append(members["title"])
+            cat_list.append(
+                members["title"].replace("Category:", "").replace("&", "%26")
+            )
         return cat_list
-    except:
+    except Exception as e:
         if eb:
             expo_backoff()
             get_subcategories(license)
         elif "query" not in search_data:
             print(search_data)
-            sys.exit(1)
+            print("This query will not be processed due to empty subcats.")
         else:
             print("ERROR (1) Unhandled exception:", file=sys.stderr)
             print(traceback.print_exc(), file=sys.stderr)
             sys.exit(1)
 
+
 def get_license_contents(license, eb=False):
+    """Provides the metadata for query of specified parameters.
+
+    Args:
+        license:
+            A string representing the type of license, and should be a segment
+            of its URL towards the license description. Alternatively, the
+            default None value stands for having no assumption about license
+            type.
+        eb:
+            A boolean indicating whether there should be exponential callback.
+            Is by default False.
+
+    Returns:
+        dict: A dictionary mapping metadata to its value provided from the API
+        query of specified parameters.
+    """
     try:
         url = get_content_request_url(license)
         search_data = requests.get(url).json()
         file_cnt = 0
         page_cnt = 0
-        for pages in search_data["query"]["pages"]:
-            file_cnt += pages["categoryinfo"]["files"]
-            page_cnt += pages["categoryinfo"]["pages"]
+        for id in search_data["query"]["pages"]:
+            lic_content = search_data["query"]["pages"][id]
+            file_cnt += lic_content["categoryinfo"]["files"]
+            page_cnt += lic_content["categoryinfo"]["pages"]
         search_data_dict = {
             "total_file_cnt": file_cnt,
-            "total_page_cnt": page_cnt
+            "total_page_cnt": page_cnt,
         }
         return search_data_dict
-    except:
+    except Exception as e:
         if eb:
             expo_backoff()
             get_license_contents(license)
         elif "queries" not in search_data:
             print(search_data)
-            sys.exit(1)
+            print("This query will not be processed due to empty result.")
         else:
             print("ERROR (1) Unhandled exception:", file=sys.stderr)
             print(traceback.print_exc(), file=sys.stderr)
             sys.exit(1)
+
 
 def set_up_data_file():
     """Writes the header row to file to contain WikiCommons Query data."""
@@ -134,31 +180,51 @@ def set_up_data_file():
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(header_title + "\n")
 
-def record_license_data(license_type):
-    """_summary_
+
+def record_license_data(license_type, license_alias):
+    """Writes the row for LICENSE_TYPE to file to contain WikiCommon Query.
 
     Args:
-        license_type (_type_): _description_
+        license_type:
+            A string representing the type of license, and should be a segment
+            of its URL towards the license description. Alternatively, the
+            default None value stands for having no assumption about license
+            type.
+        license_alias:
+            A forward slash separated string that stands for the route by which
+            this license is found from other parent categories. Used for
+            eventual efforts of aggregating data.
     """
     search_result = get_license_contents(license_type)
     data_log = (
-        f"{license_type},"
-        f"{search_result['files']},{search_result['pages']}"
+        f"{license_alias},"
+        f"{search_result['total_file_cnt']},{search_result['total_page_cnt']}"
     )
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(f"{data_log}\n")
 
-def recur_record_all_licenses(alias = "Free_Creative_Commons_licenses"):
-    """_summary_
+
+def recur_record_all_licenses(alias="Free_Creative_Commons_licenses"):
+    """Recursively records the data of all license types findable in the
+    license list and its individual subcategories, then records these data into
+    the DATA_wRITE_FILE as specified in that constant.
 
     Args:
-        alias (str, optional): _description_. Defaults to "Free_Creative_Commons_licenses".
+        license_alias:
+            A forward slash separated string that stands for the route by which
+            this license is found from other parent categories. Used for
+            eventual efforts of aggregating data. Defaults to
+            "Free_Creative_Commons_licenses".
     """
     cur_cat = alias.split("/")[-1]
     subcategories = get_subcategories(cur_cat)
-    record_license_data(cur_cat)
-    for cats in subcategories:
-        recur_record_all_licenses(alias = f"{alias}/{cats}")
+    if cur_cat not in LICENSE_CACHE:
+        record_license_data(cur_cat, alias)
+        LICENSE_CACHE[cur_cat] = True
+        print("DEBUG", f"Logged {cur_cat} from {alias}")
+        for cats in subcategories:
+            recur_record_all_licenses(alias=f"{alias}/{cats}")
+
 
 def main():
     global DATA_WRITE_FILE
