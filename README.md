@@ -28,7 +28,10 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 
 ## Data Sources
-
+### Flickr
+> The Flickr API exposes identifiers for users, photos, photosets and other uniquely identifiable objects.
+> The Flickr API consists of a set of callable methods, and some API endpoints.
+> For more detailed description: visit Flickr API documentation(https://www.flickr.com/services/api/).
 
 ## History
 
