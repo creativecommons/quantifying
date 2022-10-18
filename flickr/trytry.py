@@ -15,15 +15,15 @@ import pandas as pd
 """two functions of querying data"""
 
 
-def data_query(raw, part, detail, temp_lis):  # part and detail should be string
+def data_query(raw, part, detail, temp_lis, index):  # part and detail should be string
     query = raw["photo"][part][detail]
-    temp_lis.append(query)
+    temp_lis[index].append(query)
     return temp_lis
 
 
-def query(raw, part, temp_lis):  # part should be string
+def query(raw, part, temp_lis, index):  # part should be string
     query = raw["photo"][part]
-    temp_lis.append(query)
+    temp_lis[index].append(query)
     return temp_lis
 
 
@@ -34,10 +34,9 @@ by iterating through the list of columns
 
 
 def to_df(linkedlis, namelis):
-    df = [pd.DataFrame() for i in range(len(linkedlis))]
-    for j in len(linkedlis):
-        df[j] = df[j].append({namelis[j]: linkedlis[j]},
-                             ignore_index=True)
+    df = [pd.DataFrame() for ind in range(len(linkedlis))]
+    for count in range(len(linkedlis)):
+        df[j] = df[j].append({namelis[j]: linkedlis[j]}, ignore_index=True)
     return df
 
 
@@ -98,18 +97,20 @@ while True:
                     time.sleep(1)
                     photos_detail = json.loads(detailJson.decode('utf-8'))
                     print(index, "id out of", len(id), "in license", i, "page", j, "out of", total)
-                    for i in range(len(name_lis)):
-                        if (i >= 0 & i < 4) or i == 9:
-                            temp_lis = query(photos_detail, name_lis[i], temp_lis[i])
-                        if i == 4 or i == 5:
-                            temp_lis = data_query(photos_detail, "owner", name_lis[i], temp_lis[i])
-                        if i == 6 or i == 7 or i == 10:
-                            temp_lis = data_query(photos_detail, name_lis[i], "_content", temp_lis[i])
-                        if i == 8:
-                            temp_lis = data_query(photos_detail, name_lis[i], "taken", temp_lis[i])
-                        else:
-                            temp_lis = data_query(photos_detail, name_lis[i], "tag", temp_lis[i])
-
+                    print(name_lis, temp_lis)
+                    for a in range(0, len(name_lis)):
+                        # name_lis = ["id", "dateuploaded", "isfavorite", "license", "realname",
+                        #  "location", "title", "description", "dates", "views", "comments", "tags"]
+                        if (a >= 0 and a < 4) or a == 9:
+                            temp_lis = query(photos_detail, name_lis[a], temp_lis, a)
+                        if a == 4 or a == 5:
+                            temp_lis = data_query(photos_detail, "owner", name_lis[a], temp_lis, a)
+                        if a == 6 or a == 7 or a == 10:
+                            temp_lis = data_query(photos_detail, name_lis[a], "_content", temp_lis, a)
+                        if a == 8:
+                            temp_lis = data_query(photos_detail, name_lis[a], "taken", temp_lis, a)
+                        if a == 11:
+                            temp_lis = data_query(photos_detail, name_lis[a], "tag", temp_lis, a)
                     if index % 100 == 0:
                         # prevent laptop from sleeping
                         pyautogui.moveTo(random.randint(50, 300), random.randint(50, 300))
@@ -154,4 +155,4 @@ while True:
         retries += 1
         print(e)
         print("page", j, "out of", total, "in license", i, "with retry number", retries)
-        continue
+        # continue
