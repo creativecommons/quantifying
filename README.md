@@ -28,7 +28,9 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 
 ## Data Sources
-
+### InternetArchive API Endpoint
+Provides search results on InternetArchive documents  
+https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
 
 ## History
 
