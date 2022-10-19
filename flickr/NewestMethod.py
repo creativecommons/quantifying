@@ -88,14 +88,21 @@ while True:
         while i in license_lis:
             while j <= total:
                 # use search method to pull photo id included under each license
-                photosJson = flickr.photos.search(license=i, per_page=500, page=j)
+                photosJson = flickr.photos.search(license=i, per_page=100, page=j)
                 time.sleep(1)
                 photos = json.loads(photosJson.decode('utf-8'))
                 id = [x["id"] for x in photos["photos"]["photo"]]
 
-                """change total everytime move to the 1st page of a new license"""
+                """
+                change total everytime move to the 1st page of a new license
+                and set the final CSV as empty every time start from the 1st page
+                """
                 if j == 1:
                     total = photos["photos"]["pages"]
+                    data = pd.read_csv('final.csv')
+                    for count in range(len(name_lis)):
+                        data.drop(name_lis[count], inplace=True, axis=1)
+                    data.to_csv("final.csv")
 
                 '''
                 use getInfo method to get more detailed photo info from inputting photo id
@@ -171,6 +178,7 @@ while True:
                         i += 1
                     with open('rec.txt', 'w') as f:
                         f.write(str(j) + " " + str(i) + " " + str(total))
+                    temp_lis = creat_lisoflis(len(name_lis))  # clear list everytime before rerun (prevent duplicate)
                     break
 
     except Exception as e:
