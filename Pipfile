@@ -8,6 +8,8 @@ flickrapi = "*"
 numpy = "*"
 pandas = "*"
 requests = "*"
+internetarchive = "*"
+urllib3 = "*"
 
 [dev-packages]
 black = "*"
