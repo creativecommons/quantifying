@@ -6,40 +6,20 @@ Data.
 # Standard library
 import datetime as dt
 import os
-import random
 import sys
-import time
 import traceback
 
 # Third-party
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
+today = dt.datetime.today()
 CWD = os.path.dirname(os.path.abspath(__file__))
-CALLBACK_INDEX = 2
-CALLBACK_EXPO = 0
-MAX_WAIT = 64
-DATA_WRITE_FILE = CWD
+DATA_WRITE_FILE = (
+    f"{CWD}" f"/data_wikicommons_{today.year}_{today.month}_{today.day}.csv"
+)
 LICENSE_CACHE = {}
-
-
-def expo_backoff():
-    """Performs exponential backoff upon call.
-    The function will force a wait of CALLBACK_INDEX ** CALLBACK_EXPO + r
-    seconds, where r is a decimal number between 0.001 and 0.999, inclusive.
-    If that value is higher than MAX_WAIT, then it will just wait MAX_WAIT
-    seconds instead.
-    """
-    global CALLBACK_EXPO
-    backoff = random.randint(1, 1000) / 1000 + CALLBACK_INDEX**CALLBACK_EXPO
-    time.sleep(min(backoff, MAX_WAIT))
-    if backoff < MAX_WAIT:
-        CALLBACK_EXPO += 1
-
-
-def expo_backoff_reset():
-    """Resets the CALLBACK_EXPO to 0."""
-    global CALLBACK_EXPO
-    CALLBACK_EXPO = 0
 
 
 def get_content_request_url(license):
@@ -57,12 +37,11 @@ def get_content_request_url(license):
         string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
-    base_url = (
+    return (
         r"https://commons.wikimedia.org/w/api.php?"
         r"action=query&prop=categoryinfo&titles="
         f"Category:{license}&format=json"
     )
-    return base_url
 
 
 def get_subcat_request_url(license):
@@ -89,7 +68,7 @@ def get_subcat_request_url(license):
     return base_url
 
 
-def get_subcategories(license, eb=False):
+def get_subcategories(license):
     """Obtain the subcategories of LICENSE in WikiCommons Database for
     recursive searching.
 
@@ -99,9 +78,6 @@ def get_subcategories(license, eb=False):
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
             type.
-        eb:
-            A boolean indicating whether there should be exponential callback.
-            Is by default False.
 
     Returns:
         list: A list representing the subcategories of current license type
@@ -110,18 +86,24 @@ def get_subcategories(license, eb=False):
     """
     try:
         request_url = get_subcat_request_url(license)
-        search_data = requests.get(request_url).json()
-        cat_list = []
+        max_retries = Retry(
+            total=5,
+            backoff_factor=10,
+            status_forcelist=[403, 408, 429, 500, 502, 503, 504],
+        )
+        session = requests.Session()
+        session.mount("https://", HTTPAdapter(max_retries=max_retries))
+        with session.get(request_url) as response:
+            response.raise_for_status()
+            search_data = response.json()
+        category_list = []
         for members in search_data["query"]["categorymembers"]:
-            cat_list.append(
+            category_list.append(
                 members["title"].replace("Category:", "").replace("&", "%26")
             )
-        return cat_list
-    except Exception as e:
-        if eb:
-            expo_backoff()
-            get_subcategories(license)
-        elif "query" not in search_data:
+        return category_list
+    except Exception:
+        if "query" not in search_data:
             print(search_data)
             print("This query will not be processed due to empty subcats.")
         else:
@@ -130,7 +112,7 @@ def get_subcategories(license, eb=False):
             sys.exit(1)
 
 
-def get_license_contents(license, eb=False):
+def get_license_contents(license):
     """Provides the metadata for query of specified parameters.
 
     Args:
@@ -139,17 +121,23 @@ def get_license_contents(license, eb=False):
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
             type.
-        eb:
-            A boolean indicating whether there should be exponential callback.
-            Is by default False.
 
     Returns:
         dict: A dictionary mapping metadata to its value provided from the API
         query of specified parameters.
     """
     try:
-        url = get_content_request_url(license)
-        search_data = requests.get(url).json()
+        request_url = get_content_request_url(license)
+        max_retries = Retry(
+            total=5,
+            backoff_factor=10,
+            status_forcelist=[403, 408, 429, 500, 502, 503, 504],
+        )
+        session = requests.Session()
+        session.mount("https://", HTTPAdapter(max_retries=max_retries))
+        with session.get(request_url) as response:
+            response.raise_for_status()
+            search_data = response.json()
         file_cnt = 0
         page_cnt = 0
         for id in search_data["query"]["pages"]:
@@ -161,11 +149,8 @@ def get_license_contents(license, eb=False):
             "total_page_cnt": page_cnt,
         }
         return search_data_dict
-    except Exception as e:
-        if eb:
-            expo_backoff()
-            get_license_contents(license)
-        elif "queries" not in search_data:
+    except Exception:
+        if "queries" not in search_data:
             print(search_data)
             print("This query will not be processed due to empty result.")
         else:
@@ -176,7 +161,7 @@ def get_license_contents(license, eb=False):
 
 def set_up_data_file():
     """Writes the header row to file to contain WikiCommons Query data."""
-    header_title = "LICENSE TYPE,File Count, Page Count"
+    header_title = "LICENSE TYPE,File Count,Page Count"
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(header_title + "\n")
 
@@ -196,8 +181,9 @@ def record_license_data(license_type, license_alias):
             eventual efforts of aggregating data.
     """
     search_result = get_license_contents(license_type)
+    cleaned_alias = license_alias.replace(",", "|")
     data_log = (
-        f"{license_alias},"
+        f"{cleaned_alias},"
         f"{search_result['total_file_cnt']},{search_result['total_page_cnt']}"
     )
     with open(DATA_WRITE_FILE, "a") as f:
@@ -216,25 +202,20 @@ def recur_record_all_licenses(alias="Free_Creative_Commons_licenses"):
             eventual efforts of aggregating data. Defaults to
             "Free_Creative_Commons_licenses".
     """
-    cur_cat = alias.split("/")[-1]
-    subcategories = get_subcategories(cur_cat)
-    if cur_cat not in LICENSE_CACHE:
-        record_license_data(cur_cat, alias)
-        LICENSE_CACHE[cur_cat] = True
-        print("DEBUG", f"Logged {cur_cat} from {alias}")
+    alias.replace(",", "|")
+    cur_category = alias.split("/")[-1]
+    subcategories = get_subcategories(cur_category)
+    if cur_category not in LICENSE_CACHE:
+        record_license_data(cur_category, alias)
+        LICENSE_CACHE[cur_category] = True
+        print("DEBUG", f"Logged {cur_category} from {alias}")
         for cats in subcategories:
             recur_record_all_licenses(alias=f"{alias}/{cats}")
 
 
 def main():
-    global DATA_WRITE_FILE
-    today = dt.datetime.today()
-    DATA_WRITE_FILE += (
-        f"/data_wikicommons_{today.year}_{today.month}_{today.day}.txt"
-    )
     set_up_data_file()
     recur_record_all_licenses()
-    DATA_WRITE_FILE = CWD
 
 
 if __name__ == "__main__":

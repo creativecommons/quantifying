@@ -1,4 +1,4 @@
-LICENSE TYPE,File Count, Page Count
+LICENSE TYPE,File Count,Page Count
 Free_Creative_Commons_licenses,0,0
 Free_Creative_Commons_licenses/CC-BY,1,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-1.0,7722,0
@@ -6,8 +6,8 @@ Free_Creative_Commons_licenses/CC-BY/CC-BY-1.0/CC-BY-1.0+,7722,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-1.0/CC-BY-1.0+/CC-BY-1.0-FI,93,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-1.0/CC-BY-1.0+/CC-BY-1.0-IL,1,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-1.0/CC-BY-1.0+/CC-BY-1.0-NL,45,0
-Free_Creative_Commons_licenses/CC-BY/CC-BY-1.0/CC-BY-1.0+/CC-BY-3.0,2.5,2.0,1.0,18410,0
-Free_Creative_Commons_licenses/CC-BY/CC-BY-2.0,6122659,0
+Free_Creative_Commons_licenses/CC-BY/CC-BY-1.0/CC-BY-1.0+/CC-BY-3.0|2.5|2.0|1.0,18410,0
+Free_Creative_Commons_licenses/CC-BY/CC-BY-2.0,6127008,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.0/CC-BY-2.0-AT,231,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.0/CC-BY-2.0-AU,0,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.0/CC-BY-2.0-BE,74,0
@@ -21,8 +21,8 @@ Free_Creative_Commons_licenses/CC-BY/CC-BY-2.1,0,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.1/CC-BY-2.1-AU,21,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.1/CC-BY-2.1-ES,33,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.1/CC-BY-2.1-JP,6061,0
-Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5,360264,0
-Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5/CC-BY-2.5-AR,5712,0
+Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5,360378,0
+Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5/CC-BY-2.5-AR,5709,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5/CC-BY-2.5-AU,6658,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5/CC-BY-2.5-BG,399,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5/CC-BY-2.5-BR,252,0
@@ -31,9 +31,9 @@ Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5/CC-BY-2.5-CH,312,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5/CC-BY-2.5-CN,88,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5/CC-BY-2.5-CO,6,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-2.5/CC-BY-2.5-DK,5914,0
-Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0,3053828,0
+Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0,3054729,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-AT,5811,0
-Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-AU,8883,0
+Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-AU,8886,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-BR,13465,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-BR/Photographs by Agencia Brasil,10712,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-BR/Photographs by Agencia Brasil/Agência Brasil related uploads affected by license change,1,0
@@ -51,38 +51,38 @@ Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-BR/Images by TV Brasil,
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-BR/Images by TV Brasil/TV Brasil related deletion requests,1,5
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-BR/Images by TV Brasil/Photographs by TV Brasil,350,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CH,153,0
-Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CL,3838,0
+Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CL,3830,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CL/CC-Alejandro Hales BCN,25,0
-Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CL/CC-Gobierno de Chile,2432,0
+Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CL/CC-Gobierno de Chile,2424,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CL/CC-Historia Política BCN,1326,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CN,102,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CR,0,0
 Free_Creative_Commons_licenses/CC-BY/CC-BY-3.0/CC-BY-3.0-CZ,437,0
-Free_Creative_Commons_licenses/CC-BY/CC-BY-4.0,1957394,0
+Free_Creative_Commons_licenses/CC-BY/CC-BY-4.0,1958761,0
 Free_Creative_Commons_licenses/CC-BY-SA,4,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0,30472,1
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+,30472,1
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0,30475,1
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+,30475,1
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+/CC-BY-SA-1.0-FI,148,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+/CC-BY-SA-1.0-IL,0,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+/CC-BY-SA-1.0-NL,2,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+/CC-BY-SA-2.5,2.0,1.0,293277,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+/CC-BY-SA-3.0,2.5,2.0,1.0,1120674,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+/CC-BY-SA-4.0,3.0,2.5,2.0,1.0,413538,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0,8288464,17
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+,8288464,17
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+/CC-BY-SA-2.5|2.0|1.0,293304,0
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+/CC-BY-SA-3.0|2.5|2.0|1.0,1120719,0
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-1.0/CC-BY-SA-1.0+/CC-BY-SA-4.0|3.0|2.5|2.0|1.0,413605,0
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0,8293847,17
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+,8293847,17
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+/CC-BY-SA-2.0-AT,773,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+/CC-BY-SA-2.0-AU,3,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+/CC-BY-SA-2.0-BE,1032,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+/CC-BY-SA-2.0-BR,218,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+/CC-BY-SA-2.0-CA,316,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+/CC-BY-SA-2.0-CL,15,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+/CC-BY-SA-2.0-DE,37204,0
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+/CC-BY-SA-2.0-DE,37206,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.0/CC-BY-SA-2.0+/CC-BY-SA-2.0-ES,44,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.1,0,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.1/CC-BY-SA-2.1-AU,61,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.1/CC-BY-SA-2.1-ES,715,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.1/CC-BY-SA-2.1-JP,23612,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.5,338304,0
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.5,338337,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.5/CC-BY-SA-2.5-AR,998,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.5/CC-BY-SA-2.5-AU,1774,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.5/CC-BY-SA-2.5-BG,0,0
@@ -90,21 +90,21 @@ Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.5/CC-BY-SA-2.5-BR,521,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.5/CC-BY-SA-2.5-CA,1701,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.5/CC-BY-SA-2.5-CH,3009,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-2.5/CC-BY-SA-2.5-CN,38,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0,10310341,0
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0,10311807,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0/CC-BY-SA-3.0-AT,111610,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0/CC-BY-SA-3.0-AU,168579,0
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0/CC-BY-SA-3.0-AU,168580,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0/CC-BY-SA-3.0-BG,0,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0/CC-BY-SA-3.0-BR,3665,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0/CC-BY-SA-3.0-CH,1666,0
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0/CC-BY-SA-3.0-CH,1664,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0/CC-BY-SA-3.0-CL,2798,0
 Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-3.0/CC-BY-SA-3.0-CN,142,0
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-4.0,22015789,11
-Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-4.0/CC-BY-SA-4.0,3.0,33,0
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-4.0,22031587,11
+Free_Creative_Commons_licenses/CC-BY-SA/CC-BY-SA-4.0/CC-BY-SA-4.0|3.0,33,0
 Free_Creative_Commons_licenses/CC-PD,9910,0
 Free_Creative_Commons_licenses/CC-PD/All LibriVox recordings,5461,0
 Free_Creative_Commons_licenses/CC-PD/LibriVox - The Federalist Papers,85,0
 Free_Creative_Commons_licenses/CC-SA-1.0,4446,0
-Free_Creative_Commons_licenses/CC-Zero,5390598,2
+Free_Creative_Commons_licenses/CC-Zero,5391981,2
 Free_Creative_Commons_licenses/CC-Zero/PD OpenClipart,2666,0
 Free_Creative_Commons_licenses/CC-Zero/PD OpenClipart/OpenClipart playing cards,0,0
 Free_Creative_Commons_licenses/CC-Zero/PD OpenClipart/OpenClipart playing cards/OpenClipart bordered playing cards,54,0
@@ -116,7 +116,7 @@ Free_Creative_Commons_licenses/CC-Zero/Collections of the Biblioteca Virtual de 
 Free_Creative_Commons_licenses/CC-Zero/Collections of the Biblioteca Virtual de Defensa/Documents from the Biblioteca Virtual de Defensa,17,0
 Free_Creative_Commons_licenses/CC-Zero/Collections of the Biblioteca Virtual de Defensa/Images from the Biblioteca Virtual de Defensa,163,0
 Free_Creative_Commons_licenses/CC-Zero/Media from piviso.com,1,0
-Free_Creative_Commons_licenses/CC-Zero/CC0 files by PantheraLeo1359531,573,0
+Free_Creative_Commons_licenses/CC-Zero/CC0 files by PantheraLeo1359531,576,0
 Free_Creative_Commons_licenses/CC-Zero/Files from Pexels,271,0
 Free_Creative_Commons_licenses/CC-Zero/Images from Pixabay,5408,0
 Free_Creative_Commons_licenses/CC-Zero/Images from Pixabay/Files from Pixabay by user,0,2
