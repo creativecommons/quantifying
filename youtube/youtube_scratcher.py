@@ -15,8 +15,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-API_KEY = query_secret.API_KEY
 today = dt.datetime.today()
+API_KEY = query_secret.API_KEY
 CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_youtube_{today.year}_{today.month}_{today.day}.csv"
