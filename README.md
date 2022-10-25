@@ -63,6 +63,10 @@ modules:
 
 ### Data Sources
 
+- Youtube Data API\
+An API from YouTube for platform users to upload videos, adjust video parameters, and obtain search results.\
+Documentation page:\
+https://developers.google.com/youtube/v3/docs/search/list#response
 
 ## History
 
