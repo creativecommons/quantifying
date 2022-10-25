@@ -63,6 +63,10 @@ modules:
 
 ### Data Sources
 
+- Internetarchive Python Interface\
+A python interface to archive.org to achieve API requests towards internet archive.\
+Main documentation page:\
+https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
 
 ## History
 
