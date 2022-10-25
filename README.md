@@ -63,6 +63,11 @@ modules:
 
 ### Data Sources
 
+- The Metropolitan Museum of Art Collection API\
+An API endpoint for receiving Metropolitan Muesum of Art Collection's CC-Licensed works.\
+Per description from main documentation page, all works in this database is registered under the CC0 1.0 Universal License.\
+Main documentation page:\
+https://metmuseum.github.io/
 
 ## History
 
