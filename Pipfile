@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 flickrapi = "*"
+internetarchive = "*"
 numpy = "*"
 pandas = "*"
 requests = "*"
@@ -17,4 +18,4 @@ flake8 = "*"
 isort = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"
