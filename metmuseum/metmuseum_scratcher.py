@@ -72,7 +72,7 @@ def record_all_licenses():
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
     with open(DATA_WRITE_FILE, "a") as f:
-        f.write(f"publicdomain/zero/1.0/,{get_response_elems()['total']}\n")
+        f.write(f"publicdomain/zero/1.0,{get_response_elems()['total']}\n")
 
 
 def main():
