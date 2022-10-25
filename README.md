@@ -63,26 +63,24 @@ modules:
 
 ### Data Sources
 
+- Google Custom Search JSON API\
+The Custom Search JSON API allows user-defined detailed query and access towards related query data using a programmable search engine.\
+Main Documentation Page:\
+https://developers.google.com/custom-search/v1<br>
+https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
+
+- google_countries.txt\
+Directly copy pasting the cr parameter list from the following link into a .txt file:\
+https://developers.google.com/custom-search/docs/json_api_reference#countryCollections
+
+- google_lang.txt\
+Directly copy pasting the cr parameter list from the following method's 'lr' parameter into a .txt file:\
+https://developers.google.com/custom-search/v1/reference/rest/v1/Search
 
 ## History
 
 For information on past efforts, see [`history.md`](history.md).
 
-## Data Sources:
-
-### Google Custom Search JSON API
-The Custom Search JSON API allows user-defined detailed query and access towards related query data using a programmable search engine.
-In short, it's coded Google Search!  
-References of main technology used:  
-https://developers.google.com/custom-search/v1/overview  
-https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list  
-https://developers.google.com/custom-search/docs/json_api_reference#countryCollections  
-https://developers.google.com/custom-search/v1/reference/rest/v1/Search  
-
-
-## History
-
-For information on past efforts, see [`history.md`](history.md).
 
 ## Copying & License
 
