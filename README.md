@@ -27,10 +27,42 @@ collection of works that are openly licensed or in the public domain.
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 
-## Data Sources
-### MetMuseum API
-Main Documentation Page: https://metmuseum.github.io/\
-Every object in the MetMuseum database is licensed under CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
+## Development
+
+
+### Prerequisites
+
+This repository uses [pipenv][pipenvdocs] to manage the required Python
+modules:
+- Linux: [Installing Pipenv][pipenvinstall]
+- macOS:
+  1. Install [Homebrew][homebrew]
+  2. Install pipenv:
+        ```
+        brew install pipenv
+        ```
+
+[pipenvdocs]: https://pipenv.pypa.io/en/latest/
+[homebrew]: https://brew.sh/
+[pipenvinstall]: https://pipenv.pypa.io/en/latest/install/#installing-pipenv
+
+
+### Tooling
+
+- **[Python Guidelines — Creative Commons Open Source][ccospyguide]**
+- [Black][black]: the uncompromising Python code formatter
+- [flake8][flake8]: a python tool that glues together pep8, pyflakes, mccabe,
+  and third-party plugins to check the style and quality of some python code.
+- [isort][isort]: A Python utility / library to sort imports.
+
+[ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
+[black]: https://github.com/psf/black
+[flake8]: https://gitlab.com/pycqa/flake8
+[isort]: https://pycqa.github.io/isort/
+
+
+### Data Sources
+
 
 ## History
 
