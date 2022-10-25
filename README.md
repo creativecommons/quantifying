@@ -63,10 +63,10 @@ modules:
 
 ### Data Sources
 
-### MediaWiki
-The MediaWiki API allows user-defined query on metadata and statistics of wikipedia addresses.  
-References of main technology used:  
-https://www.mediawiki.org/wiki/API:Main_page
+- MediaWiki API\
+The MediaWiki Action API is a web service that allows access to some wiki features like authentication, page operations, and search. It can provide meta information about the wiki and the logged-in user.\
+Example Query:\
+https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=statistics
 
 ## History
 
