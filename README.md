@@ -68,6 +68,10 @@ The MediaWiki Action API is a web service that allows access to some wiki featur
 Example Query:\
 https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=statistics
 
+- language-codes_csv.csv\
+A list of language codes in ISO 639-1 Format to access statistics of each wikipedia main page across different languages.\
+https://datahub.io/core/language-codes
+
 ## History
 
 For information on past efforts, see [`history.md`](history.md).
