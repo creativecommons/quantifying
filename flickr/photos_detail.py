@@ -6,17 +6,22 @@ step1: API call
 step2: save useful data in the format of [[], []]
 step3: saving lists of data to DataFrame
 """
-import flickrapi
+# Standard library
 import json
-import secret_key
-import time
-import pyautogui
 import random
+import time
+
+# Third-party
+import flickrapi
 import pandas as pd
+import pyautogui
+import secret_key
 
 """two functions of querying data"""
 
-def data_query(raw, part, detail, temp_list, index):  # part and detail should be string
+
+def data_query(raw, part, detail, temp_list, index):
+    # part and detail should be string
     query = raw["photo"][part][detail]
     temp_list[index].append(query)
     return temp_list
@@ -33,19 +38,20 @@ this is to transform pulled and queried data into dataframe
 by iterating through the list of columns
 """
 
-def to_df(datalis, namelis):
-    df = [pd.DataFrame() for ind in range(len(datalis))]
-    df = pd.DataFrame(datalis).transpose()
-    df.columns = namelis
-    # for count in range(len(temp_list)):
-    #     df[count] = df[count].append({name_list[j]: temp_list[j]}, ignore_index=True)
+
+def to_df(datalist, namelist):
+    df = [pd.DataFrame() for ind in range(len(datalist))]
+    df = pd.DataFrame(datalist).transpose()
+    df.columns = namelist
     return df
+
 
 """
 this is to create one lindked list [[],[],[]] to save
 all the collumns with each collumn as a list
 and to create one list to save all the nams for collumns
 """
+
 
 def creat_lis(size):
     name_list = [] * size
@@ -55,6 +61,7 @@ def creat_lis(size):
 def creat_lisoflis(size):
     temp_list = [[] for i in range(size)]
     return temp_list
+
 
 """
 when iterating through all the data in one license
@@ -67,17 +74,22 @@ def clean_saveas_csv(old_csv_str, new_csv_str):
             data.drop(col, inplace=True, axis=1)
     data.to_csv(new_csv_str)
 
+
 retries = 0
-flickr = flickrapi.FlickrAPI(secret_key.api_key, secret_key.api_secret, format='json')
-license_list = [1, 2, 3, 4, 5, 6, 9, 10]  # this is the cc licenses list
+flickr = flickrapi.FlickrAPI(secret_key.api_key,
+                             secret_key.api_secret, format='json')
+# below is the cc licenses list
+license_list = [1, 2, 3, 4, 5, 6, 9, 10]
 
 # we want to have these 11 columns of data saved in final csv
 # name_lis is the header of final table
 # temp_list is in the form of list within list, which saves the actual data
 # each internal list is a column: ie. temp_list[0] saves the data of id number
 name_list = ["id", "dateuploaded", "isfavorite", "license", "realname",
-            "location", "title", "description", "dates", "views", "comments", "tags"]
+            "location", "title", "description", "dates", "views",
+             "comments", "tags"]
 temp_list = creat_lisoflis(len(name_list))
+
 
 while True:
     try:
@@ -113,20 +125,25 @@ while True:
                     detailJson = flickr.photos.getInfo(license=i, photo_id=id[index])
                     time.sleep(1)
                     photos_detail = json.loads(detailJson.decode('utf-8'))
-                    print(index, "id out of", len(id), "in license", i, "page", j, "out of", total)
+                    print(index, "id out of", len(id), "in license", i,
+                          "page", j, "out of", total)
 
                     # below is the query process of useful data
                     for a in range(0, len(name_list)):
-                        # name_list = ["id", "dateuploaded", "isfavorite", "license", "realname",
-                        #  "location", "title", "description", "dates", "views", "comments", "tags"]
+                        # name_list = ["id", "dateuploaded", "isfavorite", "license",
+                        #  "realname", "location", "title", "description", "dates",
+                        #  "views", "comments", "tags"]
                         if (a >= 0 and a < 4) or a == 9:
                             temp_list = query(photos_detail, name_list[a], temp_list, a)
                         if a == 4 or a == 5:
-                            temp_list = data_query(photos_detail, "owner", name_list[a], temp_list, a)
+                            temp_list = data_query(photos_detail, "owner", name_list[a],
+                                                   temp_list, a)
                         if a == 6 or a == 7 or a == 10:
-                            temp_list = data_query(photos_detail, name_list[a], "_content", temp_list, a)
+                            temp_list = data_query(photos_detail, name_list[a], "_content",
+                                                   temp_list, a)
                         if a == 8:
-                            temp_list = data_query(photos_detail, name_list[a], "taken", temp_list, a)
+                            temp_list = data_query(photos_detail, name_list[a], "taken",
+                                                   temp_list, a)
                         if a == 11:
 
                             # some photo id has more than one subids included
@@ -137,7 +154,8 @@ while True:
                             if tags:
                                 temp_list[a].append([tags[num]["raw"] for num in range(len(tags))])
                             else:
-                                temp_list = data_query(photos_detail, name_list[a], "tag", temp_list, a)
+                                temp_list = data_query(photos_detail, name_list[a],
+                                                       "tag", temp_list, a)
                     if index % 100 == 0:
                         # prevent laptop from sleeping
                         pyautogui.moveTo(random.randint(50, 300), random.randint(50, 300))
@@ -150,7 +168,8 @@ while True:
                 # and save the dataframe into history csv after iterating through each page
                 # and merge history CSVs to final CSV
                 # and update j(the current page number in txt)
-                # note that the map(pd.read_csv) means overwrite data each time so duplicate issue solved
+                # note that the map(pd.read_csv) means overwrite data each time
+                # so duplicate issue solved
                 df = to_df(temp_list, name_list)
                 df.to_csv('hs.csv')
                 df = pd.concat(
@@ -174,12 +193,14 @@ while True:
                         i += 1
                     with open('rec.txt', 'w') as f:
                         f.write(str(j) + " " + str(i) + " " + str(total))
-                    temp_list = creat_lisoflis(len(name_list))  # clear list everytime before rerun (prevent duplicate)
+                    # below is to clear list everytime before rerun (prevent duplicate)
+                    temp_list = creat_lisoflis(len(name_list))
                     break
 
     except Exception as e:
         retries += 1
         print(e)
         print("page", j, "out of", total, "in license", i, "with retry number", retries)
-        temp_list = creat_lisoflis(len(name_list))  # clear list everytime before rerun (prevent duplicate)
+        # below is to clear list everytime before rerun (prevent duplicate)
+        temp_list = creat_lisoflis(len(name_list))
         continue
