@@ -161,11 +161,12 @@ while True:
                             # this column of data
                             tags = photos_detail["photo"]["tags"]["tag"]
                             if tags:
-                                temp_list[a].append([tags[num]["raw"]
-                                                     for num in range(len(tags))])
+                                temp_list[a].append([tags[num]["raw"] for
+                                                     num in range(len(tags))])
                             else:
-                                temp_list = data_query(photos_detail, name_list[a],
-                                                       "tag", temp_list, a)
+                                temp_list = data_query(photos_detail,
+                                                       name_list[a], "tag",
+                                                       temp_list, a)
                     if index % 100 == 0:
                         # prevent laptop from sleeping
                         pyautogui.moveTo(random.randint(50, 300),
@@ -174,7 +175,6 @@ while True:
                 j += 1
                 print("page", j, "out of", total, "in license", i,
                       "with retry number", retries)
-
 
                 # now we will put the list of columns into dataframe
                 # and save the dataframe into history csv after
@@ -196,12 +196,11 @@ while True:
                 # the csv file to prevent from saving duplicate data
                 temp_list = creat_lisoflis(len(name_list))
 
-
                 # if current page number has reached the max
                 # limit of total pages
                 # reset j to 1 and update i to the license in the dictionary
                 if j == total + 1 or j > total:
-                    clean_saveas_csv("final.csv", "license"+ "i" +".csv")
+                    clean_saveas_csv("final.csv", "license" + "i" + ".csv")
                     i += 1
                     j = 1
                     while i not in license_list:
