@@ -1,8 +1,8 @@
 import flickrapi
 import json
-import secrets
+import secret_key
 
-flickr = flickrapi.FlickrAPI(secrets.api_key, secrets.api_secret, format='json')
+flickr = flickrapi.FlickrAPI(secret_key.api_key, secret_key.api_secret, format='json')
 
 licenseJson = flickr.photos.licenses.getInfo()
 licenseInfo = json.loads(licenseJson.decode('utf-8'))
