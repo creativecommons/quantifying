@@ -20,7 +20,7 @@ import pandas as pd
 import pyautogui
 import secret_key
 
-"""two functions of querying data"""
+"""two functions of basic data querying"""
 
 
 def data_query(raw, part, detail, temp_list, index):
