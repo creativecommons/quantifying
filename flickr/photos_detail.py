@@ -6,6 +6,7 @@ step1: API call
 step2: save useful data in the format of [[], []]
 step3: saving lists of data to DataFrame
 """
+<<<<<<< HEAD
 # Standard library
 import json
 import random
@@ -25,6 +26,19 @@ import secret_key
 
 def data_query(raw, part, detail, temp_list, index):
     # part and detail should be string
+=======
+import flickrapi
+import json
+import secret_key
+import time
+import pyautogui
+import random
+import pandas as pd
+
+"""two functions of querying data"""
+
+def data_query(raw, part, detail, temp_list, index):  # part and detail should be string
+>>>>>>> main
     query = raw["photo"][part][detail]
     temp_list[index].append(query)
     return temp_list
@@ -149,6 +163,7 @@ def automove_mouse (total_number, seconds):
         pyautogui.moveTo(random.randint(50, 300),
                          random.randint(50, 300))
 
+
 """
 change total equals to the total picture number under current license
 everytime moving to the 1st page of a new license
@@ -243,11 +258,11 @@ def main():
                         i += 1
                     with open('rec.txt', 'w') as f:
                         f.write(str(j) + " " + str(i) + " " + str(total))
+
                     # below is to clear list everytime
                     # before rerun (to prevent duplicate)
                     temp_list = creat_lisoflis(len(name_list))
                     break
-
 
 if __name__ == "__main__":
     try:

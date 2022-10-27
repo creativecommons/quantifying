@@ -27,11 +27,49 @@ collection of works that are openly licensed or in the public domain.
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 
+
+## Development
+
+
+### Prerequisites
+
+This repository uses [pipenv][pipenvdocs] to manage the required Python
+modules:
+- Linux: [Installing Pipenv][pipenvinstall]
+- macOS:
+  1. Install [Homebrew][homebrew]
+  2. Install pipenv:
+        ```
+        brew install pipenv
+        ```
+
+[pipenvdocs]: https://pipenv.pypa.io/en/latest/
+[homebrew]: https://brew.sh/
+[pipenvinstall]: https://pipenv.pypa.io/en/latest/install/#installing-pipenv
+
+
+### Tooling
+
+- **[Python Guidelines — Creative Commons Open Source][ccospyguide]**
+- [Black][black]: the uncompromising Python code formatter
+- [flake8][flake8]: a python tool that glues together pep8, pyflakes, mccabe,
+  and third-party plugins to check the style and quality of some python code.
+- [isort][isort]: A Python utility / library to sort imports.
+
+[ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
+[black]: https://github.com/psf/black
+[flake8]: https://gitlab.com/pycqa/flake8
+[isort]: https://pycqa.github.io/isort/
+
+
 ## Data Sources
 ### Flickr
-> The Flickr API exposes identifiers for users, photos, photosets and other uniquely identifiable objects.
-> The Flickr API consists of a set of callable methods, and some API endpoints.
-> For more detailed description: visit Flickr API documentation(https://www.flickr.com/services/api/).
+- The Flickr API exposes identifiers for users, photos, photosets and other uniquely identifiable objects.
+- The Flickr API consists of a set of callable methods, and some API endpoints.
+- For more detailed description: visit Flickr API documentation(https://www.flickr.com/services/api/).
+- The file hs.csv is a sample csv of pulled data. Ideally the script will generate final data CSVs.
+- Each license will have a csv to save the data.
+- Due to memory limit, the license CSVs are not pushed into github.
 
 ## History
 
