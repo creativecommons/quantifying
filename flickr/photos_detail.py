@@ -6,7 +6,6 @@ step1: API call
 step2: save useful data in the format of [[], []]
 step3: saving lists of data to DataFrame
 """
-<<<<<<< HEAD
 # Standard library
 import json
 import random
@@ -26,19 +25,6 @@ import secret_key
 
 def data_query(raw, part, detail, temp_list, index):
     # part and detail should be string
-=======
-import flickrapi
-import json
-import secret_key
-import time
-import pyautogui
-import random
-import pandas as pd
-
-"""two functions of querying data"""
-
-def data_query(raw, part, detail, temp_list, index):  # part and detail should be string
->>>>>>> main
     query = raw["photo"][part][detail]
     temp_list[index].append(query)
     return temp_list
