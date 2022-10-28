@@ -19,7 +19,6 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_wikicommons_{today.year}_{today.month}_{today.day}.csv"
 )
-LICENSE_CACHE = {}
 
 
 def get_content_request_url(license):
@@ -68,7 +67,7 @@ def get_subcat_request_url(license):
     return base_url
 
 
-def get_subcategories(license):
+def get_subcategories(license, session):
     """Obtain the subcategories of LICENSE in WikiCommons Database for
     recursive searching.
 
@@ -78,6 +77,9 @@ def get_subcategories(license):
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
             type.
+        session:
+            A requests.Session object for accessing API endpoints and
+            retrieving API endpoint responses.
 
     Returns:
         list: A list representing the subcategories of current license type
@@ -86,13 +88,6 @@ def get_subcategories(license):
     """
     try:
         request_url = get_subcat_request_url(license)
-        max_retries = Retry(
-            total=5,
-            backoff_factor=10,
-            status_forcelist=[403, 408, 429, 500, 502, 503, 504],
-        )
-        session = requests.Session()
-        session.mount("https://", HTTPAdapter(max_retries=max_retries))
         with session.get(request_url) as response:
             response.raise_for_status()
             search_data = response.json()
@@ -102,17 +97,21 @@ def get_subcategories(license):
                 members["title"].replace("Category:", "").replace("&", "%26")
             )
         return category_list
-    except Exception:
-        if "query" not in search_data:
-            print(search_data)
-            print("This query will not be processed due to empty subcats.")
-        else:
-            print("ERROR (1) Unhandled exception:", file=sys.stderr)
-            print(traceback.print_exc(), file=sys.stderr)
+    except Exception as e:
+        if "queries" not in search_data:
+            print(
+                (
+                    f"search data is: \n{search_data} for license {license}"
+                    f"This query will not be processed due to empty result."
+                ),
+                file=sys.stderr,
+            )
             sys.exit(1)
+        else:
+            raise e
 
 
-def get_license_contents(license):
+def get_license_contents(license, session):
     """Provides the metadata for query of specified parameters.
 
     Args:
@@ -121,6 +120,9 @@ def get_license_contents(license):
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
             type.
+        session:
+            A requests.Session object for accessing API endpoints and
+            retrieving API endpoint responses.
 
     Returns:
         dict: A dictionary mapping metadata to its value provided from the API
@@ -128,13 +130,6 @@ def get_license_contents(license):
     """
     try:
         request_url = get_content_request_url(license)
-        max_retries = Retry(
-            total=5,
-            backoff_factor=10,
-            status_forcelist=[403, 408, 429, 500, 502, 503, 504],
-        )
-        session = requests.Session()
-        session.mount("https://", HTTPAdapter(max_retries=max_retries))
         with session.get(request_url) as response:
             response.raise_for_status()
             search_data = response.json()
@@ -149,14 +144,18 @@ def get_license_contents(license):
             "total_page_cnt": page_cnt,
         }
         return search_data_dict
-    except Exception:
+    except Exception as e:
         if "queries" not in search_data:
-            print(search_data)
-            print("This query will not be processed due to empty result.")
-        else:
-            print("ERROR (1) Unhandled exception:", file=sys.stderr)
-            print(traceback.print_exc(), file=sys.stderr)
+            print(
+                (
+                    f"search data is: \n{search_data} for license {license}"
+                    f"This query will not be processed due to empty result."
+                ),
+                file=sys.stderr,
+            )
             sys.exit(1)
+        else:
+            raise e
 
 
 def set_up_data_file():
@@ -166,7 +165,7 @@ def set_up_data_file():
         f.write(header_title + "\n")
 
 
-def record_license_data(license_type, license_alias):
+def record_license_data(license_type, license_alias, session):
     """Writes the row for LICENSE_TYPE to file to contain WikiCommon Query.
 
     Args:
@@ -179,8 +178,11 @@ def record_license_data(license_type, license_alias):
             A forward slash separated string that stands for the route by which
             this license is found from other parent categories. Used for
             eventual efforts of aggregating data.
+        session:
+            A requests.Session object for accessing API endpoints and
+            retrieving API endpoint responses.
     """
-    search_result = get_license_contents(license_type)
+    search_result = get_license_contents(license_type, session)
     cleaned_alias = license_alias.replace(",", "|")
     data_log = (
         f"{cleaned_alias},"
@@ -190,10 +192,14 @@ def record_license_data(license_type, license_alias):
         f.write(f"{data_log}\n")
 
 
-def recur_record_all_licenses(alias="Free_Creative_Commons_licenses"):
+def recur_record_all_licenses(license_alias="Free_Creative_Commons_licenses"):
     """Recursively records the data of all license types findable in the
     license list and its individual subcategories, then records these data into
-    the DATA_wRITE_FILE as specified in that constant.
+    the DATA_WRITE_FILE as specified in that constant.
+
+    Due to possible cycles in paths between arbitrary subcategories, a local
+    variable LICENSE_CACHE is introduced as a measure of cycle detection to
+    prevent re-recording detected subcategories in prior runs.
 
     Args:
         license_alias:
@@ -202,15 +208,26 @@ def recur_record_all_licenses(alias="Free_Creative_Commons_licenses"):
             eventual efforts of aggregating data. Defaults to
             "Free_Creative_Commons_licenses".
     """
-    alias.replace(",", "|")
-    cur_category = alias.split("/")[-1]
-    subcategories = get_subcategories(cur_category)
-    if cur_category not in LICENSE_CACHE:
-        record_license_data(cur_category, alias)
-        LICENSE_CACHE[cur_category] = True
-        print("DEBUG", f"Logged {cur_category} from {alias}")
-        for cats in subcategories:
-            recur_record_all_licenses(alias=f"{alias}/{cats}")
+    license_cache = {}
+    session = requests.Session()
+    max_retries = Retry(
+        total=5,
+        backoff_factor=10,
+        status_forcelist=[403, 408, 429, 500, 502, 503, 504],
+    )
+    session.mount("https://", HTTPAdapter(max_retries=max_retries))
+
+    def recursive_traversing_subroutine(alias):
+        alias.replace(",", "|")
+        cur_category = alias.split("/")[-1]
+        subcategories = get_subcategories(cur_category, session)
+        if cur_category not in license_cache:
+            record_license_data(cur_category, alias, session)
+            license_cache[cur_category] = True
+            for cats in subcategories:
+                recursive_traversing_subroutine(f"{alias}/{cats}")
+
+    recursive_traversing_subroutine(license_alias)
 
 
 def main():
