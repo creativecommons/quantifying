@@ -25,16 +25,15 @@ def get_wiki_langs():
     """Provides the list of language to find Creative Commons usage data on.
 
     The codes represent the language codes defined by ISO 639-1 and ISO 639-3,
-	and the decision of which language code to use is usually determined by the
-	IETF language tag policy.”
-	(https://en.wikipedia.org/wiki/List_of_Wikipedias#Wikipedia_edition_codes,
-	2020-10-14)
+    and the decision of which language code to use is usually determined by the
+    IETF language tag policy.
+    (https://en.wikipedia.org/wiki/List_of_Wikipedias#Wikipedia_edition_codes)
 
     Returns:
         pd.DataFrame: A Dataframe containing information of each Wikipedia
         language and its respective encoding on web address.
     """
-    return pd.read_csv(CWD + r"/language-codes_csv.csv")
+    return pd.read_csv(f"{CWD}/language-codes_csv.csv")
 
 
 def get_request_url(lang="en"):
@@ -58,17 +57,14 @@ def get_request_url(lang="en"):
     return base_url
 
 
-def get_response_elems(lang="en", eb=False):
+def get_response_elems(language="en"):
     """Provides the metadata for query of specified parameters
 
     Args:
-        lang:
+        language:
             A string representing the language that the search results are
             presented in. Alternatively, the default value is by Wikipedia
             customs "en".
-        eb:
-            A boolean indicating whether there should be exponential callback.
-            Is by default False.
 
     Returns:
         dict: A dictionary mapping metadata to its value provided from the API
@@ -76,7 +72,7 @@ def get_response_elems(lang="en", eb=False):
     """
     search_data = None
     try:
-        request_url = get_request_url(lang)
+        request_url = get_request_url(language)
         max_retries = Retry(
             total=5,
             backoff_factor=10,
@@ -88,29 +84,29 @@ def get_response_elems(lang="en", eb=False):
             response.raise_for_status()
             search_data = requests.get(request_url).json()
             search_data_dict = search_data["query"]["statistics"]
-            search_data_dict["language"] = lang
+            search_data_dict["language"] = language
         return search_data_dict
-    except Exception:
+    except Exception as e:
         if search_data is None:
             print(
-                "Received Result is None due to Language Issue, "
-                "but will continue querying"
+                f"Received Result is None due to Language {language} absent as"
+                "an available Wikipedia client. Will therefore return an empty"
+                "dictionary for result, but will continue querying.",
+                file=sys.stderr
             )
             return {}
         elif "query" not in search_data:
-            print(search_data)
+            print(f"search data is: \n{search_data}", file=sys.stderr)
             sys.exit(1)
         else:
-            print("ERROR (1) Unhandled exception:", file=sys.stderr)
-            print(traceback.print_exc(), file=sys.stderr)
-            sys.exit(1)
+            raise e
 
 
 def set_up_data_file():
     """Writes the header row to file to contain Wikipedia Query data."""
     header_title = ",".join(get_response_elems())
     with open(DATA_WRITE_FILE, "a") as f:
-        f.write(header_title + "\n")
+        f.write(f"{header_title}\n")
 
 
 def record_lang_data(lang="en"):

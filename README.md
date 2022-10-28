@@ -70,6 +70,8 @@ https://en.wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=statistics
 
 - language-codes_csv.csv\
 A list of language codes in ISO 639-1 Format to access statistics of each wikipedia main page across different languages.\
+In the script, this file is named as "language-codes_csv" to minimize the amount of manual work required for running the script provided the same language encoding file. The user would have to rename the header and file name of their .csv ISO code list according to the concurrent file on Github if they would like to use some list other than the concurrent one.\
+This file that this script uses can be downloaded from the link below:\
 https://datahub.io/core/language-codes
 
 ## History
