@@ -1,6 +1,6 @@
 """
 This file is dedicated to obtain a .csv record report for MetMuseum Search
-Data.
+data.
 """
 
 # Standard library
@@ -50,14 +50,12 @@ def get_response_elems():
             response.raise_for_status()
             search_data = response.json()
         return search_data
-    except Exception:
+    except Exception as e:
         if "pageInfo" not in search_data:
-            print(search_data)
+            print(f"search data is: \n{search_data}", file=sys.stderr)
             sys.exit(1)
         else:
-            print("ERROR (1) Unhandled exception:", file=sys.stderr)
-            print(traceback.print_exc(), file=sys.stderr)
-            sys.exit(1)
+            raise e
 
 
 def set_up_data_file():
