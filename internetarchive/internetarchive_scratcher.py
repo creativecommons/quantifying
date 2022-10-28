@@ -102,7 +102,6 @@ def record_all_licenses():
     license_list = get_license_list()
     for license_type in license_list:
         record_license_data(license_type)
-        print("DEBUG", f"Processed {license_type}")
 
 
 def main():
