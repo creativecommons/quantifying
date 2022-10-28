@@ -68,6 +68,10 @@ A python interface to archive.org to achieve API requests towards internet archi
 Main documentation page:\
 https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
 
+- legal-tool-paths.txt\
+A .txt file supplied from Creative Commons upon Pull Request (Issue #7) of the Github Repo.\
+This is a script-generated file for all creative commons license paths by far. 
+
 ## History
 
 For information on past efforts, see [`history.md`](history.md).

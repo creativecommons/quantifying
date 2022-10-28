@@ -1,6 +1,6 @@
 """
 This file is dedicated to obtain a .csv record report for internetarchive
-Data.
+data.
 """
 
 # Standard library
@@ -67,10 +67,8 @@ def get_response_elems(license):
         )
         search_data_dict = {"totalResults": len(search_data)}
         return search_data_dict
-    except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
-        sys.exit(1)
+    except Exception as e:
+        raise e
 
 
 def set_up_data_file():
