@@ -62,6 +62,12 @@ modules:
 
 
 ### Data Sources
+- Vimeo API\
+The Vimeo API allows users to perform filtered, advanced search on Vimeo videos.\
+Main documentation page:\
+https://developer.vimeo.com/api/guides/start<br>
+Specific documentation page used for script:\
+https://developer.vimeo.com/api/reference/videos#search_videos
 
 
 ## History
