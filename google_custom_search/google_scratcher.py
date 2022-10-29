@@ -23,6 +23,12 @@ DATA_WRITE_FILE = (
     f"{CWD}"
     f"/data_google_custom_search_{today.year}_{today.month}_{today.day}.csv"
 )
+DATA_WRITE_FILE_TIME = (
+    f"{CWD}"
+    f"/data_google_custom_search_time_"
+    f"{today.year}_{today.month}_{today.day}.csv"
+)
+SEARCH_HALFYEAR_SPAN = 20
 PSE_KEY = query_secret.PSE_KEY
 
 
@@ -89,7 +95,7 @@ def get_country_list():
     return selected_countries
 
 
-def get_request_url(license=None, country=None, language=None):
+def get_request_url(license=None, country=None, language=None, time=False):
     """Provides the API Endpoint URL for specified parameter combinations.
 
     Args:
@@ -107,6 +113,9 @@ def get_request_url(license=None, country=None, language=None):
             A string representing the language that the search results are
             presented in. Alternatively, the default None value or "all" stands
             for having no assumption about language of document.
+        time:
+            A boolean indicating whether this query is related to video time
+            occurrence.
 
     Returns:
         string: A string representing the API Endpoint URL for the query
@@ -115,20 +124,22 @@ def get_request_url(license=None, country=None, language=None):
     base_url = (
         r"https://customsearch.googleapis.com/customsearch/v1"
         f"?key={API_KEY}&cx={PSE_KEY}"
-        r"&q=link%3Acreativecommons.org"
     )
+    if time is not None:
+        base_url = f"{base_url}&dateRestrict=m{time}"
+    base_url = f"{base_url}&q=link%3Acreativecommons.org"
     if license is not None:
-        base_url += license.replace("/", "%2F")
+        base_url = f'{base_url}{license.replace("/", "%2F")}'
     else:
-        base_url += "/licenses".replace("/", "%2F")
+        base_url = f'{base_url}{"/licenses".replace("/", "%2F")}'
     if country is not None:
-        base_url += f"&cr={country}"
+        base_url = f"{base_url}&cr={country}"
     if language is not None:
-        base_url += f"&lr={language}"
+        base_url = f"{base_url}&lr={language}"
     return base_url
 
 
-def get_response_elems(license=None, country=None, language=None):
+def get_response_elems(license=None, country=None, language=None, time=False):
     """Provides the metadata for query of specified parameters
 
     Args:
@@ -146,13 +157,16 @@ def get_response_elems(license=None, country=None, language=None):
             A string representing the language that the search results are
             presented in. Alternatively, the default None value or "all" stands
             for having no assumption about language of document.
+        time:
+            A boolean indicating whether this query is related to video time
+            occurrence.
 
     Returns:
         dict: A dictionary mapping metadata to its value provided from the API
         query of specified parameters.
     """
     try:
-        request_url = get_request_url(license, country, language)
+        request_url = get_request_url(license, country, language, time)
         max_retries = Retry(
             total=5,
             backoff_factor=10,
@@ -169,14 +183,19 @@ def get_response_elems(license=None, country=None, language=None):
             ]
         }
         return search_data_dict
-    except Exception:
+    except Exception as e:
         if "queries" not in search_data:
-            print(search_data)
+            print(f"search data is: \n{search_data}", file=sys.stderr)
             sys.exit(1)
+        elif "totalResults" not in search_data["queries"]["request"][0]:
+            search_data_dict = {
+                "totalResults": search_data["searchInformation"][
+                    "totalResults"
+                ]
+            }
+            return search_data_dict
         else:
-            print("ERROR (1) Unhandled exception:", file=sys.stderr)
-            print(traceback.print_exc(), file=sys.stderr)
-            sys.exit(1)
+            raise e
 
 
 def set_up_data_file():
@@ -190,10 +209,16 @@ def set_up_data_file():
         f"{','.join(selected_languages.index)}"
     )
     with open(DATA_WRITE_FILE, "a") as f:
-        f.write(header_title + "\n")
+        f.write(f"{header_title}\n")
+    header_title_time = (
+        "LICENSE TYPE,"
+        f"{','.join([str(6 * i) for i in range(SEARCH_HALFYEAR_SPAN)])}"
+    )
+    with open(DATA_WRITE_FILE_TIME, "a") as f:
+        f.write(f"{header_title_time}\n")
 
 
-def record_license_data(license_type=None):
+def record_license_data(license_type=None, time=False):
     """Writes the row for LICENSE_TYPE to file to contain Google Query data.
 
     Args:
@@ -202,45 +227,50 @@ def record_license_data(license_type=None):
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
             type.
+        time:
+            A boolean indicating whether this query is related to video time
+            occurrence.
     """
     if license_type is None:
-        data_log = "all,"
+        data_log = "all"
     else:
-        data_log = f"{license_type},"
-    selected_countries = get_country_list()
-    selected_languages = get_lang_list()
-    no_priori_search = get_response_elems(license=license_type)
-    data_log += f"{no_priori_search['totalResults']},"
-    for country_name in selected_countries.iloc[:, 0]:
-        response = get_response_elems(
-            license=license_type, country=country_name
-        )
-        data_log += f"{response['totalResults']},"
-    for lang_name in selected_languages.iloc[:, 0]:
-        response = get_response_elems(license=license_type, language=lang_name)
-        data_log += f"{response['totalResults']},"
-    with open(DATA_WRITE_FILE, "a") as f:
-        f.write(f"{data_log}\n")
+        data_log = f"{license_type}"
+    if not time:
+        selected_countries = get_country_list()
+        selected_languages = get_lang_list()
+        no_priori_search = get_response_elems(license=license_type)
+        data_log += f",{no_priori_search['totalResults']}"
+        for country_name in selected_countries.iloc[:, 0]:
+            response = get_response_elems(
+                license=license_type, country=country_name
+            )
+            data_log += f",{response['totalResults']}"
+        for language_name in selected_languages.iloc[:, 0]:
+            response = get_response_elems(
+                license=license_type, language=language_name
+            )
+            data_log += f",{response['totalResults']}"
+        with open(DATA_WRITE_FILE, "a") as f:
+            f.write(f"{data_log}\n")
+    else:
+        for i in range(SEARCH_HALFYEAR_SPAN):
+            time_data = get_response_elems(license=license_type, time=i * 6)
+            data_log = f"{data_log},{time_data['totalResults']}"
+        with open(DATA_WRITE_FILE_TIME, "a") as f:
+            f.write(f"{data_log}\n")
 
 
 def record_all_licenses():
     """Records the data of all license types findable in the license list and
-    records these data into the DATA_wRITE_FILE as specified in that constant.
+    records these data into the DATA_WRITE_FILE and DATA_WRITE_FILE_TIME as
+    specified in that constant.
     """
     license_list = get_license_list()
-    record_license_data()
+    record_license_data(time=False)
+    record_license_data(time=True)
     for license_type in license_list:
-        record_license_data(license_type)
-
-
-def get_current_data():
-    """Return a DataFrame for the Creative Commons usage data collected.
-
-    Returns:
-        pd.DataFrame: A DataFrame recording the number of CC-licensed documents
-        per search query of assumption.
-    """
-    return pd.read_csv(DATA_WRITE_FILE).iloc[1:, :-1].set_index("LICENSE TYPE")
+        record_license_data(license_type, time=False)
+        record_license_data(license_type, time=True)
 
 
 def main():
