@@ -70,12 +70,22 @@ https://developers.google.com/custom-search/v1<br>
 https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
 
 - google_countries.txt\
-Directly copy pasting the cr parameter list from the following link into a .txt file:\
-https://developers.google.com/custom-search/docs/json_api_reference#countryCollections
+Created by directly copy pasting the cr parameter list from the following link into a .txt file:\
+https://developers.google.com/custom-search/docs/json_api_reference#countryCollections<br>
+as there were no reliable algorithmic way for retrieving such data found in the process so far.\
+The script itself will take care of the formatting and country-selection process.
 
 - google_lang.txt\
-Directly copy pasting the cr parameter list from the following method's 'lr' parameter into a .txt file:\
-https://developers.google.com/custom-search/v1/reference/rest/v1/Search
+Created by directly copy pasting the cr parameter list from the following method's 'lr' parameter into a .txt file:\
+https://developers.google.com/custom-search/v1/reference/rest/v1/Search<br>
+as there were no reliable algorithmic way for retrieving such data found in the process so far.\
+The script itself will take care of the data formatting and language-selection process.
+
+- legal-tool-paths.txt\
+A .txt file supplied from Creative Commons upon Pull Request (Issue #7) of the Github Repo.\
+This is a script-generated file for all creative commons license paths by far.\
+The data from Google Custom Search will only cover 50+ general, most significant categories of CC License for data collection quota constraint.\
+As an additional note, the order of precedence of license the collected data's first column is sorted due to intermediate data analysis progress.
 
 ## History
 
