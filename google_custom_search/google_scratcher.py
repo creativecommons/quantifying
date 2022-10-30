@@ -208,7 +208,7 @@ def set_up_data_file():
     selected_languages = get_lang_list()
     header_title = (
         "LICENSE TYPE,No Priori,"
-        f"{','.join(selected_countries.index)}"
+        f"{','.join(selected_countries.index)},"
         f"{','.join(selected_languages.index)}"
     )
     header_title_time = (
