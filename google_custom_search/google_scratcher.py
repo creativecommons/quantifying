@@ -17,7 +17,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 today = dt.datetime.today()
-API_KEY = query_secret.API_KEY
+API_KEYS = query_secret.API_KEYS
+API_KEYS_IND = 0
 CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_WRITE_FILE = (
     f"{CWD}"
@@ -121,22 +122,29 @@ def get_request_url(license=None, country=None, language=None, time=False):
         string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
-    base_url = (
-        r"https://customsearch.googleapis.com/customsearch/v1"
-        f"?key={API_KEY}&cx={PSE_KEY}"
-    )
-    if time is not None:
-        base_url = f"{base_url}&dateRestrict=m{time}"
-    base_url = f"{base_url}&q=link%3Acreativecommons.org"
-    if license is not None:
-        base_url = f'{base_url}{license.replace("/", "%2F")}'
-    else:
-        base_url = f'{base_url}{"/licenses".replace("/", "%2F")}'
-    if country is not None:
-        base_url = f"{base_url}&cr={country}"
-    if language is not None:
-        base_url = f"{base_url}&lr={language}"
-    return base_url
+    try:
+        api_key = API_KEYS[API_KEYS_IND]
+        base_url = (
+            r"https://customsearch.googleapis.com/customsearch/v1"
+            f"?key={api_key}&cx={PSE_KEY}"
+        )
+        if time:
+            base_url = f"{base_url}&dateRestrict=m{time}"
+        base_url = f"{base_url}&q=_&linkSite=creativecommons.org"
+        if license is not None:
+            base_url = f'{base_url}{license.replace("/", "%2F")}'
+        else:
+            base_url = f'{base_url}{"/licenses".replace("/", "%2F")}'
+        if country is not None:
+            base_url = f"{base_url}&cr={country}"
+        if language is not None:
+            base_url = f"{base_url}&lr={language}"
+        return base_url
+    except Exception as e:
+        if isinstance(e, IndexError):
+            print("Depleted all API Keys provided", file=sys.stderr)
+        else:
+            raise e
 
 
 def get_response_elems(license=None, country=None, language=None, time=False):
@@ -178,22 +186,17 @@ def get_response_elems(license=None, country=None, language=None, time=False):
             response.raise_for_status()
             search_data = response.json()
         search_data_dict = {
-            "totalResults": search_data["queries"]["request"][0][
-                "totalResults"
-            ]
+            "totalResults": search_data["searchInformation"]["totalResults"]
         }
         return search_data_dict
     except Exception as e:
-        if "queries" not in search_data:
-            print(f"search data is: \n{search_data}", file=sys.stderr)
-            sys.exit(1)
-        elif "totalResults" not in search_data["queries"]["request"][0]:
-            search_data_dict = {
-                "totalResults": search_data["searchInformation"][
-                    "totalResults"
-                ]
-            }
-            return search_data_dict
+        if isinstance(e, requests.exceptions.HTTPError):
+            global API_KEYS_IND
+            API_KEYS_IND += 1
+            print(
+                "Changing API KEYS due to depletion of quota", file=sys.stderr
+            )
+            return get_response_elems(license, country, language, time)
         else:
             raise e
 
@@ -208,12 +211,12 @@ def set_up_data_file():
         f"{','.join(selected_countries.index)}"
         f"{','.join(selected_languages.index)}"
     )
-    with open(DATA_WRITE_FILE, "a") as f:
-        f.write(f"{header_title}\n")
     header_title_time = (
         "LICENSE TYPE,"
         f"{','.join([str(6 * i) for i in range(SEARCH_HALFYEAR_SPAN)])}"
     )
+    with open(DATA_WRITE_FILE, "a") as f:
+        f.write(f"{header_title}\n")
     with open(DATA_WRITE_FILE_TIME, "a") as f:
         f.write(f"{header_title_time}\n")
 

@@ -1,2 +1,2 @@
-API_KEY = ""
+API_KEYS = [""]
 PSE_KEY = ""
