@@ -39,14 +39,24 @@ def get_next_time_search_interval():
     while cur_year * 100 + cur_month <= today.year * 100 + today.month:
         end_month, end_day = 12, 31
         if cur_month == 1:
+            end_month, end_day = 2, 28 + int(cur_year % 4 == 0)
+        elif cur_month == 3:
+            end_month, end_day = 4, 30
+        elif cur_month == 5:
             end_month, end_day = 6, 30
+        elif cur_month == 7:
+            end_month, end_day = 8, 31
+        elif cur_month == 9:
+            end_month, end_day = 10, 31
+        elif cur_month == 11:
+            end_month, end_day = 12, 31
         yield (
-            f"{cur_year}-0{cur_month}-01T00:00:00Z",
+            f"{cur_year}-{cur_month}-01T00:00:00Z",
             f"{cur_year}-{end_month}-{end_day}T23:59:59Z",
             cur_year,
             cur_month,
         )
-        cur_month = (cur_month + 6) % 12
+        cur_month = (cur_month + 2) % 12
         if cur_month == 1:
             cur_year += 1
 
@@ -117,7 +127,7 @@ def set_up_data_file():
     with open(DATA_WRITE_FILE, "a") as f:
         f.write("LICENSE TYPE,Document Count\n")
     with open(DATA_WRITE_FILE_TIME, "a") as f:
-        f.write("ICENSE TYPE,Time,Document Count\n")
+        f.write("LICENSE TYPE,Time,Document Count\n")
 
 
 def record_all_licenses():
