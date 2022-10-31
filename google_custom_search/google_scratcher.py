@@ -61,10 +61,21 @@ def get_lang_list():
     languages = pd.read_csv(
         f"{CWD}/google_lang.txt", sep=": ", header=None, engine="python"
     )
-    languages[0] = languages[0].str.extract(r'"(\w+)"')
+    languages[0] = languages[0].str.extract(r'"([^"]+)"')
     languages = languages.set_index(1)
-    selected_languages = languages.iloc[
-        [7, 33, 34, 8, 11, 0, 25, 14], :
+    selected_languages = languages[
+        languages.index.isin(
+            [
+                "Arabic",
+                "Chinese (Simplified)",
+                "Chinese (Traditional)",
+                "English",
+                "French",
+                "Indonesian",
+                "Portuguese",
+                "Spanish",
+            ]
+        )
     ].sort_index()
     return selected_languages
 
@@ -178,7 +189,8 @@ def get_response_elems(license=None, country=None, language=None, time=False):
         max_retries = Retry(
             total=5,
             backoff_factor=10,
-            status_forcelist=[403, 408, 429, 500, 502, 503, 504],
+            status_forcelist=[403, 408, 500, 502, 503, 504],
+            # 429 is Quota Limit Exceeded, which will be handled alternatively
         )
         session = requests.Session()
         session.mount("https://", HTTPAdapter(max_retries=max_retries))
@@ -198,6 +210,7 @@ def get_response_elems(license=None, country=None, language=None, time=False):
             )
             return get_response_elems(license, country, language, time)
         else:
+            print(f"Request URL was {request_url}", file=sys.stderr)
             raise e
 
 
@@ -273,7 +286,9 @@ def record_all_licenses():
     record_license_data(time=True)
     for license_type in license_list:
         record_license_data(license_type, time=False)
+        print("DEBUG ", "no time ", license_type)
         record_license_data(license_type, time=True)
+        print("DEBUG ", "time ", license_type)
 
 
 def main():
