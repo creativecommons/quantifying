@@ -86,7 +86,8 @@ def get_response_elems(license):
         max_retries = Retry(
             total=5,
             backoff_factor=10,
-            status_forcelist=[403, 408, 429, 500, 502, 503, 504],
+            status_forcelist=[403, 408, 500, 502, 503, 504],
+            # 429 is Quota Limit Exceeded, which will be handled alternatively
         )
         session = requests.Session()
         session.mount("https://", HTTPAdapter(max_retries=max_retries))
