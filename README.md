@@ -74,6 +74,20 @@ In the script, this file is named as "language-codes_csv" to minimize the amount
 This file that this script uses can be downloaded from the link below:\
 https://datahub.io/core/language-codes
 
+#### CC Legal Tools
+
+- [`legal-tool-paths.txt`](google_custom_search/legal-tool-paths.txt)
+  - A `.txt` provided by Timid Robot containing all legal tool paths. The data
+    from Google Custom Search will only cover 50+ general, most significant
+    categories of CC License for data collection quota constraint. As an
+    additional note, the order of precedence of license the collected data's
+    first column is sorted due to intermediate data analysis progress.
+    - [add list of all current CC legal tool paths by TimidRobot · Pull Request
+      #7 · creativecommons/quantifying][pr7]
+
+[pr7]: https://github.com/creativecommons/quantifying/pull/7
+
+
 #### Google Custom Search JSON API
 
 - The Custom Search JSON API allows user-defined detailed query and access
@@ -95,20 +109,58 @@ https://datahub.io/core/language-codes
     will take care of the data formatting and language-selection process.
     - [Parameter: lr | Method: cse.list | Custom Search JSON API | Google
       Developers][googlelang]
-- [`legal-tool-paths.txt`](google_custom_search/legal-tool-paths.txt)
-  - A `.txt` provided by Timid Robot containing all legal tool paths. The data
-    from Google Custom Search will only cover 50+ general, most significant
-    categories of CC License for data collection quota constraint. As an
-    additional note, the order of precedence of license the collected data's
-    first column is sorted due to intermediate data analysis progress.
-    - [add list of all current CC legal tool paths by TimidRobot · Pull Request
-      #7 · creativecommons/quantifying][pr7]
 
 [googlejsonapi]: https://developers.google.com/custom-search/v1
 [cselist]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
 [googlecountry]: https://developers.google.com/custom-search/docs/json_api_reference#countryCollections
 [googlelang]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list#body.QUERY_PARAMETERS.lr
-[pr7]: https://github.com/creativecommons/quantifying/pull/7
+
+
+#### Internet Archive Python Interface
+
+A python interface to archive.org to achieve API requests towards internet
+archive.
+- [`internetarchive.Search` - Internetarchive: A Python Interface to
+  archive.org][iasearch]
+
+[iasearch]: https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
+
+
+#### MediaWiki API
+
+The MediaWiki Action API is a web service that allows access to some wiki
+features like authentication, page operations, and search. It can provide meta
+information about the wiki and the logged-in user.
+
+Example query:
+https://commons.wikimedia.org/w/api.php?action=query&cmtitle=Category:CC-BY&list=categorymembers
+
+
+#### The Metropolitan Museum of Art Collection API
+
+An API endpoint for receiving Metropolitan Muesum of Art Collection's
+CC-Licensed works.
+
+[Latest Updates | The Metropolitan Museum of Art Collection API][metapi]:
+> The Metropolitan Museum of Art provides select datasets of information on
+> more than 470,000 artworks in its Collection for unrestricted commercial and
+> noncommercial use. To the extent possible under law, The Metropolitan Museum
+> of Art has waived all copyright and related or neighboring rights to this
+> dataset using the [Creative Commons Zero][cc-zero] license.
+
+[metapi]: https://metmuseum.github.io/
+[cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
+
+
+#### Vimeo API
+
+The Vimeo API allows users to perform filtered, advanced search on Vimeo
+videos.
+- [Getting Started with the Vimeo API][vimeostart]
+  - [Search for videos - Vimeo API Reference: Videos][vimeoapisearch]
+
+[vimeostart]: https://developer.vimeo.com/api/guides/start
+[vimeoapisearch]: https://developer.vimeo.com/api/reference/videos#search_videos
 
 
 ## History
@@ -136,6 +188,7 @@ The data within this repository is dedicated to the public domain under the
 
 [cc-zero-png]: https://licensebuttons.net/l/zero/1.0/88x31.png "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication button"
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
+
 
 ### Documentation
 
