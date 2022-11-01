@@ -24,36 +24,47 @@ def drop_empty_column(csv_path, new_csv_path):  # attribute is string
     for col in df.columns:  # to get the column list
         if "Unnamed" in col:
             data = df.drop(col, axis=1)
+            print("Dropping column", col)
     data.to_csv(new_csv_path)
+    print("Dropping empty columns")
 
 
 def drop_duplicate_id(csv_path, new_csv_path):  # attribute is string
     df = pd.read_csv(csv_path)
     data = df.drop_duplicates(subset=['id'])
     data.to_csv(new_csv_path)
+    print("Dropping duplicates")
 
 
-"""
-column_name_list must belongs to the
-existing column names from original csv
-csv_path is the path of original csv
-This function generate a new dataframe
-to save final data with useful columns
-"""
+def tags_list_to_string(csv_path, new_csv_path):  # attribute is string
+    df = pd.read_csv(csv_path)
+    data = df.drop_duplicates(subset=['id'])
+    data.to_csv(new_csv_path)
+    print("Cleaning the format for tags column")
 
 
 def save_new_data(csv_path, column_name_list, new_csv_path):  # attribute is string
+    """
+    column_name_list must belongs to the
+    existing column names from original csv
+    csv_path is the path of original csv
+    This function generate a new dataframe
+    to save final data with useful columns
+    """
     df = pd.read_csv(csv_path)
     new_df = pd.DataFrame()
     for col in column_name_list:
         new_df[col] = list(df[col])
+        print("Saving column", col)
     new_df.to_csv(new_csv_path)
+    print("Saving new data to new csv")
 
 
 def main():
-    drop_empty_column("hs.csv", "cleaned_hs.csv")
-    drop_duplicate_id("hs.csv", "cleaned_hs.csv")
-    save_new_data("hs.csv", ["location", "id", "dates", "license", "tags", "views", "comments"], "cleaned_hs.csv")
+    drop_empty_column("dataset/license2.csv", "dataset/cleaned_license2.csv")
+    drop_duplicate_id("dataset/license2.csv", "dataset/cleaned_license2.csv")
+    save_new_data("dataset/license2.csv", ["location", "dates", "license", "tags", "views", "comments"],
+                  "dataset/cleaned_license2.csv")
 
 if __name__ == "__main__":
     try:

@@ -16,20 +16,20 @@ warnings.filterwarnings("ignore")
 from wordcloud import WordCloud, STOPWORDS
 
 
-"""
-This function is to generate a word cloud
-based on all the tags of each license
-each license one cloud
-"""
-
-
 def tags_frequency(csv_path, column_name):  # attributes are string
+    """
+    This function is to generate a word cloud
+    based on all the tags of each license
+    each license one cloud
+    """
     df = pd.read_csv(csv_path)
-    list_tags = (df[column_name][0])
+    list_tags = (df[column_name][0]).strip("]'[").split("', '")
+
     print(list_tags)
-    print(df[column_name][1:])
-    for item in df[column_name][1:]:
-        list_tags.append(item.replace('"', ''))
+    # Converting string to list
+    for row in df[column_name][1:]:
+        if row.strip("]'[").split("', '"):
+            list_tags += row.strip("]'[").split("', '")
     print(list_tags)
     text = ''
     stopwords = set(STOPWORDS)
