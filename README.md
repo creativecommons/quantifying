@@ -116,6 +116,16 @@ archive.
 [iasearch]: https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
 
 
+#### MediaWiki API
+
+The MediaWiki Action API is a web service that allows access to some wiki
+features like authentication, page operations, and search. It can provide meta
+information about the wiki and the logged-in user.
+
+Example query:
+https://commons.wikimedia.org/w/api.php?action=query&cmtitle=Category:CC-BY&list=categorymembers
+
+
 #### The Metropolitan Museum of Art Collection API
 
 An API endpoint for receiving Metropolitan Muesum of Art Collection's
