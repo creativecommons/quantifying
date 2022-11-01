@@ -63,8 +63,7 @@ modules:
 
 ### Data Sources
 
-
-## CC Legal Tools
+#### CC Legal Tools
 
 - [`legal-tool-paths.txt`](google_custom_search/legal-tool-paths.txt)
   - A `.txt` provided by Timid Robot containing all legal tool paths. The data
@@ -106,7 +105,7 @@ modules:
 [googlelang]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list#body.QUERY_PARAMETERS.lr
 
 
-## Internet Archive Python Interface
+#### Internet Archive Python Interface
 
 A python interface to archive.org to achieve API requests towards internet
 archive.
@@ -114,6 +113,22 @@ archive.
   archive.org][iasearch]
 
 [iasearch]: https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
+
+
+#### The Metropolitan Museum of Art Collection API
+
+An API endpoint for receiving Metropolitan Muesum of Art Collection's
+CC-Licensed works.
+
+[Latest Updates | The Metropolitan Museum of Art Collection API][metapi]:
+> The Metropolitan Museum of Art provides select datasets of information on
+> more than 470,000 artworks in its Collection for unrestricted commercial and
+> noncommercial use. To the extent possible under law, The Metropolitan Museum
+> of Art has waived all copyright and related or neighboring rights to this
+> dataset using the [Creative Commons Zero][cc-zero] license.
+
+[metapi]: https://metmuseum.github.io/
+[cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
 
 
 ## History
@@ -141,6 +156,7 @@ The data within this repository is dedicated to the public domain under the
 
 [cc-zero-png]: https://licensebuttons.net/l/zero/1.0/88x31.png "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication button"
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
+
 
 ### Documentation
 
