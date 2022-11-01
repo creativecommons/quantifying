@@ -63,17 +63,6 @@ modules:
 
 ### Data Sources
 
-- Google Custom Search JSON API\
-The Custom Search JSON API allows user-defined detailed query and access towards related query data using a programmable search engine.\
-Main Documentation Page:\
-https://developers.google.com/custom-search/v1<br>
-https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
-
-- legal-tool-paths.txt\
-A .txt file supplied from Creative Commons upon Pull Request (Issue #7) of the Github Repo.\
-This is a script-generated file for all creative commons license paths by far.\
-The data from Google Custom Search will only cover 50+ general, most significant categories of CC License for data collection quota constraint.\
-As an additional note, the order of precedence of license the collected data's first column is sorted due to intermediate data analysis progress.
 
 #### Google Custom Search JSON API
 
