@@ -10,13 +10,13 @@ import sys
 import traceback
 
 # Third-party
-import query_secret
+import query_secrets
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 today = dt.datetime.today()
-API_KEY = query_secret.API_KEY
+API_KEY = query_secrets.API_KEY
 CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_youtube_{today.year}_{today.month}_{today.day}.csv"
