@@ -87,7 +87,7 @@ def get_country_list():
         pd.DataFrame: A Dataframe whose index is country name and has a column
         for the corresponding country code.
     """
-    countries = pd.read_csv(CWD + "/google_countries.txt", sep="\t")
+    countries = pd.read_csv(CWD + "/google_countries.tsv", sep="\t")
     countries = countries.set_index("Country")
     selected_countries = countries.loc[
         [

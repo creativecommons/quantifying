@@ -71,9 +71,9 @@ modules:
   - [Custom Search JSON API Reference | Programmable Search Engine | Google
     Developers][googlejsonapi]
   - [Method: cse.list | Custom Search JSON API | Google Developers][cselist]
-- [`google_countries.txt`](google_custom_search/google_countries.txt)
+- [`google_countries.tsv`](google_custom_search/google_countries.txt)
   - Created by directly copy and pasting the `cr` parameter list from the
-    following link into a `.txt` file as there were no reliable algorithmic way
+    following link into a `.tsv` file as there were no reliable algorithmic way
     for retrieving such data found in the process so far. The script itself
     will take care of the formatting and country-selection process.
     - [Country Collection Values | JSON API reference | Programmable Search
