@@ -63,6 +63,7 @@ modules:
 
 ### Data Sources
 
+
 #### CC Legal Tools
 
 - [`legal-tool-paths.txt`](google_custom_search/legal-tool-paths.txt)
@@ -129,6 +130,17 @@ CC-Licensed works.
 
 [metapi]: https://metmuseum.github.io/
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
+
+
+#### Vimeo API
+
+The Vimeo API allows users to perform filtered, advanced search on Vimeo
+videos.
+- [Getting Started with the Vimeo API][vimeostart]
+  - [Search for videos - Vimeo API Reference: Videos][vimeoapisearch]
+
+[vimeostart]: https://developer.vimeo.com/api/guides/start
+[vimeoapisearch]: https://developer.vimeo.com/api/reference/videos#search_videos
 
 
 ## History
