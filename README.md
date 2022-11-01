@@ -63,29 +63,41 @@ modules:
 
 ### Data Sources
 
-- Google Custom Search JSON API\
-The Custom Search JSON API allows user-defined detailed query and access towards related query data using a programmable search engine.\
-Main Documentation Page:\
-https://developers.google.com/custom-search/v1<br>
-https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
 
-- google_countries.txt\
-Created by directly copy pasting the cr parameter list from the following link into a .txt file:\
-https://developers.google.com/custom-search/docs/json_api_reference#countryCollections<br>
-as there were no reliable algorithmic way for retrieving such data found in the process so far.\
-The script itself will take care of the formatting and country-selection process.
+#### Google Custom Search JSON API
 
-- google_lang.txt\
-Created by directly copy pasting the cr parameter list from the following method's 'lr' parameter into a .txt file:\
-https://developers.google.com/custom-search/v1/reference/rest/v1/Search<br>
-as there were no reliable algorithmic way for retrieving such data found in the process so far.\
-The script itself will take care of the data formatting and language-selection process.
+- The Custom Search JSON API allows user-defined detailed query and access
+  towards related query data using a programmable search engine.
+  - [Custom Search JSON API Reference | Programmable Search Engine | Google
+    Developers][googlejsonapi]
+  - [Method: cse.list | Custom Search JSON API | Google Developers][cselist]
+- [`google_countries.txt`](google_custom_search/google_countries.txt)
+  - Created by directly copy and pasting the `cr` parameter list from the
+    following link into a `.txt` file as there were no reliable algorithmic way
+    for retrieving such data found in the process so far. The script itself
+    will take care of the formatting and country-selection process.
+    - [Country Collection Values | JSON API reference | Programmable Search
+      Engine | Google Developers][googlecountry]
+- [`google_lang.txt`](google_custom_search/google_lang.txt)
+  - Created by directly copy and pasting the `lr` parameter list from the
+    following link into a `.txt` file as there were no reliable algorithmic way
+    for retrieving such data found in the process so far. The script itself
+    will take care of the data formatting and language-selection process.
+    - [Parameter: lr | Method: cse.list | Custom Search JSON API | Google
+      Developers][googlelang]
+- [`legal-tool-paths.txt`](google_custom_search/legal-tool-paths.txt)
+  - A `.txt` provided by Timid Robot containing all legal tool paths. The data
+    from Google Custom Search will only cover 50+ general, most significant
+    categories of CC License for data collection quota constraint. As an
+    additional note, the order of precedence of license the collected data's
+    first column is sorted due to intermediate data analysis progress.
+    - #7
 
-- legal-tool-paths.txt\
-A .txt file supplied from Creative Commons upon Pull Request (Issue #7) of the Github Repo.\
-This is a script-generated file for all creative commons license paths by far.\
-The data from Google Custom Search will only cover 50+ general, most significant categories of CC License for data collection quota constraint.\
-As an additional note, the order of precedence of license the collected data's first column is sorted due to intermediate data analysis progress.
+[googlejsonapi]: https://developers.google.com/custom-search/v1
+[cselist]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
+[googlecountry]: https://developers.google.com/custom-search/docs/json_api_reference#countryCollections
+[googlelang]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list#body.QUERY_PARAMETERS.lr
+
 
 ## History
 
