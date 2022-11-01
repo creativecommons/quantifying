@@ -91,12 +91,14 @@ modules:
     categories of CC License for data collection quota constraint. As an
     additional note, the order of precedence of license the collected data's
     first column is sorted due to intermediate data analysis progress.
-    - #7
+    - [add list of all current CC legal tool paths by TimidRobot · Pull Request
+      #7 · creativecommons/quantifying][pr7]
 
 [googlejsonapi]: https://developers.google.com/custom-search/v1
 [cselist]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
 [googlecountry]: https://developers.google.com/custom-search/docs/json_api_reference#countryCollections
 [googlelang]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list#body.QUERY_PARAMETERS.lr
+[pr7]: https://github.com/creativecommons/quantifying/pull/7
 
 
 ## History
