@@ -18,7 +18,7 @@ import traceback
 import flickrapi
 import pandas as pd
 import pyautogui
-import secret_key
+import query_secrets
 
 
 def to_df(datalist, namelist):
@@ -160,8 +160,8 @@ def page1_reset(final_csv, raw_data):
 
 def main():
     retries = 0
-    flickr = flickrapi.FlickrAPI(secret_key.api_key,
-                                 secret_key.api_secret, format='json')
+    flickr = flickrapi.FlickrAPI(query_secrets.api_key,
+                                 query_secrets.api_secret, format='json')
     # below is the cc licenses list
     license_list = [1, 2, 3, 4, 5, 6, 9, 10]
 
