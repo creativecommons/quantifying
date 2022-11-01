@@ -64,6 +64,43 @@ modules:
 ### Data Sources
 
 
+#### Google Custom Search JSON API
+
+- The Custom Search JSON API allows user-defined detailed query and access
+  towards related query data using a programmable search engine.
+  - [Custom Search JSON API Reference | Programmable Search Engine | Google
+    Developers][googlejsonapi]
+  - [Method: cse.list | Custom Search JSON API | Google Developers][cselist]
+- [`google_countries.tsv`](google_custom_search/google_countries.txt)
+  - Created by directly copy and pasting the `cr` parameter list from the
+    following link into a `.tsv` file as there were no reliable algorithmic way
+    for retrieving such data found in the process so far. The script itself
+    will take care of the formatting and country-selection process.
+    - [Country Collection Values | JSON API reference | Programmable Search
+      Engine | Google Developers][googlecountry]
+- [`google_lang.txt`](google_custom_search/google_lang.txt)
+  - Created by directly copy and pasting the `lr` parameter list from the
+    following link into a `.txt` file as there were no reliable algorithmic way
+    for retrieving such data found in the process so far. The script itself
+    will take care of the data formatting and language-selection process.
+    - [Parameter: lr | Method: cse.list | Custom Search JSON API | Google
+      Developers][googlelang]
+- [`legal-tool-paths.txt`](google_custom_search/legal-tool-paths.txt)
+  - A `.txt` provided by Timid Robot containing all legal tool paths. The data
+    from Google Custom Search will only cover 50+ general, most significant
+    categories of CC License for data collection quota constraint. As an
+    additional note, the order of precedence of license the collected data's
+    first column is sorted due to intermediate data analysis progress.
+    - [add list of all current CC legal tool paths by TimidRobot · Pull Request
+      #7 · creativecommons/quantifying][pr7]
+
+[googlejsonapi]: https://developers.google.com/custom-search/v1
+[cselist]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
+[googlecountry]: https://developers.google.com/custom-search/docs/json_api_reference#countryCollections
+[googlelang]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list#body.QUERY_PARAMETERS.lr
+[pr7]: https://github.com/creativecommons/quantifying/pull/7
+
+
 ## History
 
 For information on past efforts, see [`history.md`](history.md).
@@ -89,7 +126,6 @@ The data within this repository is dedicated to the public domain under the
 
 [cc-zero-png]: https://licensebuttons.net/l/zero/1.0/88x31.png "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication button"
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
-
 
 ### Documentation
 
