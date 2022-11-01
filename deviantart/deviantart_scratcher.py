@@ -12,19 +12,19 @@ import traceback
 
 # Third-party
 import pandas as pd
-import query_secret
+import query_secrets
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 today = dt.datetime.today()
-API_KEYS = query_secret.API_KEYS
+API_KEYS = query_secrets.API_KEYS
 API_KEYS_IND = 0
 CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_deviantart_{today.year}_{today.month}_{today.day}.csv"
 )
-PSE_KEY = query_secret.PSE_KEY
+PSE_KEY = query_secrets.PSE_KEY
 
 
 def get_license_list():
