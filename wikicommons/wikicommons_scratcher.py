@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file is dedicated to obtain a .csv record report for WikiCommons
 Data.
@@ -160,9 +161,9 @@ def get_license_contents(license, session):
 
 def set_up_data_file():
     """Writes the header row to file to contain WikiCommons Query data."""
-    header_title = "LICENSE TYPE,File Count,Page Count"
+    header_title = "LICENSE TYPE,File Count,Page Count\n"
     with open(DATA_WRITE_FILE, "a") as f:
-        f.write(f"header_title \n")
+        f.write(header_title)
 
 
 def record_license_data(license_type, license_alias, session):
