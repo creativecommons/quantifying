@@ -12,13 +12,13 @@ import traceback
 
 # Third-party
 import pandas as pd
-import secrets
+import query_secrets
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 today = dt.datetime.today()
-API_KEYS = secrets.API_KEYS
+API_KEYS = query_secrets.API_KEYS
 API_KEYS_IND = 0
 CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_WRITE_FILE = (
@@ -31,7 +31,7 @@ DATA_WRITE_FILE_TIME = (
     f"{today.year}_{today.month}_{today.day}.csv"
 )
 SEARCH_HALFYEAR_SPAN = 20
-PSE_KEY = secrets.PSE_KEY
+PSE_KEY = query_secrets.PSE_KEY
 
 
 def get_license_list():
