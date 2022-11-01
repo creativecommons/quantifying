@@ -62,12 +62,7 @@ modules:
 
 
 ### Data Sources
-- Vimeo API\
-The Vimeo API allows users to perform filtered, advanced search on Vimeo videos.\
-Main documentation page:\
-https://developer.vimeo.com/api/guides/start<br>
-Specific documentation page used for script:\
-https://developer.vimeo.com/api/reference/videos#search_videos
+
 
 #### CC Legal Tools
 
@@ -135,6 +130,17 @@ CC-Licensed works.
 
 [metapi]: https://metmuseum.github.io/
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
+
+
+#### Vimeo API
+
+The Vimeo API allows users to perform filtered, advanced search on Vimeo
+videos.
+- [Getting Started with the Vimeo API][vimeostart]
+  - [Search for videos - Vimeo API Reference: Videos][vimeoapisearch]
+
+[vimeostart]: https://developer.vimeo.com/api/guides/start
+[vimeoapisearch]: https://developer.vimeo.com/api/reference/videos#search_videos
 
 
 ## History
