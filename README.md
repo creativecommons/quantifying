@@ -116,24 +116,6 @@ archive.
 [iasearch]: https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
 
 
-#### MediaWiki API
-
-- The MediaWiki Action API is a web service that allows access to some wiki
-  features like authentication, page operations, and search. It can provide
-  meta information about the wiki and the logged-in user.
-  - Example query: https://commons.wikimedia.org/w/api.php?action=query&cmtitle=Category:CC-BY&list=categorymembers
-- [`language-codes_csv.csv`](wikipedia/language-codes_csv.csv)
-  - A list of language codes in ISO 639-1 Format to access statistics of each
-    wikipedia main page across different languages. In the script, this file is
-    named as `language-codes_csv` to minimize the amount of manual work
-    required for running the script provided the same language encoding file.
-    The user would have to rename the header and file name of their `.csv` ISO
-    code list according to the concurrent file on Github if they would like to
-    use some list other than the concurrent one.
-  - This file that this script uses can be downloaded from:
-    https://datahub.io/core/language-codes
-
-
 #### The Metropolitan Museum of Art Collection API
 
 An API endpoint for receiving Metropolitan Muesum of Art Collection's
@@ -159,6 +141,33 @@ videos.
 
 [vimeostart]: https://developer.vimeo.com/api/guides/start
 [vimeoapisearch]: https://developer.vimeo.com/api/reference/videos#search_videos
+
+
+#### MediaWiki API
+
+- The MediaWiki Action API is a web service that allows access to some wiki
+  features like authentication, page operations, and search. It can provide
+  meta information about the wiki and the logged-in user.
+  - Example query: https://commons.wikimedia.org/w/api.php?action=query&cmtitle=Category:CC-BY&list=categorymembers
+- [`language-codes_csv.csv`](wikipedia/language-codes_csv.csv)
+  - A list of language codes in ISO 639-1 Format to access statistics of each
+    wikipedia main page across different languages. In the script, this file is
+    named as `language-codes_csv` to minimize the amount of manual work
+    required for running the script provided the same language encoding file.
+    The user would have to rename the header and file name of their `.csv` ISO
+    code list according to the concurrent file on Github if they would like to
+    use some list other than the concurrent one.
+  - This file that this script uses can be downloaded from:
+    https://datahub.io/core/language-codes
+
+
+#### Youtube Data API
+
+An API from YouTube for platform users to upload videos, adjust video
+parameters, and obtain search results.
+- [Search: list | YouTube Data API | Google Developers][youtubeapi]
+
+[youtubeapi]: https://developers.google.com/youtube/v3/docs/search/list
 
 
 ## History
