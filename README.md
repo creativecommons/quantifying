@@ -63,14 +63,20 @@ modules:
 
 ### Data Sources
 
-- Internetarchive Python Interface\
-A python interface to archive.org to achieve API requests towards internet archive.\
-Main documentation page:\
-https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
 
-- legal-tool-paths.txt\
-A .txt file supplied from Creative Commons upon Pull Request (Issue #7) of the Github Repo.\
-This is a script-generated file for all creative commons license paths by far. 
+## CC Legal Tools
+
+- [`legal-tool-paths.txt`](google_custom_search/legal-tool-paths.txt)
+  - A `.txt` provided by Timid Robot containing all legal tool paths. The data
+    from Google Custom Search will only cover 50+ general, most significant
+    categories of CC License for data collection quota constraint. As an
+    additional note, the order of precedence of license the collected data's
+    first column is sorted due to intermediate data analysis progress.
+    - [add list of all current CC legal tool paths by TimidRobot · Pull Request
+      #7 · creativecommons/quantifying][pr7]
+
+[pr7]: https://github.com/creativecommons/quantifying/pull/7
+
 
 #### Google Custom Search JSON API
 
@@ -93,20 +99,21 @@ This is a script-generated file for all creative commons license paths by far.
     will take care of the data formatting and language-selection process.
     - [Parameter: lr | Method: cse.list | Custom Search JSON API | Google
       Developers][googlelang]
-- [`legal-tool-paths.txt`](google_custom_search/legal-tool-paths.txt)
-  - A `.txt` provided by Timid Robot containing all legal tool paths. The data
-    from Google Custom Search will only cover 50+ general, most significant
-    categories of CC License for data collection quota constraint. As an
-    additional note, the order of precedence of license the collected data's
-    first column is sorted due to intermediate data analysis progress.
-    - [add list of all current CC legal tool paths by TimidRobot · Pull Request
-      #7 · creativecommons/quantifying][pr7]
 
 [googlejsonapi]: https://developers.google.com/custom-search/v1
 [cselist]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
 [googlecountry]: https://developers.google.com/custom-search/docs/json_api_reference#countryCollections
 [googlelang]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list#body.QUERY_PARAMETERS.lr
-[pr7]: https://github.com/creativecommons/quantifying/pull/7
+
+
+## Internet Archive Python Interface
+
+A python interface to archive.org to achieve API requests towards internet
+archive.
+- [`internetarchive.Search` - Internetarchive: A Python Interface to
+  archive.org][iasearch]
+
+[iasearch]: https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
 
 
 ## History
