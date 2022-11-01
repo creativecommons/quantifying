@@ -36,13 +36,6 @@ def drop_duplicate_id(csv_path, new_csv_path):  # attribute is string
     print("Dropping duplicates")
 
 
-def tags_list_to_string(csv_path, new_csv_path):  # attribute is string
-    df = pd.read_csv(csv_path)
-    data = df.drop_duplicates(subset=['id'])
-    data.to_csv(new_csv_path)
-    print("Cleaning the format for tags column")
-
-
 def save_new_data(csv_path, column_name_list, new_csv_path):  # attribute is string
     """
     column_name_list must belongs to the
