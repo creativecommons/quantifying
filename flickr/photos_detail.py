@@ -14,9 +14,7 @@ import time
 # Third-party
 import flickrapi
 import pandas as pd
-
-# First-party/Local
-from quantifying.flickr import query_secrets
+import query_secrets
 
 
 def to_df(datalist, namelist):

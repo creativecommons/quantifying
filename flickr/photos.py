@@ -3,9 +3,7 @@ import json
 
 # Third-party
 import flickrapi
-
-# First-party/Local
-from quantifying.flickr import query_secrets
+import query_secrets
 
 flickr = flickrapi.FlickrAPI(
     query_secrets.api_key, query_secrets.api_secret, format="json"
