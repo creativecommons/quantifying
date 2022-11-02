@@ -128,5 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# flickr api secrets
-*secret*
+# secrets
+query_secrets.py

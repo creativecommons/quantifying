@@ -54,10 +54,10 @@ def save_new_data(csv_path, column_name_list, new_csv_path):  # attribute is str
 
 
 def main():
-    drop_empty_column("dataset/license2.csv", "dataset/cleaned_license2.csv")
-    drop_duplicate_id("dataset/license2.csv", "dataset/cleaned_license2.csv")
-    save_new_data("dataset/license2.csv", ["location", "dates", "license", "tags", "views", "comments"],
-                  "dataset/cleaned_license2.csv")
+    drop_empty_column("hs.csv", "cleaned_hs.csv")
+    drop_duplicate_id("hs.csv", "cleaned_hs.csv")
+    save_new_data("hs.csv", ["location", "dates", "license", "tags", "views", "comments"],
+                  "cleaned_hs.csv")
 
 if __name__ == "__main__":
     try:
