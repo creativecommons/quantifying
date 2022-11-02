@@ -10,13 +10,12 @@ step3: saving lists of data to DataFrame
 # Standard library
 import json
 import time
-import sys
-import traceback
 
 # Third-party
 import flickrapi
 import pandas as pd
 
+# First-party/Local
 from quantifying.flickr import query_secrets
 
 
@@ -44,8 +43,7 @@ def df_to_csv(temp_list, name_list, temp_csv, final_csv):
     """
     df = to_df(temp_list, name_list)
     df.to_csv(temp_csv)
-    df = pd.concat(map(pd.read_csv, [temp_csv, final_csv]),
-                   ignore_index=True)
+    df = pd.concat(map(pd.read_csv, [temp_csv, final_csv]), ignore_index=True)
     df.to_csv(final_csv)
 
 
@@ -95,20 +93,18 @@ def query_data(raw_data, name_list, data_list):
     """
     for a in range(0, len(name_list)):
         if (0 <= a < 4) or a == 9:
-            temp = query_helper2(raw_data, name_list[a],
-                                 data_list, a)
+            temp = query_helper2(raw_data, name_list[a], data_list, a)
             data_list[a].append(next(temp))
         elif a == 4 or a == 5:
-            temp = query_helper1(raw_data, "owner",
-                                 name_list[a], data_list, a)
+            temp = query_helper1(raw_data, "owner", name_list[a], data_list, a)
             data_list[a].append(next(temp))
         elif a == 6 or a == 7 or a == 10:
-            temp = query_helper1(raw_data, name_list[a],
-                                 "_content", data_list, a)
+            temp = query_helper1(
+                raw_data, name_list[a], "_content", data_list, a
+            )
             data_list[a].append(next(temp))
         elif a == 8:
-            temp = query_helper1(raw_data, name_list[a],
-                                 "taken", data_list, a)
+            temp = query_helper1(raw_data, name_list[a], "taken", data_list, a)
             data_list[a].append(next(temp))
 
         # some photo id has more than one sub ids included
@@ -119,12 +115,13 @@ def query_data(raw_data, name_list, data_list):
         if a == 11:
             tags = raw_data["photo"]["tags"]["tag"]
             if tags:
-                data_list[a].append([tags[num]["raw"] for
-                                     num in range(len(tags))])
+                data_list[a].append(
+                    [tags[num]["raw"] for num in range(len(tags))]
+                )
             else:
-                temp = query_helper1(raw_data,
-                                     name_list[a], "tag",
-                                     data_list, a)
+                temp = query_helper1(
+                    raw_data, name_list[a], "tag", data_list, a
+                )
                 data_list[a].append(next(temp))
 
 
@@ -146,23 +143,36 @@ retries = 0
 
 
 def main():
-    flickr = flickrapi.FlickrAPI(query_secrets.api_key,
-                                 query_secrets.api_secret, format='json')
+    flickr = flickrapi.FlickrAPI(
+        query_secrets.api_key, query_secrets.api_secret, format="json"
+    )
     # below is the cc licenses list
     license_list = [1, 2, 3, 4, 5, 6, 9, 10]
 
     # we want to have these 11 columns of data saved in final csv
     # name_lis is the header of final table
     # temp_list is in the form of list within list, which saves the actual data
-    # each internal list is a column: ie. temp_list[0] saves the data of id number
-    name_list = ["id", "dateuploaded", "isfavorite", "license", "realname",
-                 "location", "title", "description", "dates", "views",
-                 "comments", "tags"]
+    # each internal list is a column: ie. temp_list[0] saves the data of id
+    # number
+    name_list = [
+        "id",
+        "dateuploaded",
+        "isfavorite",
+        "license",
+        "realname",
+        "location",
+        "title",
+        "description",
+        "dates",
+        "views",
+        "comments",
+        "tags",
+    ]
     temp_list = creat_lisoflis(len(name_list))
     # use rec txt to record j(current page), i(current license), and total
     # every time iterating through one page of photos
     # to pick up from where the script errors or stops
-    with open('rec.txt') as f:
+    with open("rec.txt") as f:
         readed = f.read().split(" ")
         j = int(readed[0])
         i = int(readed[1])
@@ -170,10 +180,9 @@ def main():
     while i in license_list:
         while j <= total:
             # use search method to pull photo id in each license
-            photosJson = flickr.photos.search(license=i,
-                                              per_page=100, page=j)
+            photosJson = flickr.photos.search(license=i, per_page=100, page=j)
             time.sleep(1)
-            photos = json.loads(photosJson.decode('utf-8'))
+            photos = json.loads(photosJson.decode("utf-8"))
             id = [x["id"] for x in photos["photos"]["photo"]]
 
             # change total equals to the total picture number
@@ -186,24 +195,42 @@ def main():
             # and query data and save into list (temp_list)
             # as columns of final dataset
             for index in range(0, len(id)):
-                detailJson = flickr.photos.getInfo(license=i,
-                                                   photo_id=id[index])
+                detailJson = flickr.photos.getInfo(
+                    license=i, photo_id=id[index]
+                )
                 time.sleep(1)
-                photos_detail = json.loads(detailJson.decode('utf-8'))
-                print(index, "id out of", len(id), "in license", i,
-                      "page", j, "out of", total)
+                photos_detail = json.loads(detailJson.decode("utf-8"))
+                print(
+                    index,
+                    "id out of",
+                    len(id),
+                    "in license",
+                    i,
+                    "page",
+                    j,
+                    "out of",
+                    total,
+                )
 
                 # query process of useful data
                 query_data(photos_detail, name_list, temp_list)
 
             j += 1
-            print("page", j, "out of", total, "in license", i,
-                  "with retry number", retries)
+            print(
+                "page",
+                j,
+                "out of",
+                total,
+                "in license",
+                i,
+                "with retry number",
+                retries,
+            )
 
             # save csv
             df_to_csv(temp_list, name_list, "hs.csv", "final.csv")
             # update j(the current page number in txt)
-            with open('rec.txt', 'w') as f:
+            with open("rec.txt", "w") as f:
                 f.write(str(j) + " " + str(i) + " " + str(total))
 
             # set list to empty everytime after saving the data into
@@ -218,7 +245,7 @@ def main():
                 j = 1
                 while i not in license_list:
                     i += 1
-                with open('rec.txt', 'w') as f:
+                with open("rec.txt", "w") as f:
                     f.write(str(j) + " " + str(i) + " " + str(total))
 
                 # below is to clear list everytime

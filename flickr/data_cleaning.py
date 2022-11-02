@@ -3,9 +3,10 @@ This is to clean the data pulled
 by the photos_detail.py script
 so as to further delete useless columns
 and reorganize the dataset as this form:
-       locations                   |  amount  |     time      |  license  |  content_categories  | highest_comment | total_view
-Minneapolis, United States         |    20    |   2022-10-22  |     4     |    football, life    |      105        |    100000
-São José do Rio Preto SP, Brasil   |    30    |   2022-10-22  |     4     |    football, life    |       50        |    300000
+
+       locations                 | amount |   time     | license | content_categories | highest_comment | total_view
+Minneapolis, United States       |     20 | 2022-10-22 |       4 |   football, life   |      105        |    100000
+São José do Rio Preto SP, Brasil |     30 | 2022-10-22 |       4 |   football, life   |       50        |    300000
 ...
 Note:
 content_categories will be got from basic NLP on the tags column
@@ -31,12 +32,14 @@ def drop_empty_column(csv_path, new_csv_path):  # attribute is string
 
 def drop_duplicate_id(csv_path, new_csv_path):  # attribute is string
     df = pd.read_csv(csv_path)
-    data = df.drop_duplicates(subset=['id'])
+    data = df.drop_duplicates(subset=["id"])
     data.to_csv(new_csv_path)
     print("Dropping duplicates")
 
 
-def save_new_data(csv_path, column_name_list, new_csv_path):  # attribute is string
+def save_new_data(
+    csv_path, column_name_list, new_csv_path
+):  # attribute is string
     """
     column_name_list must belongs to the
     existing column names from original csv
@@ -56,8 +59,12 @@ def save_new_data(csv_path, column_name_list, new_csv_path):  # attribute is str
 def main():
     drop_empty_column("license3.csv", "dataset/cleaned_license3.csv")
     drop_duplicate_id("license3.csv", "dataset/cleaned_license3.csv")
-    save_new_data("license3.csv", ["location", "dates", "license", "tags", "views", "comments"],
-                  "dataset/cleaned_license3.csv")
+    save_new_data(
+        "license3.csv",
+        ["location", "dates", "license", "tags", "views", "comments"],
+        "dataset/cleaned_license3.csv",
+    )
+
 
 if __name__ == "__main__":
     try:

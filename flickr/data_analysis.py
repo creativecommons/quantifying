@@ -5,15 +5,15 @@ This file is the script of data analysis and visualization
 # Standard library
 import sys
 import traceback
+import warnings
 
 # Third-party
-import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-from textblob import TextBlob
-import warnings
+import pandas as pd
+
 warnings.filterwarnings("ignore")
-from wordcloud import WordCloud, STOPWORDS
+# Third-party
+from wordcloud import STOPWORDS, WordCloud  # noqa: E402
 
 
 def tags_frequency(csv_path, column_name):  # attributes are string
@@ -31,7 +31,7 @@ def tags_frequency(csv_path, column_name):  # attributes are string
         if row.strip("]'[").split("', '"):
             list_tags += row.strip("]'[").split("', '")
     print(list_tags)
-    text = ''
+    text = ""
     stopwords = set(STOPWORDS)
     for word in list_tags:
         # Splitting each tag into its constituent words
@@ -43,10 +43,13 @@ def tags_frequency(csv_path, column_name):  # attributes are string
             text += " ".join(tokens) + " "
 
     # Creating the word cloud
-    tags_word_cloud = WordCloud(width=800, height=800,
-                          background_color='white',
-                          stopwords=stopwords,
-                          min_font_size=10).generate(text)
+    tags_word_cloud = WordCloud(
+        width=800,
+        height=800,
+        background_color="white",
+        stopwords=stopwords,
+        min_font_size=10,
+    ).generate(text)
 
     # Plotting the word cloud
     plt.figure(figsize=(8, 8), facecolor=None)
@@ -55,4 +58,20 @@ def tags_frequency(csv_path, column_name):  # attributes are string
 
     plt.show()
 
-tags_frequency("cleaned_hs.csv", "tags")
+
+def main():
+    tags_frequency("cleaned_hs.csv", "tags")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except SystemExit as e:
+        sys.exit(e.code)
+    except KeyboardInterrupt:
+        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        sys.exit(130)
+    except Exception:
+        print("ERROR (1) Unhandled exception:", file=sys.stderr)
+        print(traceback.print_exc(), file=sys.stderr)
+    sys.exit(1)
