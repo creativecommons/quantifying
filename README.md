@@ -27,6 +27,7 @@ collection of works that are openly licensed or in the public domain.
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 
+
 ## Development
 
 
@@ -61,10 +62,10 @@ modules:
 [isort]: https://pycqa.github.io/isort/
 
 
-### Data Sources
+## Data Sources
 
 
-#### CC Legal Tools
+### CC Legal Tools
 
 - [`legal-tool-paths.txt`](google_custom_search/legal-tool-paths.txt)
   - A `.txt` provided by Timid Robot containing all legal tool paths. The data
@@ -78,7 +79,20 @@ modules:
 [pr7]: https://github.com/creativecommons/quantifying/pull/7
 
 
-#### Google Custom Search JSON API
+### Flickr
+
+- The Flickr API exposes identifiers for users, photos, photosets and other
+  uniquely identifiable objects.
+- The Flickr API consists of a set of callable methods, and some API endpoints.
+- For more detailed description, visit: [API documentation - Flickr
+  Services](https://www.flickr.com/services/api/).
+- The `hs.csv` file is a sample CSV of pulled data. Ideally the script will
+  generate final data CSVs.
+- Each license will have a CSV to save the data.
+- Due to memory limit, the license CSVs are not pushed into github.
+
+
+### Google Custom Search JSON API
 
 - The Custom Search JSON API allows user-defined detailed query and access
   towards related query data using a programmable search engine.
@@ -106,7 +120,7 @@ modules:
 [googlelang]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list#body.QUERY_PARAMETERS.lr
 
 
-#### Internet Archive Python Interface
+### Internet Archive Python Interface
 
 A python interface to archive.org to achieve API requests towards internet
 archive.
@@ -116,7 +130,7 @@ archive.
 [iasearch]: https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
 
 
-#### The Metropolitan Museum of Art Collection API
+### The Metropolitan Museum of Art Collection API
 
 An API endpoint for receiving Metropolitan Muesum of Art Collection's
 CC-Licensed works.
@@ -132,7 +146,7 @@ CC-Licensed works.
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
 
 
-#### Vimeo API
+### Vimeo API
 
 The Vimeo API allows users to perform filtered, advanced search on Vimeo
 videos.
@@ -143,7 +157,7 @@ videos.
 [vimeoapisearch]: https://developer.vimeo.com/api/reference/videos#search_videos
 
 
-#### MediaWiki API
+### MediaWiki API
 
 - The MediaWiki Action API is a web service that allows access to some wiki
   features like authentication, page operations, and search. It can provide
@@ -161,7 +175,7 @@ videos.
     https://datahub.io/core/language-codes
 
 
-#### Youtube Data API
+### Youtube Data API
 
 An API from YouTube for platform users to upload videos, adjust video
 parameters, and obtain search results.

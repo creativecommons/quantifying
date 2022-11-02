@@ -128,5 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# JetBrains IDE project settings
+.idea/
+
 # secrets
 query_secrets.py
