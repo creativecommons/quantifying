@@ -17,8 +17,7 @@ import traceback
 # Third-party
 import flickrapi
 import pandas as pd
-import pyautogui
-import secret_key
+from quantifying.flickr import query_secrets
 
 
 def to_df(datalist, namelist):
@@ -129,21 +128,6 @@ def query_data(raw_data, name_list, data_list):
                 data_list[a].append(next(temp))
 
 
-def automove_mouse(total_number, seconds):
-    """
-    This function is to prevent the laptop from sleeping
-    if we want to pull HUGE amount of data automatically.
-    The mouse will be moved to a random place without clicking
-    everytime after certain seconds.
-    If we want to move mouse after pulling 100 api calls,
-    then the seconds should be 100, and total_number should be
-    the current total number of api calls (i.e. the ID amount we have iterated through)
-    """
-    if total_number % seconds == 0:
-        pyautogui.moveTo(random.randint(50, 300),
-                         random.randint(50, 300))
-
-
 def page1_reset(final_csv, raw_data):
     """
     change total equals to the total picture number under current license
@@ -160,8 +144,8 @@ def page1_reset(final_csv, raw_data):
 
 def main():
     retries = 0
-    flickr = flickrapi.FlickrAPI(secret_key.api_key,
-                                 secret_key.api_secret, format='json')
+    flickr = flickrapi.FlickrAPI(query_secrets.api_key,
+                                 query_secrets.api_secret, format='json')
     # below is the cc licenses list
     license_list = [1, 2, 3, 4, 5, 6, 9, 10]
 
@@ -209,7 +193,6 @@ def main():
 
                 # query process of useful data
                 query_data(photos_detail, name_list, temp_list)
-                automove_mouse(index, 100)
 
             j += 1
             print("page", j, "out of", total, "in license", i,

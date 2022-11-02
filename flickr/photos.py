@@ -3,10 +3,10 @@ import json
 
 # Third-party
 import flickrapi
-import secret_key
+from quantifying.flickr import query_secrets
 
-flickr = flickrapi.FlickrAPI(secret_key.api_key,
-                             secret_key.api_secret, format='json')
+flickr = flickrapi.FlickrAPI(query_secrets.api_key,
+                             query_secrets.api_secret, format='json')
 licenseJson = flickr.photos.licenses.getInfo()
 licenseInfo = json.loads(licenseJson.decode('utf-8'))
 
