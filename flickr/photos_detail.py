@@ -9,7 +9,6 @@ step3: saving lists of data to DataFrame
 
 # Standard library
 import json
-import random
 import time
 import sys
 import traceback
@@ -17,6 +16,7 @@ import traceback
 # Third-party
 import flickrapi
 import pandas as pd
+
 from quantifying.flickr import query_secrets
 
 
@@ -123,8 +123,8 @@ def query_data(raw_data, name_list, data_list):
                                      num in range(len(tags))])
             else:
                 temp = query_helper1(raw_data,
-                                          name_list[a], "tag",
-                                          data_list, a)
+                                     name_list[a], "tag",
+                                     data_list, a)
                 data_list[a].append(next(temp))
 
 
@@ -142,8 +142,10 @@ def page1_reset(final_csv, raw_data):
     return raw_data["photos"]["pages"]
 
 
+retries = 0
+
+
 def main():
-    retries = 0
     flickr = flickrapi.FlickrAPI(query_secrets.api_key,
                                  query_secrets.api_secret, format='json')
     # below is the cc licenses list
@@ -229,12 +231,11 @@ if __name__ == "__main__":
     while True:
         try:
             main()
-        except Exception:
-            main.retries += 1
-            # below is to clear list everytime before rerun (prevent duplicate)
-            main.temp_list = creat_lisoflis(len(main.name_list))
-            print("page", main.j, "out of", main.total, "in license", main.i,
-                  "with retry number", main.retries)
-            print("ERROR (1) Unhandled exception:", file=sys.stderr)
-            print(traceback.print_exc(), file=sys.stderr)
-            continue
+        except Exception as e:
+            retries += 1
+            print("Error:", e, ", with retry number:", retries)
+            if retries <= 20:
+                continue
+            else:
+                break
+        break
