@@ -9,6 +9,8 @@ step3: saving lists of data to DataFrame
 
 # Standard library
 import json
+import sys
+import traceback
 import time
 
 # Third-party
@@ -256,11 +258,16 @@ if __name__ == "__main__":
     while True:
         try:
             main()
+        except SystemExit as e:
+            sys.exit(e.code)
+        except KeyboardInterrupt:
+            print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+            sys.exit(130)
         except Exception as e:
             retries += 1
-            print("Error:", e, ", with retry number:", retries)
+            print("ERROR (1) Unhandled exception:", file=sys.stderr)
+            print(traceback.print_exc(), file=sys.stderr)
             if retries <= 20:
                 continue
             else:
-                break
-        break
+                sys.exit(1)
