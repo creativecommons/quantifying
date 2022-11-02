@@ -125,9 +125,9 @@ def get_response_elems(time=None):
 
 def set_up_data_file():
     """Writes the header row to file to contain YouTube data."""
-    with open(DATA_WRITE_FILE, "a") as f:
+    with open(DATA_WRITE_FILE, "w") as f:
         f.write("LICENSE TYPE,Document Count\n")
-    with open(DATA_WRITE_FILE_TIME, "a") as f:
+    with open(DATA_WRITE_FILE_TIME, "w") as f:
         f.write("LICENSE TYPE,Time,Document Count\n")
 
 

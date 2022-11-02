@@ -106,7 +106,7 @@ def get_response_elems(language="en"):
 def set_up_data_file():
     """Writes the header row to file to contain Wikipedia Query data."""
     header_title = ",".join(get_response_elems())
-    with open(DATA_WRITE_FILE, "a") as f:
+    with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
 
 

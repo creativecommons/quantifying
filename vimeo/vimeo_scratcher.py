@@ -98,7 +98,7 @@ def get_response_elems(license):
 def set_up_data_file():
     """Writes the header row to file to contain Vimeo data."""
     header_title = "LICENSE TYPE,Document Count"
-    with open(DATA_WRITE_FILE, "a") as f:
+    with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
 
 
