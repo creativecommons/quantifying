@@ -229,9 +229,9 @@ def set_up_data_file():
         "LICENSE TYPE,"
         f"{','.join([str(6 * i) for i in range(SEARCH_HALFYEAR_SPAN)])}"
     )
-    with open(DATA_WRITE_FILE, "a") as f:
+    with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
-    with open(DATA_WRITE_FILE_TIME, "a") as f:
+    with open(DATA_WRITE_FILE_TIME, "w") as f:
         f.write(f"{header_title_time}\n")
 
 
