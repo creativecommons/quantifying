@@ -322,7 +322,7 @@ def record_all_licenses():
 
 def main():
     set_up_data_file()
-    record_license_data(country=True)
+    record_all_licenses()
 
 
 if __name__ == "__main__":
