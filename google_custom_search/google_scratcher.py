@@ -30,6 +30,11 @@ DATA_WRITE_FILE_TIME = (
     f"/data_google_custom_search_time_"
     f"{today.year}_{today.month}_{today.day}.csv"
 )
+DATA_WRITE_FILE_COUNTRY = (
+    f"{CWD}"
+    f"/data_google_custom_search_country_"
+    f"{today.year}_{today.month}_{today.day}.csv"
+)
 SEARCH_HALFYEAR_SPAN = 20
 PSE_KEY = query_secrets.PSE_KEY
 
@@ -81,15 +86,23 @@ def get_lang_list():
     return selected_languages
 
 
-def get_country_list():
+def get_country_list(select_all=False):
     """Provides the list of countries to find Creative Commons usage data on.
+
+    Args:
+        select_all:
+            A boolean indicating whether the returned list will have all
+            countries.
 
     Returns:
         pd.DataFrame: A Dataframe whose index is country name and has a column
         for the corresponding country code.
     """
     countries = pd.read_csv(CWD + "/google_countries.tsv", sep="\t")
-    countries = countries.set_index("Country")
+    countries["Country"] = countries["Country"].str.replace(",", " ")
+    countries = countries.set_index("Country").sort_index()
+    if select_all:
+        return countries
     selected_countries = countries.loc[
         [
             "India",
@@ -138,15 +151,16 @@ def get_request_url(license=None, country=None, language=None, time=False):
         api_key = API_KEYS[API_KEYS_IND]
         base_url = (
             r"https://customsearch.googleapis.com/customsearch/v1"
-            f"?key={api_key}&cx={PSE_KEY}"
+            f"?key={api_key}&cx={PSE_KEY}&q=_"
         )
         if time:
             base_url = f"{base_url}&dateRestrict=m{time}"
-        base_url = f"{base_url}&q=_&linkSite=creativecommons.org"
-        if license is not None:
-            base_url = f'{base_url}{license.replace("/", "%2F")}'
-        else:
-            base_url = f'{base_url}{"/licenses".replace("/", "%2F")}'
+        if license != "no":
+            base_url = f"{base_url}&linkSite=creativecommons.org"
+            if license is not None:
+                base_url = f'{base_url}{license.replace("/", "%2F")}'
+            else:
+                base_url = f'{base_url}{"/licenses".replace("/", "%2F")}'
         if country is not None:
             base_url = f"{base_url}&cr={country}"
         if language is not None:
@@ -190,7 +204,7 @@ def get_response_elems(license=None, country=None, language=None, time=False):
         max_retries = Retry(
             total=5,
             backoff_factor=10,
-            status_forcelist=[403, 408, 500, 502, 503, 504],
+            status_forcelist=[400, 403, 408, 500, 502, 503, 504],
             # 429 is Quota Limit Exceeded, which will be handled alternatively
         )
         session = requests.Session()
@@ -219,6 +233,7 @@ def set_up_data_file():
     """Writes the header row to file to contain Google Query data."""
     header_title = "LICENSE TYPE,No Priori,"
     selected_countries = get_country_list()
+    all_countries = get_country_list(select_all=True)
     selected_languages = get_lang_list()
     header_title = (
         "LICENSE TYPE,No Priori,"
@@ -229,13 +244,16 @@ def set_up_data_file():
         "LICENSE TYPE,"
         f"{','.join([str(6 * i) for i in range(SEARCH_HALFYEAR_SPAN)])}"
     )
+    header_title_country = "LICENSE TYPE," f"{','.join(all_countries.index)}"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
     with open(DATA_WRITE_FILE_TIME, "w") as f:
         f.write(f"{header_title_time}\n")
+    with open(DATA_WRITE_FILE_COUNTRY, "w") as f:
+        f.write(f"{header_title_country}\n")
 
 
-def record_license_data(license_type=None, time=False):
+def record_license_data(license_type=None, time=False, country=False):
     """Writes the row for LICENSE_TYPE to file to contain Google Query data.
 
     Args:
@@ -247,12 +265,36 @@ def record_license_data(license_type=None, time=False):
         time:
             A boolean indicating whether this query is related to video time
             occurrence.
+        country:
+            A boolean indicating whether this query is related to country
+            occurrence.
     """
     if license_type is None:
         data_log = "all"
     else:
         data_log = f"{license_type}"
-    if not time:
+    if country:
+        all_countries = get_country_list(select_all=True)
+        for current_country in all_countries.iloc[:, 0]:
+            country_license_data = get_response_elems(
+                license=license_type, country=current_country
+            )
+            data_log = f"{data_log},{country_license_data['totalResults']}"
+        data_log = f"{data_log}\nAll Documents"
+        for current_country in all_countries.iloc[:, 0]:
+            country_overall_data = get_response_elems(
+                license="no", country=current_country
+            )
+            data_log = f"{data_log},{country_overall_data['totalResults']}"
+        with open(DATA_WRITE_FILE_COUNTRY, "a") as f:
+            f.write(f"{data_log}\n")
+    elif time:
+        for i in range(SEARCH_HALFYEAR_SPAN):
+            time_data = get_response_elems(license=license_type, time=i * 6)
+            data_log = f"{data_log},{time_data['totalResults']}"
+        with open(DATA_WRITE_FILE_TIME, "a") as f:
+            f.write(f"{data_log}\n")
+    else:
         selected_countries = get_country_list()
         selected_languages = get_lang_list()
         no_priori_search = get_response_elems(license=license_type)
@@ -261,19 +303,13 @@ def record_license_data(license_type=None, time=False):
             response = get_response_elems(
                 license=license_type, country=country_name
             )
-            data_log += f",{response['totalResults']}"
+            data_log = f"{data_log},{response['totalResults']}"
         for language_name in selected_languages.iloc[:, 0]:
             response = get_response_elems(
                 license=license_type, language=language_name
             )
-            data_log += f",{response['totalResults']}"
+            data_log = f"{data_log},{response['totalResults']}"
         with open(DATA_WRITE_FILE, "a") as f:
-            f.write(f"{data_log}\n")
-    else:
-        for i in range(SEARCH_HALFYEAR_SPAN):
-            time_data = get_response_elems(license=license_type, time=i * 6)
-            data_log = f"{data_log},{time_data['totalResults']}"
-        with open(DATA_WRITE_FILE_TIME, "a") as f:
             f.write(f"{data_log}\n")
 
 
@@ -285,11 +321,10 @@ def record_all_licenses():
     license_list = get_license_list()
     record_license_data(time=False)
     record_license_data(time=True)
+    record_license_data(country=True)
     for license_type in license_list:
         record_license_data(license_type, time=False)
-        print("DEBUG ", "no time ", license_type)
         record_license_data(license_type, time=True)
-        print("DEBUG ", "time ", license_type)
 
 
 def main():
