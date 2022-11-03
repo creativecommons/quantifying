@@ -151,15 +151,16 @@ def get_request_url(license=None, country=None, language=None, time=False):
         api_key = API_KEYS[API_KEYS_IND]
         base_url = (
             r"https://customsearch.googleapis.com/customsearch/v1"
-            f"?key={api_key}&cx={PSE_KEY}"
+            f"?key={api_key}&cx={PSE_KEY}&q=_"
         )
         if time:
             base_url = f"{base_url}&dateRestrict=m{time}"
-        base_url = f"{base_url}&q=_&linkSite=creativecommons.org"
-        if license is not None:
-            base_url = f'{base_url}{license.replace("/", "%2F")}'
-        else:
-            base_url = f'{base_url}{"/licenses".replace("/", "%2F")}'
+        if license != "no":
+            base_url = f"{base_url}&linkSite=creativecommons.org"
+            if license is not None:
+                base_url = f'{base_url}{license.replace("/", "%2F")}'
+            else:
+                base_url = f'{base_url}{"/licenses".replace("/", "%2F")}'
         if country is not None:
             base_url = f"{base_url}&cr={country}"
         if language is not None:
@@ -203,7 +204,7 @@ def get_response_elems(license=None, country=None, language=None, time=False):
         max_retries = Retry(
             total=5,
             backoff_factor=10,
-            status_forcelist=[403, 408, 500, 502, 503, 504],
+            status_forcelist=[400, 403, 408, 500, 502, 503, 504],
             # 429 is Quota Limit Exceeded, which will be handled alternatively
         )
         session = requests.Session()
@@ -275,10 +276,16 @@ def record_license_data(license_type=None, time=False, country=False):
     if country:
         all_countries = get_country_list(select_all=True)
         for current_country in all_countries.iloc[:, 0]:
-            country_data = get_response_elems(
+            country_license_data = get_response_elems(
                 license=license_type, country=current_country
             )
-            data_log = f"{data_log},{country_data['totalResults']}"
+            data_log = f"{data_log},{country_license_data['totalResults']}"
+        data_log = f"{data_log}\nAll Documents"
+        for current_country in all_countries.iloc[:, 0]:
+            country_overall_data = get_response_elems(
+                license="no", country=current_country
+            )
+            data_log = f"{data_log},{country_overall_data['totalResults']}"
         with open(DATA_WRITE_FILE_COUNTRY, "a") as f:
             f.write(f"{data_log}\n")
     elif time:
