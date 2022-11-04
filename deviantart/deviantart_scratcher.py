@@ -59,7 +59,7 @@ def get_request_url(license):
         return (
             "https://customsearch.googleapis.com/customsearch/v1"
             f"?key={api_key}&cx={PSE_KEY}"
-            "&q=_&relatedSite=deviantart.com"
+            "&q=_&siteSearch=deviantart.com&siteSearchFilter=i"
             f'&linkSite=creativecommons.org{license.replace("/", "%2F")}'
         )
     except Exception as e:
