@@ -40,12 +40,20 @@ def tags_frequency(csv_path, column_names):
             for row in df[column_name][1:]:
                 if str(row) is not None and str(row) != "" and str(row) != "nan":
                     print(str(row))
+                    if "ChineseinUS.org" in str(row):
+                        row = "ChineseinUS"
                     list2 += re.split('\s|(?<!\d)[,.](?!\d)', str(row))
     text = ""
     stopwords = set(STOPWORDS)
-    stopwords.add("nan")
-    # customized = {"https", "flickr", "de", "photo", "co"}
-    # stopwords = stopwords.union(customized)
+
+    # The stop words can be customized based on diff cases
+    flickr_customized = {"nan", "https", "href", "rel", "de", "en",
+                         "da", "la", "href", "rel", "noreferrer",
+                         "nofollow", "ly", "photo"}
+    stopwords = stopwords.union(flickr_customized)
+    customized = {"p", "d"}
+    stopwords = stopwords.union(customized)
+
     for word in list_tags:
         # Splitting each tag into its constituent words
         tokens = word.split()
@@ -73,12 +81,12 @@ def tags_frequency(csv_path, column_names):
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(tags_word_cloud, interpolation="bilinear")
     plt.axis("off")
-    plt.savefig('../analyze/plots/license2_wordCloud.png', dpi=300, bbox_inches='tight')
+    plt.savefig('../analyze/plots/license9_wordCloud.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
 def main():
-    tags_frequency("../flickr/dataset/cleaned_license2.csv", ["tags", "description"])
+    tags_frequency("../flickr/dataset/cleaned_license9.csv", ["tags", "description"])
 
 
 if __name__ == "__main__":
