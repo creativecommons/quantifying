@@ -60,7 +60,7 @@ def tags_frequency(csv_path, column_name):  # attributes are string
 
 
 def main():
-    tags_frequency("cleaned_hs.csv", "tags")
+    tags_frequency("../flickr/cleaned_hs.csv", "tags")
 
 
 if __name__ == "__main__":
