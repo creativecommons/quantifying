@@ -8,7 +8,10 @@ import traceback
 import warnings
 
 # Third-party
+from functools import reduce
+
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pd
 import numpy as np
 import re
@@ -81,12 +84,138 @@ def tags_frequency(csv_path, column_names):
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(tags_word_cloud, interpolation="bilinear")
     plt.axis("off")
-    plt.savefig('../analyze/plots/license9_wordCloud.png', dpi=300, bbox_inches='tight')
+    plt.savefig('../analyze/wordCloud_plots/license9_wordCloud.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
+def time_trend_helper(df):
+    year_list = []
+    for date_row in df['dates'][0:]:
+        date_list = str(date_row).split()
+        year_list.append(date_list[0])
+    df['Dates'] = year_list
+
+    # Use rename_axis for name of column from index and reset_index
+    count_df = df['Dates'].value_counts().sort_index(). \
+        rename_axis('Dates').reset_index(name="Counts")
+    count_df = count_df.drop([0, len(count_df) - 1])
+    return count_df
+
+
+def time_trend(csv_path):
+    df = pd.read_csv(csv_path)
+    count_df = time_trend_helper(df)
+
+    # first use subplots() to create a frame of your plot (figure and axes)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    plt.plot(count_df["Dates"], count_df["Counts"])
+    plt.xticks(rotation=60)
+
+    # We have 828 time nodes in this dataset.
+    # So we start from the 0th time node, and end at 828th time node.
+    # and step 90 digits each time - only have the 0th, 90th, 180th, ... time nodes showing on this graph.
+    ax.set_xticks(np.arange(0, len(count_df), 90))
+    fig.suptitle('license1 usage in flickr pictures 1967-2022', fontweight="bold")
+    plt.savefig('../analyze/line_graphs/license1_total_trend.png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+
+def time_trend_compile():
+    license1 = pd.read_csv("../flickr/dataset/cleaned_license1.csv")
+    license2 = pd.read_csv("../flickr/dataset/cleaned_license2.csv")
+    license3 = pd.read_csv("../flickr/dataset/cleaned_license3.csv")
+    license4 = pd.read_csv("../flickr/dataset/cleaned_license4.csv")
+    license5 = pd.read_csv("../flickr/dataset/cleaned_license5.csv")
+    license6 = pd.read_csv("../flickr/dataset/cleaned_license6.csv")
+    license9 = pd.read_csv("../flickr/dataset/cleaned_license9.csv")
+    count_df1 = time_trend_helper(license1)
+    count_df2 = time_trend_helper(license2)
+    count_df3 = time_trend_helper(license3)
+    count_df4 = time_trend_helper(license4)
+    count_df5 = time_trend_helper(license5)
+    count_df6 = time_trend_helper(license6)
+    count_df9 = time_trend_helper(license9)
+    list_raw_data = [count_df1, count_df2, count_df3,
+                     count_df4, count_df5, count_df6, count_df9]
+
+    # Split date to year and save in a list
+    for each_raw_data in list_raw_data:
+        years = []
+        for row in each_raw_data["Dates"]:
+            years.append(row.split("-")[0])
+        each_raw_data["Years"] = years
+        each_raw_data = each_raw_data.drop("Dates", axis=1)
+        each_raw_data["Counts_by_year"] =\
+            each_raw_data["Counts"].groupby(each_raw_data["Years"]).sum()
+        each_raw_data.dropna(how='all')
+    print(each_raw_data)
+    print(count_df9.count())
+    # We set years are from 2000 to 2022
+    Years = np.arange(2000, 2022)
+
+
+    # plot lines
+    # plt.plot(df_common_dates[0], count_df1["Counts"], label="license 1")
+    # plt.plot(df_common_dates[0], count_df2["Counts"], label="license 2")
+    # plt.plot(df_common_dates[0], count_df3["Counts"], label="license 3")
+    # plt.plot(df_common_dates[0], count_df4["Counts"], label="license 4")
+    # plt.plot(df_common_dates[0], count_df5["Counts"], label="license 5")
+    # plt.plot(df_common_dates[0], count_df6["Counts"], label="license 6")
+    # plt.plot(df_common_dates[0], count_df9["Counts"], label="license 9")
+    # plt.legend()
+    # plt.savefig('../analyze/line_graphs/licenses_total_trend.png', dpi=300, bbox_inches='tight')
+    # plt.show()
+
+
+def view_compare_helper(df):
+    highest_view = int(max(df["views"]))
+    df = df.sort_values("views", ascending=False)
+    return highest_view
+    print(df)
+    print(highest_view)
+
+
+def view_compare():
+    license1 = pd.read_csv("../flickr/dataset/cleaned_license1.csv")
+    license2 = pd.read_csv("../flickr/dataset/cleaned_license2.csv")
+    license3 = pd.read_csv("../flickr/dataset/cleaned_license3.csv")
+    license4 = pd.read_csv("../flickr/dataset/cleaned_license4.csv")
+    license5 = pd.read_csv("../flickr/dataset/cleaned_license5.csv")
+    license6 = pd.read_csv("../flickr/dataset/cleaned_license6.csv")
+    license9 = pd.read_csv("../flickr/dataset/cleaned_license9.csv")
+    licenses = [license1, license2, license3, license4, license5, license6, license9]
+    maxs = []
+    for lic in licenses:
+        maxs.append(view_compare_helper(lic))
+    print(maxs)
+    temp_data = pd.DataFrame()
+    temp_data["Licenses"] = ["license1", "license2", "license3", "license4", "license5", "license6", "license9"]
+    temp_data["views"] = maxs
+    fig, ax = plt.subplots(figsize =(10, 7))
+    ax.grid(b=True, color='grey',
+            linestyle='-.', linewidth=0.5,
+            alpha=0.6)
+    sns.set_style("dark")
+    sns.barplot(data=temp_data, x="Licenses", y="views", palette="flare", errorbar="sd")
+    ax.set_title('Maximum Views of All Licenses',
+                 loc='left')
+    plt.savefig('../analyze/compare_graphs/max_views.png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+
+def heat_map(csv_path):
+    df = pd.read_csv(csv_path)
+    for i in range(len(df["license"])):
+        if df["license"][i] != 1.0:
+            df2 = df.drop(i)
+    df2 = df2.dropna(how="all")
+    print(df2)
+    df2 = df2.groupby('location').sum()
+    print(df2)
+
+
 def main():
-    tags_frequency("../flickr/dataset/cleaned_license9.csv", ["tags", "description"])
+    view_compare()
 
 
 if __name__ == "__main__":
