@@ -84,7 +84,8 @@ def tags_frequency(csv_path, column_names):
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(tags_word_cloud, interpolation="bilinear")
     plt.axis("off")
-    plt.savefig('../analyze/wordCloud_plots/license9_wordCloud.png', dpi=300, bbox_inches='tight')
+    plt.savefig('../analyze/wordCloud_plots/license9_wordCloud.png',
+                dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -113,11 +114,32 @@ def time_trend(csv_path):
 
     # We have 828 time nodes in this dataset.
     # So we start from the 0th time node, and end at 828th time node.
-    # and step 90 digits each time - only have the 0th, 90th, 180th, ... time nodes showing on this graph.
+    # and step 90 digits each time - only have the 0th, 90th,
+    # 180th, ... time nodes showing on this graph.
     ax.set_xticks(np.arange(0, len(count_df), 90))
     fig.suptitle('license1 usage in flickr pictures 1967-2022', fontweight="bold")
-    plt.savefig('../analyze/line_graphs/license1_total_trend.png', dpi=300, bbox_inches='tight')
+    plt.savefig('../analyze/line_graphs/license1_total_trend.png',
+                dpi=300, bbox_inches='tight')
     plt.show()
+
+
+def time_trend_compile_helper(yearly_count):
+    """
+    yearly_count is the dataframe with "year" and "Counts" as two columns
+    This function will return counts - the list of "Counts" with the
+    condition that their corresponding "year" is between [2000, 2022]
+    """
+    Years = np.arange(2000, 2023)
+    yearly_count["year"] = list(yearly_count.index)
+    counts = []
+    for num in range(len(yearly_count["Counts"])):
+        if ((int(yearly_count["year"][num]) <= 2022)
+                & (int(yearly_count["year"][num]) >= 2000)):
+            counts.append(yearly_count["Counts"][num])
+    print(counts)
+    final_yearly_count = pd.DataFrame(list(zip(Years, counts)),
+                    columns=['Years', 'Yearly_counts'])
+    return final_yearly_count
 
 
 def time_trend_compile():
@@ -139,32 +161,46 @@ def time_trend_compile():
                      count_df4, count_df5, count_df6, count_df9]
 
     # Split date to year and save in a list
+    list_data = []
     for each_raw_data in list_raw_data:
         years = []
         for row in each_raw_data["Dates"]:
             years.append(row.split("-")[0])
         each_raw_data["Years"] = years
         each_raw_data = each_raw_data.drop("Dates", axis=1)
-        each_raw_data["Counts_by_year"] =\
-            each_raw_data["Counts"].groupby(each_raw_data["Years"]).sum()
+        each_raw_data = each_raw_data.groupby("Years")["Counts"].sum()
         each_raw_data.dropna(how='all')
-    print(each_raw_data)
-    print(count_df9.count())
-    # We set years are from 2000 to 2022
-    Years = np.arange(2000, 2022)
+        list_data.append(each_raw_data)
 
+    # We set years are from 2000 to 2022
+    yearly_count1 = list_data[0].to_frame()
+    yearly_count2 = list_data[1].to_frame()
+    yearly_count3 = list_data[2].to_frame()
+    yearly_count4 = list_data[3].to_frame()
+    yearly_count5 = list_data[4].to_frame()
+    yearly_count6 = list_data[5].to_frame()
+    yearly_count9 = list_data[6].to_frame()
+    yearly_count1 = time_trend_compile_helper(yearly_count1)
+    yearly_count2 = time_trend_compile_helper(yearly_count2)
+    yearly_count3 = time_trend_compile_helper(yearly_count3)
+    yearly_count4 = time_trend_compile_helper(yearly_count4)
+    yearly_count5 = time_trend_compile_helper(yearly_count5)
+    yearly_count6 = time_trend_compile_helper(yearly_count6)
+    yearly_count9 = time_trend_compile_helper(yearly_count9)
+    print(yearly_count1)
 
     # plot lines
-    # plt.plot(df_common_dates[0], count_df1["Counts"], label="license 1")
-    # plt.plot(df_common_dates[0], count_df2["Counts"], label="license 2")
-    # plt.plot(df_common_dates[0], count_df3["Counts"], label="license 3")
-    # plt.plot(df_common_dates[0], count_df4["Counts"], label="license 4")
-    # plt.plot(df_common_dates[0], count_df5["Counts"], label="license 5")
-    # plt.plot(df_common_dates[0], count_df6["Counts"], label="license 6")
-    # plt.plot(df_common_dates[0], count_df9["Counts"], label="license 9")
-    # plt.legend()
-    # plt.savefig('../analyze/line_graphs/licenses_total_trend.png', dpi=300, bbox_inches='tight')
-    # plt.show()
+    plt.plot(yearly_count1["Years"], yearly_count1["Yearly_counts"], label="license 1")
+    plt.plot(yearly_count2["Years"], yearly_count2["Yearly_counts"], label="license 2")
+    plt.plot(yearly_count3["Years"], yearly_count3["Yearly_counts"], label="license 3")
+    plt.plot(yearly_count4["Years"], yearly_count4["Yearly_counts"], label="license 4")
+    plt.plot(yearly_count5["Years"], yearly_count5["Yearly_counts"], label="license 5")
+    plt.plot(yearly_count6["Years"], yearly_count6["Yearly_counts"], label="license 6")
+    plt.plot(yearly_count9["Years"], yearly_count9["Yearly_counts"], label="license 9")
+    plt.legend()
+    plt.title('Yearly Trend of All Licenses 2000-2022', loc='left')
+    plt.savefig('../analyze/line_graphs/licenses_yearly_trend.png', dpi=300, bbox_inches='tight')
+    plt.show()
 
 
 def view_compare_helper(df):
@@ -215,7 +251,7 @@ def heat_map(csv_path):
 
 
 def main():
-    view_compare()
+    time_trend_compile()
 
 
 if __name__ == "__main__":
