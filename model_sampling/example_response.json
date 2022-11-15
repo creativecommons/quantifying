@@ -1,0 +1,440 @@
+{
+  "kind": "customsearch#search",
+  "url": {
+    "type": "application/json",
+    "template": "https://www.googleapis.com/customsearch/v1?q={searchTerms}&num={count?}&start={startIndex?}&lr={language?}&safe={safe?}&cx={cx?}&sort={sort?}&filter={filter?}&gl={gl?}&cr={cr?}&googlehost={googleHost?}&c2coff={disableCnTwTranslation?}&hq={hq?}&hl={hl?}&siteSearch={siteSearch?}&siteSearchFilter={siteSearchFilter?}&exactTerms={exactTerms?}&excludeTerms={excludeTerms?}&linkSite={linkSite?}&orTerms={orTerms?}&relatedSite={relatedSite?}&dateRestrict={dateRestrict?}&lowRange={lowRange?}&highRange={highRange?}&searchType={searchType}&fileType={fileType?}&rights={rights?}&imgSize={imgSize?}&imgType={imgType?}&imgColorType={imgColorType?}&imgDominantColor={imgDominantColor?}&alt=json"
+  },
+  "queries": {
+    "previousPage": [
+      {
+        "title": "Google Custom Search - -fileType:pdf -inurl:pdf -pdf",
+        "totalResults": "46800000",
+        "searchTerms": "-fileType:pdf -inurl:pdf -pdf",
+        "count": 10,
+        "startIndex": 50,
+        "inputEncoding": "utf8",
+        "outputEncoding": "utf8",
+        "safe": "off",
+        "cx": "32b0ab849cffc4573",
+        "excludeTerms": "Policy",
+        "linkSite": "https://creativecommons.org/licenses/by/3.0/",
+        "rights": "cc_attribute"
+      }
+    ],
+    "request": [
+      {
+        "title": "Google Custom Search - -fileType:pdf -inurl:pdf -pdf",
+        "totalResults": "46800000",
+        "searchTerms": "-fileType:pdf -inurl:pdf -pdf",
+        "count": 10,
+        "startIndex": 60,
+        "inputEncoding": "utf8",
+        "outputEncoding": "utf8",
+        "safe": "off",
+        "cx": "32b0ab849cffc4573",
+        "excludeTerms": "Policy",
+        "linkSite": "https://creativecommons.org/licenses/by/3.0/",
+        "rights": "cc_attribute"
+      }
+    ],
+    "nextPage": [
+      {
+        "title": "Google Custom Search - -fileType:pdf -inurl:pdf -pdf",
+        "totalResults": "46800000",
+        "searchTerms": "-fileType:pdf -inurl:pdf -pdf",
+        "count": 10,
+        "startIndex": 70,
+        "inputEncoding": "utf8",
+        "outputEncoding": "utf8",
+        "safe": "off",
+        "cx": "32b0ab849cffc4573",
+        "excludeTerms": "Policy",
+        "linkSite": "https://creativecommons.org/licenses/by/3.0/",
+        "rights": "cc_attribute"
+      }
+    ]
+  },
+  "context": {
+    "title": "Quantifying the Commons, Sampling Engine",
+    "facets": [
+      [
+        {
+          "anchor": "Copyright Page",
+          "label": "copyright_page",
+          "label_with_op": "less:copyright_page"
+        }
+      ],
+      [
+        {
+          "anchor": "License Page",
+          "label": "license_page",
+          "label_with_op": "less:license_page"
+        }
+      ]
+    ]
+  },
+  "searchInformation": {
+    "searchTime": 0.406909,
+    "formattedSearchTime": "0.41",
+    "totalResults": "46800000",
+    "formattedTotalResults": "46,800,000"
+  },
+  "items": [
+    {
+      "kind": "customsearch#result",
+      "title": "Projects API | GitLab",
+      "htmlTitle": "Projects API | GitLab",
+      "link": "https://docs.gitlab.com/ee/api/projects.html",
+      "displayLink": "docs.gitlab.com",
+      "snippet": "curl --request GET \"https://gitlab.example.com/api/v4/projects\" ... \"source_url\": \"http://www.gnu.org/licenses/lgpl-3.0.txt\" }, \"shared_runners_enabled\": ...",
+      "htmlSnippet": "curl --request GET &quot;\u003cb\u003ehttps\u003c/b\u003e://gitlab.example.com/api/v4/projects&quot; ... &quot;source_url&quot;: &quot;\u003cb\u003ehttp\u003c/b\u003e://www.gnu.\u003cb\u003eorg\u003c/b\u003e/\u003cb\u003elicenses\u003c/b\u003e/lgpl-\u003cb\u003e3.0\u003c/b\u003e.txt&quot; }, &quot;shared_runners_enabled&quot;:&nbsp;...",
+      "formattedUrl": "https://docs.gitlab.com/ee/api/projects.html",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://docs.gitlab.com/ee/api/projects.html",
+      "pagemap": {
+        "metatags": [
+          {
+            "theme-color": "#FC6D26",
+            "viewport": "width=device-width,initial-scale=1,user-scalable=no",
+            "docsearch:version": "main",
+            "og:title": "Projects API | GitLab",
+            "docsearch:language": "en",
+            "docsearch:pagerank": "50",
+            "gitlab-docs-version": "15.6",
+            "og:url": "https://docs.gitlab.com/ee/api/projects.html",
+            "docsearch:level": "3"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "How and why use Creative Commons licensed work | Opensource ...",
+      "htmlTitle": "How and why use \u003cb\u003eCreative Commons licensed\u003c/b\u003e work | Opensource ...",
+      "link": "https://opensource.com/article/20/1/what-creative-commons",
+      "displayLink": "opensource.com",
+      "snippet": "Jan 14, 2020 ... Search.creativecommons.org is a good place to start searching for Creative Commons licensed works. How does copyright work? Photos, art, movies, ...",
+      "htmlSnippet": "Jan 14, 2020 \u003cb\u003e...\u003c/b\u003e Search.\u003cb\u003ecreativecommons\u003c/b\u003e.\u003cb\u003eorg\u003c/b\u003e is a good place to start searching for \u003cb\u003eCreative Commons licensed\u003c/b\u003e works. How does copyright work? Photos, art, movies,&nbsp;...",
+      "cacheId": "E3MXoIlyjVEJ",
+      "formattedUrl": "https://opensource.com/article/20/1/what-creative-commons",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://opensource.com/article/20/1/what-\u003cb\u003ecreative-commons\u003c/b\u003e",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcT38q0w2-AXPjesNQ7TATMa3EAxM3pEDl9OSwxo4BEUIb-8p0B4buleErB0",
+            "width": "300",
+            "height": "168"
+          }
+        ],
+        "metatags": [
+          {
+            "og:image": "https://opensource.com/sites/default/files/lead-images/CreativeCommons_ideas_520x292_1112JS.png",
+            "og:type": "How and why use Creative Commons licensed work",
+            "twitter:card": "summary",
+            "twitter:title": "How and why use Creative Commons licensed work",
+            "handheldfriendly": "true",
+            "og:title": "How and why use Creative Commons licensed work",
+            "og:description": "Creative Commons (CC) copyright is a series of copyright licenses that make it easy for crea",
+            "twitter:creator": "@jlweich",
+            "twitter:image": "https://opensource.com/sites/default/files/lead-images/CreativeCommons_ideas_520x292_1112JS.png",
+            "viewport": "width=device-width, initial-scale=1.0",
+            "twitter:description": "Creative Commons (CC) copyright is a series of copyright licenses that make it easy for crea",
+            "mobileoptimized": "width",
+            "og:url": "https://opensource.com/article/20/1/what-creative-commons"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://opensource.com/sites/default/files/lead-images/CreativeCommons_ideas_520x292_1112JS.png"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "Least Open - Creative Commons Licenses Explained - LibGuides at ...",
+      "htmlTitle": "Least Open - \u003cb\u003eCreative Commons Licenses\u003c/b\u003e Explained - LibGuides at ...",
+      "link": "https://libguides.hartford.edu/c.php?g=887688&p=6380447",
+      "displayLink": "libguides.hartford.edu",
+      "snippet": "Jul 15, 2021 ... CC-BY-ND or Creative Commons Attribution NoDerivs is a more restrictive license. It allows you to redistribute the material commercially or ...",
+      "htmlSnippet": "Jul 15, 2021 \u003cb\u003e...\u003c/b\u003e CC-BY-ND or \u003cb\u003eCreative Commons\u003c/b\u003e Attribution NoDerivs is a more restrictive \u003cb\u003elicense\u003c/b\u003e. It allows you to redistribute the material commercially or&nbsp;...",
+      "formattedUrl": "https://libguides.hartford.edu/c.php?g=887688&p=6380447",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://libguides.hartford.edu/c.php?g=887688&amp;p=6380447",
+      "pagemap": {
+        "metatags": [
+          {
+            "msapplication-tilecolor": "#ffc40d",
+            "msapplication-config": "//libapps.s3.amazonaws.com/apps/common/favicon/browserconfig.xml",
+            "theme-color": "#ffffff",
+            "dc.description": "This guide is designed to walk you through the different types of CC Licenses and the benefits and drawbacks of each, so that when it comes to picking a license for your work, you can make an educated choice.",
+            "og:type": "website",
+            "twitter:card": "summary_large_image",
+            "og:title": "LibGuides: Creative Commons Licenses Explained: Least Open",
+            "dc.rights": "Copyright University of Hartford 2022",
+            "dc.date.created": "Oct 30, 2018",
+            "og:description": "This guide is designed to walk you through the different types of CC Licenses and the benefits and drawbacks of each, so that when it comes to picking a license for your work, you can make an educated choice.",
+            "dc.publishers": "University of Hartford",
+            "twitter:site": "@springshare",
+            "viewport": "width=device-width, initial-scale=1.0",
+            "dc.creator": "Taylor St. Pierre",
+            "dc.title": "LibGuides: Creative Commons Licenses Explained: Least Open",
+            "dc.date.modified": "Jul 15, 2021",
+            "dc.identifier": "https://libguides.hartford.edu/c.php?g=887688&p=6380447",
+            "dc.language": "en",
+            "og:url": "https://libguides.hartford.edu/c.php?g=887688&p=6380447"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "Efficient Reinforcement Learning using Gaussian Processes - Spiral",
+      "htmlTitle": "Efficient Reinforcement Learning using Gaussian Processes - Spiral",
+      "link": "https://spiral.imperial.ac.uk/handle/10044/1/12224",
+      "displayLink": "spiral.imperial.ac.uk",
+      "snippet": "Nov 30, 2010 ... You may not alter, transform, or build upon this work. http://creativecommons.org/licenses/by-nc-nd/3.0/de/. Notes: timestamp: 2010.11.17.",
+      "htmlSnippet": "Nov 30, 2010 \u003cb\u003e...\u003c/b\u003e You may not alter, transform, or build upon this work. \u003cb\u003ehttp\u003c/b\u003e://\u003cb\u003ecreativecommons\u003c/b\u003e.\u003cb\u003eorg\u003c/b\u003e/\u003cb\u003elicenses\u003c/b\u003e/by-nc-nd/\u003cb\u003e3.0\u003c/b\u003e/de/. Notes: timestamp: 2010.11.17.",
+      "cacheId": "A7vknptzSEQJ",
+      "formattedUrl": "https://spiral.imperial.ac.uk/handle/10044/1/12224",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://spiral.imperial.ac.uk/handle/10044/1/12224",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFrofR2QfPiAO8U8LXomhkexs3AU_XpTmX0KlHGW2gHMTIpUWVjKASUg",
+            "width": "253",
+            "height": "117"
+          }
+        ],
+        "metatags": [
+          {
+            "dc.publisher": "KIT Scientific Publishing",
+            "citation_keywords": "Book",
+            "dc.description": "22.10.13  KB. Ok to add book to spiral, under CC license.",
+            "citation_title": "Efficient Reinforcement Learning using Gaussian Processes",
+            "citation_publisher": "KIT Scientific Publishing",
+            "dc.rights": "© 2009 The Author. This work is under the Creative Common license CC-BY-NC-ND. You are free to copy, distribute and transmit the work. You must attribute the work in the manner specified by the author or licensor (but not in any way that suggests that they endorse you or your use of the work). You may not use this work for commercial purposes. You may not alter, transform, or build upon this work. http://creativecommons.org/licenses/by-nc-nd/3.0/de/",
+            "citation_author": "Deisenroth, MP",
+            "citation_date": "2010-11-30",
+            "citation_abstract_html_url": "http://spiral.imperial.ac.uk/handle/10044/1/12224",
+            "dcterms.issued": "2010-11-30",
+            "dc.contributor": "Hanebeck, UD",
+            "dcterms.dateaccepted": "2013-10-22T17:52:19Z",
+            "dc.type": "Book",
+            "viewport": "width=device-width, initial-scale=1.0",
+            "dc.creator": "Deisenroth, MP",
+            "dc.relation": "Karlsruhe Series on Intelligent Sensor-Actuator-Systems",
+            "dc.title": "Efficient Reinforcement Learning using Gaussian Processes",
+            "dc.identifier": "http://www.ksp.kit.edu/shop/isbn2shopid.php?isbn=978-3-86644-569-7",
+            "citation_pdf_url": "http://spiral.imperial.ac.uk/bitstream/10044/1/12224/4/978-3-86644-569-7_pdfa.pdf",
+            "dcterms.abstract": "This book examines Gaussian processes (GPs) in model-based reinforcement learning (RL) and inference in nonlinear dynamic systems. First, we introduce PILCO, a fully Bayesian approach for efficient RL in continuous-valued state and action spaces when no expert knowledge is available. PILCO learns fast since it takes model uncertainties consistently into account during long-term planning and decision making. Thus, it reduces model bias, a common problem in model-based RL. Due to its generality and efficiency, PILCO is a conceptual and practical approach to jointly learning models and controllers fully automatically. Across all tasks, we report an unprecedented degree of automation and an unprecedented speed of learning. Second, we propose principled algorithms for robust filtering and smoothing in GP dynamic systems. Our methods are based on analytic moment matching and clearly advance state-of-the-art methods.",
+            "dcterms.available": "2010-11"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://spiral.imperial.ac.uk/image/library-logo.png"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "About / Abstrakt Reflections",
+      "htmlTitle": "About / Abstrakt Reflections",
+      "link": "https://www.abstraktreflections.net/about/",
+      "displayLink": "www.abstraktreflections.net",
+      "snippet": "You may not alter, transform, or build upon this work. Creative Commons. http://creativecommons.org/licenses/by-nc-nd/3.0/ ...",
+      "htmlSnippet": "You may not alter, transform, or build upon this work. \u003cb\u003eCreative Commons\u003c/b\u003e. \u003cb\u003ehttp\u003c/b\u003e://\u003cb\u003ecreativecommons\u003c/b\u003e.\u003cb\u003eorg\u003c/b\u003e/\u003cb\u003elicenses\u003c/b\u003e/by-nc-nd/\u003cb\u003e3.0\u003c/b\u003e/&nbsp;...",
+      "cacheId": "ppvbh9mOnyQJ",
+      "formattedUrl": "https://www.abstraktreflections.net/about/",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://www.abstraktreflections.net/about/",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRWQKgb5fUuezAN_3pS4VJigukpWFHZfuKzxRuO3EX31KqpI7oGnVcrh07g",
+            "width": "310",
+            "height": "163"
+          }
+        ],
+        "metatags": [
+          {
+            "og:image": "http://www.abstraktreflections.net/images/facebook-share.jpg",
+            "og:site_name": "Abstrakt Reflections",
+            "viewport": "width=device-width, initial-scale=1",
+            "google": "nositelinkssearchbox",
+            "dlm-version": "4.7.1"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "http://www.abstraktreflections.net/images/facebook-share.jpg"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "The Effects of Teacher-Student Relationships on the Academic ...",
+      "htmlTitle": "The Effects of Teacher-Student Relationships on the Academic ...",
+      "link": "https://mdsoar.org/handle/11603/3893",
+      "displayLink": "mdsoar.org",
+      "snippet": "May 5, 2017 ... As the data was significant, the null hypothesis was rejected. The following license files are associated with this item: Creative Commons.",
+      "htmlSnippet": "May 5, 2017 \u003cb\u003e...\u003c/b\u003e As the data was significant, the null hypothesis was rejected. The following \u003cb\u003elicense\u003c/b\u003e files are associated with this item: \u003cb\u003eCreative Commons\u003c/b\u003e.",
+      "cacheId": "8FrH7YOghdgJ",
+      "formattedUrl": "https://mdsoar.org/handle/11603/3893",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://mdsoar.\u003cb\u003eorg\u003c/b\u003e/handle/11603/3893",
+      "pagemap": {
+        "metatags": [
+          {
+            "citation_keywords": "Teacher-student relationships; Off-task behaviors and engagement; Text",
+            "citation_title": "The Effects of Teacher-Student Relationships on the Academic Engagement of Students",
+            "dc.rights": "Collection may be protected under Title 17 of the U.S. Copyright Law.  To obtain information or permission to publish or reproduce, please contact the Goucher Special Collections & Archives at 410-337-6347 or email archives@goucher.edu.",
+            "citation_author": "Varga, Meagan",
+            "citation_date": "2017-05-05",
+            "citation_abstract_html_url": "https://mdsoar.org/handle/11603/3893",
+            "dcterms.issued": "2017-05-05",
+            "dc.contributor": "Masters of Education",
+            "dcterms.dateaccepted": "2017-05-05T20:10:35Z",
+            "dc.type": "Text",
+            "viewport": "width=device-width,initial-scale=1",
+            "dc.creator": "Varga, Meagan",
+            "citation_language": "en_US",
+            "dc.relation": "Master of Education",
+            "dc.title": "The Effects of Teacher-Student Relationships on the Academic Engagement of Students",
+            "dc.identifier": "doi:10.13016/M29P0B",
+            "dc.subject": "Teacher-student relationships",
+            "citation_pdf_url": "https://mdsoar.org/bitstream/11603/3893/1/VargaMeagan_paper.pdf",
+            "dc.language": "en_US",
+            "dcterms.abstract": "This research explores relationships in schools, specifically interactions between teachers and students. Initially, the research examined an overview of teacher-student relationships and factors that contribute to these interactions. This overview included both teacher and student perceptions and personal characteristics and then examined the effects of teacher-student relationships on education and how teacher and student behaviors affect educational outcomes. The overview of the research literature concluded with how to develop positive relationships. Teacher expectations, attitude, familiarity, and communication all play a role in cultivating relationships in the classroom environment. \r\nThe purpose of the research was to determine if improving relationships between teachers and students would decrease off-task behaviors during class.The intervention involved four weeks of initiatives focused on developing improved teacher-student relationships. The mean number of off-task behaviors per student during the",
+            "dcterms.available": "2017-05-05T20:10:35Z",
+            "dcterms.extent": "42 pages"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "Database: TcoF-DB v2: update of the database of human and ...",
+      "htmlTitle": "Database: TcoF-DB v2: update of the database of human and ...",
+      "link": "https://repository.kaust.edu.sa/handle/10754/656692?show=full",
+      "displayLink": "repository.kaust.edu.sa",
+      "snippet": "dc.rights.uri, http://creativecommons.org/licenses/by-nc-nd/3.0/us/. dc.subject, Transcription co-factors; transcription factors; human; mice; database.",
+      "htmlSnippet": "dc.rights.uri, \u003cb\u003ehttp\u003c/b\u003e://\u003cb\u003ecreativecommons\u003c/b\u003e.\u003cb\u003eorg\u003c/b\u003e/\u003cb\u003elicenses\u003c/b\u003e/by-nc-nd/\u003cb\u003e3.0\u003c/b\u003e/us/. dc.subject, Transcription co-factors; transcription factors; human; mice; database.",
+      "cacheId": "wwLhTCXskJAJ",
+      "formattedUrl": "https://repository.kaust.edu.sa/handle/10754/656692?show=full",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://repository.kaust.edu.sa/handle/10754/656692?show=full",
+      "pagemap": {
+        "metatags": [
+          {
+            "citation_keywords": "Transcription co-factors; transcription factors; human; mice; database; Database",
+            "dc.description": "Abstract\r\nTranscription factors (TFs) play a pivotal role in transcriptional regulation, making them crucial for cell survival and important biological functions. For the regulation of transcription, interactions of different regulatory proteins known as transcription co-factors (TcoFs) and TFs are essential in forming necessary protein complexes. Although TcoFs themselves do not bind DNA directly, their influence on transcriptional regulation and initiation, although indirect, has been shown to be significant, with the functionality of TFs strongly influenced by the presence of TcoFs. In the TcoF-DB v2 database, we collect information on TcoFs. In this article, we describe updates and improvements implemented in TcoF-DB v2. TcoF-DB v2 provides several new features that enable exploration of the roles of TcoFs. The content of the database has significantly expanded and is enriched with information from Gene Ontology, biological pathways, diseases, and molecular signatures. TcoF-DB v2 now includes many more TF",
+            "citation_title": "Database: TcoF-DB v2: update of the database of human and mouse transcription co-factors and transcription factor interactions",
+            "dc.rights": "http://creativecommons.org/licenses/by-nc-nd/3.0/us/",
+            "citation_author": "Schmeier, Sebastian",
+            "citation_date": "2017-01-01",
+            "citation_abstract_html_url": "https://repository.kaust.edu.sa/handle/10754/656692",
+            "dcterms.issued": "2017-01-01",
+            "dc.contributor": "Computational Bioscience Research Center (CBRC)",
+            "dcterms.isreferencedby": "Sebastian Schmeier,  Tanvir Alam,  Magbubah Essack,  Vladimir B. Bajic. TcoF-DB v2: update of the database of human and mouse transcription co-factors and transcription factor interactions. Nucleic Acids Research, Volume 45, Issue D1, January 2017, Pages D145–D150, https://doi.org/10.1093/nar/gkw1007",
+            "dcterms.dateaccepted": "2019-09-05T11:50:50Z",
+            "dc.type": "Database",
+            "viewport": "width=device-width,initial-scale=1",
+            "dc.creator": "Schmeier, Sebastian",
+            "dc.relation": "https://tools.sschmeier.com/tcof/home/",
+            "dc.title": "Database: TcoF-DB v2: update of the database of human and mouse transcription co-factors and transcription factor interactions",
+            "dc.identifier": "http://hdl.handle.net/10754/656692",
+            "dc.subject": "Transcription co-factors; transcription factors; human; mice; database",
+            "dc.language": "TcoF-DB v2 was build using the DJANGO framework (https://www.djangoproject.com/), with a MySQL (https://www.mysql.com/) database in the backend.",
+            "dcterms.available": "2019-09-05T11:50:50Z"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "Licence - FreeCAD Documentation",
+      "htmlTitle": "\u003cb\u003eLicence\u003c/b\u003e - FreeCAD Documentation",
+      "link": "https://wiki.freecadweb.org/Licence",
+      "displayLink": "wiki.freecadweb.org",
+      "snippet": "Oct 22, 2021 ... Creative Commons Attribution 3.0 License (CC-BY-3.0) For the documentation on https://www.freecadweb.org. See FreeCAD's debian copyright ...",
+      "htmlSnippet": "Oct 22, 2021 \u003cb\u003e...\u003c/b\u003e \u003cb\u003eCreative Commons\u003c/b\u003e Attribution \u003cb\u003e3.0 License\u003c/b\u003e (CC-BY-\u003cb\u003e3.0\u003c/b\u003e) For the documentation on \u003cb\u003ehttps\u003c/b\u003e://www.freecadweb.\u003cb\u003eorg\u003c/b\u003e. See FreeCAD&#39;s debian copyright&nbsp;...",
+      "cacheId": "ScRTvGUPcQ8J",
+      "formattedUrl": "https://wiki.freecadweb.org/Licence",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://wiki.freecadweb.\u003cb\u003eorg\u003c/b\u003e/\u003cb\u003eLicence\u003c/b\u003e"
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "Module 8 Michelangelo and Giacometti Forum | Art Appreciation",
+      "htmlTitle": "Module 8 Michelangelo and Giacometti Forum | Art Appreciation",
+      "link": "https://courses.lumenlearning.com/atd-herkimer-artappreciation/chapter/module-8-michelangelo-and-giacometti-forum/",
+      "displayLink": "courses.lumenlearning.com",
+      "snippet": "Jul 8, 2008 ... ... [CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0) or ... and that statue is Man Pointing , see links by the Swiss artist, ...",
+      "htmlSnippet": "Jul 8, 2008 \u003cb\u003e...\u003c/b\u003e ... [CC BY-SA \u003cb\u003e3.0\u003c/b\u003e (\u003cb\u003ehttps\u003c/b\u003e://\u003cb\u003ecreativecommons\u003c/b\u003e.\u003cb\u003eorg\u003c/b\u003e/\u003cb\u003elicenses\u003c/b\u003e/by-sa/\u003cb\u003e3.0\u003c/b\u003e) or ... and that statue is Man Pointing , see \u003cb\u003elinks\u003c/b\u003e by the Swiss artist,&nbsp;...",
+      "cacheId": "pPsOnPunpu4J",
+      "formattedUrl": "https://courses.lumenlearning.com/.../module-8-michelangelo-and-giacometti -forum/",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://courses.lumenlearning.com/.../module-8-michelangelo-and-giacometti -forum/",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQNjduax4JcRUXMAVmpeV_DbEgk8AmbJxxTvkFAv0P43p61TdnbKwdBpxB3",
+            "width": "184",
+            "height": "275"
+          }
+        ],
+        "metatags": [
+          {
+            "viewport": "width=device-width, initial-scale=1"
+          }
+        ],
+        "webpage": [
+          {
+            "copyrightholder": "Lumen Learning",
+            "inlanguage": "en"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Michelangelo%27s_David.JPG/1024px-Michelangelo%27s_David.JPG"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "Aorta — Taming the SRU",
+      "htmlTitle": "Aorta — Taming the SRU",
+      "link": "https://www.tamingthesru.com/aorta-module",
+      "displayLink": "www.tamingthesru.com",
+      "snippet": "By Edoarado [CC BY-SA 3.0 (http://creativecommons.org. By Edoarado [CC BY-SA 3.0 ... By BruceBlaus (Own work) [CC BY-SA 4.0 (http:/.",
+      "htmlSnippet": "By Edoarado [CC BY-SA \u003cb\u003e3.0\u003c/b\u003e (\u003cb\u003ehttp\u003c/b\u003e://\u003cb\u003ecreativecommons\u003c/b\u003e.\u003cb\u003eorg\u003c/b\u003e. By Edoarado [CC BY-SA \u003cb\u003e3.0\u003c/b\u003e ... By BruceBlaus (Own work) [CC BY-SA 4.0 (\u003cb\u003ehttp\u003c/b\u003e:/.",
+      "cacheId": "3RS0M2eZ578J",
+      "formattedUrl": "https://www.tamingthesru.com/aorta-module",
+      "htmlFormattedUrl": "\u003cb\u003ehttps\u003c/b\u003e://www.tamingthesru.com/aorta-module",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSsosnFvhXbEyTTV5AzDtqzVzrg53aKp7WXo2Fn8dP04ugvS77w0PL_eVM",
+            "width": "221",
+            "height": "228"
+          }
+        ],
+        "metatags": [
+          {
+            "og:type": "website",
+            "twitter:title": "Aorta — Taming the SRU",
+            "twitter:card": "summary",
+            "og:site_name": "Taming the SRU",
+            "viewport": "width=device-width, initial-scale=1",
+            "twitter:url": "https://www.tamingthesru.com/aorta-module",
+            "og:title": "Aorta — Taming the SRU",
+            "og:url": "https://www.tamingthesru.com/aorta-module"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/53c1a2cce4b0e88e61f99b70/1502907828557-GNLUAR377UWNSPID1TRR/image-asset.png?format=1000w"
+          }
+        ]
+      }
+    }
+  ]
+}
