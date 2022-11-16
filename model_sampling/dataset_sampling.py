@@ -135,7 +135,7 @@ def get_api_response(license_type, start, retry_on_empty = 2):
             print(f"Request URL was {request_url}", file=sys.stderr)
             raise e
 
-def get_address_entries(web_url, content_char_count=3000):
+def get_address_entries(web_url, content_char_count=5000):
     #TODO: Documentation
     try:
         web_contents = requests.get(web_url).text
