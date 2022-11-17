@@ -25,7 +25,7 @@ API_KEYS_IND = 0
 CWD = os.path.dirname(os.path.abspath(__file__))
 MODEL_DATABASE = (
     f"{CWD}"
-    f"/model_dataset_less_constraints.db"
+    f"/model_dataset.db"
 )
 PSE_KEY = query_secrets.PSE_KEY
 
@@ -146,7 +146,7 @@ def get_address_entries(web_url, content_char_count=5000):
         soup = BeautifulSoup(web_contents, "lxml", from_encoding=encoding)
         for script in soup(["script", "style"]):
             script.extract()
-        parse_result = soup.get_text("", strip = True)
+        parse_result = soup.get_text(" ", strip = True)
         return (web_url, soup.title, parse_result[:content_char_count])
     except Exception as e:
         return None
