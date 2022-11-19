@@ -81,6 +81,7 @@ def get_api_endpoint(license_type, license_rights, start):
             f"?key={api_key}&cx={PSE_KEY}&"
             f"q=-fileType%3Apdf%20-inurl%3Apdf%20-pdf&"
             f"start={start}&"
+            f"dateRestrict=m6&" #Strictness level 3
         )
         base_url = (
             f"{base_url}&linkSite=creativecommons.org"
