@@ -29,7 +29,6 @@ MODEL_DATABASE = (
 )
 PSE_KEY = query_secrets.PSE_KEY
 
-'''
 RIGHTS_MAP = {
     "by": "cc_attribute",
     "sa": "cc_sharealike",
@@ -46,7 +45,7 @@ def get_rights(license_type):
         for right in RIGHTS_MAP
         if right in license_type
     ]
-'''
+
 
 def get_license_map():
     #TODO: Documentation
@@ -86,7 +85,7 @@ def get_api_endpoint(license_type, license_rights, start):
         base_url = (
             f"{base_url}&linkSite=creativecommons.org"
             f'{license_type.replace("/", "%2F")}'
-            #f"&rights={'%7'.join(license_rights)}"
+            f"&rights={'%7'.join(license_rights)}"
         )
         return base_url
     except Exception as e:
@@ -103,7 +102,7 @@ def get_api_response(license_type, start, retry_on_empty = 2):
     try:
         request_url = get_api_endpoint(
             license_type,
-            None, #get_rights(license_type),
+            get_rights(license_type),
             start
         )
         max_retries = Retry(
@@ -191,7 +190,7 @@ def load_general_licenses():
     license_map = get_license_map()
     for general_type in license_map:
         sampled_df = get_license_series_sample_df(license_map[general_type])
-        sampled_df.to_sql(general_type, engine, if_exists = 'replace')
+        sampled_df.to_sql(general_type, engine, if_exists = 'append')
 
 def main():
     load_general_licenses()
