@@ -12,6 +12,7 @@ from functools import reduce
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
 import pandas as pd
 import numpy as np
 import re
@@ -24,6 +25,7 @@ from wordcloud import STOPWORDS, WordCloud  # noqa: E402
 def tags_frequency(csv_path, column_names):
     # attribute csv_path is string
     # attribute column_names is a list
+    # i.e. column_names = ["tags", "description"]
     """
     This function is to generate a word cloud
     based on all the tags of each license
@@ -52,9 +54,10 @@ def tags_frequency(csv_path, column_names):
     # The stop words can be customized based on diff cases
     flickr_customized = {"nan", "https", "href", "rel", "de", "en",
                          "da", "la", "href", "rel", "noreferrer",
-                         "nofollow", "ly", "photo"}
+                         "nofollow", "ly", "photo", "flickr", "archive",
+                         "quot", "photos"}
     stopwords = stopwords.union(flickr_customized)
-    customized = {"p", "d"}
+    customized = {"p", "d", "b"}
     stopwords = stopwords.union(customized)
 
     for word in list_tags:
@@ -84,7 +87,7 @@ def tags_frequency(csv_path, column_names):
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(tags_word_cloud, interpolation="bilinear")
     plt.axis("off")
-    plt.savefig('../analyze/wordCloud_plots/license9_wordCloud.png',
+    plt.savefig('../analyze/wordCloud_plots/license1_wordCloud.png',
                 dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -117,8 +120,8 @@ def time_trend(csv_path):
     # and step 90 digits each time - only have the 0th, 90th,
     # 180th, ... time nodes showing on this graph.
     ax.set_xticks(np.arange(0, len(count_df), 90))
-    fig.suptitle('license1 usage in flickr pictures 1967-2022', fontweight="bold")
-    plt.savefig('../analyze/line_graphs/license1_total_trend.png',
+    fig.suptitle('license10 usage in flickr pictures 1967-2022', fontweight="bold")
+    plt.savefig('../analyze/line_graphs/license10_total_trend.png',
                 dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -129,12 +132,12 @@ def time_trend_compile_helper(yearly_count):
     This function will return counts - the list of "Counts" with the
     condition that their corresponding "year" is between [2000, 2022]
     """
-    Years = np.arange(2000, 2023)
+    Years = np.arange(2015, 2023)
     yearly_count["year"] = list(yearly_count.index)
     counts = []
     for num in range(len(yearly_count["Counts"])):
         if ((int(yearly_count["year"][num]) <= 2022)
-                & (int(yearly_count["year"][num]) >= 2000)):
+                & (int(yearly_count["year"][num]) >= 2015)):
             counts.append(yearly_count["Counts"][num])
     print(counts)
     final_yearly_count = pd.DataFrame(list(zip(Years, counts)),
@@ -150,6 +153,7 @@ def time_trend_compile():
     license5 = pd.read_csv("../flickr/dataset/cleaned_license5.csv")
     license6 = pd.read_csv("../flickr/dataset/cleaned_license6.csv")
     license9 = pd.read_csv("../flickr/dataset/cleaned_license9.csv")
+    license10 = pd.read_csv("../flickr/dataset/cleaned_license10.csv")
     count_df1 = time_trend_helper(license1)
     count_df2 = time_trend_helper(license2)
     count_df3 = time_trend_helper(license3)
@@ -157,8 +161,9 @@ def time_trend_compile():
     count_df5 = time_trend_helper(license5)
     count_df6 = time_trend_helper(license6)
     count_df9 = time_trend_helper(license9)
-    list_raw_data = [count_df1, count_df2, count_df3,
-                     count_df4, count_df5, count_df6, count_df9]
+    count_df10 = time_trend_helper(license10)
+    list_raw_data = [count_df1, count_df2, count_df3, count_df4,
+                     count_df5, count_df6, count_df9, count_df10]
 
     # Split date to year and save in a list
     list_data = []
@@ -180,6 +185,7 @@ def time_trend_compile():
     yearly_count5 = list_data[4].to_frame()
     yearly_count6 = list_data[5].to_frame()
     yearly_count9 = list_data[6].to_frame()
+    yearly_count10 = list_data[7].to_frame()
     yearly_count1 = time_trend_compile_helper(yearly_count1)
     yearly_count2 = time_trend_compile_helper(yearly_count2)
     yearly_count3 = time_trend_compile_helper(yearly_count3)
@@ -187,18 +193,20 @@ def time_trend_compile():
     yearly_count5 = time_trend_compile_helper(yearly_count5)
     yearly_count6 = time_trend_compile_helper(yearly_count6)
     yearly_count9 = time_trend_compile_helper(yearly_count9)
+    yearly_count10 = time_trend_compile_helper(yearly_count10)
     print(yearly_count1)
 
     # plot lines
-    plt.plot(yearly_count1["Years"], yearly_count1["Yearly_counts"], label="license 1")
-    plt.plot(yearly_count2["Years"], yearly_count2["Yearly_counts"], label="license 2")
-    plt.plot(yearly_count3["Years"], yearly_count3["Yearly_counts"], label="license 3")
-    plt.plot(yearly_count4["Years"], yearly_count4["Yearly_counts"], label="license 4")
-    plt.plot(yearly_count5["Years"], yearly_count5["Yearly_counts"], label="license 5")
-    plt.plot(yearly_count6["Years"], yearly_count6["Yearly_counts"], label="license 6")
-    plt.plot(yearly_count9["Years"], yearly_count9["Yearly_counts"], label="license 9")
+    plt.plot(yearly_count1["Years"], yearly_count1["Yearly_counts"], label="license 1", alpha=0.7, linestyle='-')
+    plt.plot(yearly_count2["Years"], yearly_count2["Yearly_counts"], label="license 2", alpha=0.7, linestyle='--')
+    plt.plot(yearly_count3["Years"], yearly_count3["Yearly_counts"], label="license 3", alpha=0.7, linestyle='-.')
+    plt.plot(yearly_count4["Years"], yearly_count4["Yearly_counts"], label="license 4", alpha=0.7, linestyle=":")
+    plt.plot(yearly_count5["Years"], yearly_count5["Yearly_counts"], label="license 5", alpha=0.7, linestyle='-')
+    plt.plot(yearly_count6["Years"], yearly_count6["Yearly_counts"], label="license 6", alpha=0.7, linestyle='--')
+    plt.plot(yearly_count9["Years"], yearly_count9["Yearly_counts"], label="license 9", alpha=0.7, linestyle=":")
+    plt.plot(yearly_count10["Years"], yearly_count10["Yearly_counts"], label="license 10", alpha=0.7)
     plt.legend()
-    plt.title('Yearly Trend of All Licenses 2000-2022', loc='left')
+    plt.title('Yearly Trend of All Licenses 2015-2022', loc='left')
     plt.savefig('../analyze/line_graphs/licenses_yearly_trend.png', dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -219,15 +227,18 @@ def view_compare():
     license5 = pd.read_csv("../flickr/dataset/cleaned_license5.csv")
     license6 = pd.read_csv("../flickr/dataset/cleaned_license6.csv")
     license9 = pd.read_csv("../flickr/dataset/cleaned_license9.csv")
-    licenses = [license1, license2, license3, license4, license5, license6, license9]
+    license10 = pd.read_csv("../flickr/dataset/cleaned_license10.csv")
+    licenses = [license1, license2, license3, license4,
+                license5, license6, license9, license10]
     maxs = []
     for lic in licenses:
         maxs.append(view_compare_helper(lic))
     print(maxs)
     temp_data = pd.DataFrame()
-    temp_data["Licenses"] = ["license1", "license2", "license3", "license4", "license5", "license6", "license9"]
+    temp_data["Licenses"] = ["license1", "license2", "license3", "license4",
+                             "license5", "license6", "license9", "license10"]
     temp_data["views"] = maxs
-    fig, ax = plt.subplots(figsize =(10, 7))
+    fig, ax = plt.subplots(figsize=(10, 7))
     ax.grid(b=True, color='grey',
             linestyle='-.', linewidth=0.5,
             alpha=0.6)
@@ -239,19 +250,19 @@ def view_compare():
     plt.show()
 
 
-def heat_map(csv_path):
-    df = pd.read_csv(csv_path)
-    for i in range(len(df["license"])):
-        if df["license"][i] != 1.0:
-            df2 = df.drop(i)
-    df2 = df2.dropna(how="all")
-    print(df2)
-    df2 = df2.groupby('location').sum()
-    print(df2)
+def total_usage():
+    # this will use the license total file as input dataset
+    df = pd.read_csv("../flickr/dataset/license_total.csv")
+    df["License"] = [str(x) for x in list(df["License"])]
+    fig = px.bar(df, x='License', y='Total amount', color='License')
+    fig.write_html("../analyze/total_usage.html")
+    # fig.show()
 
 
 def main():
-    time_trend_compile()
+    total_usage()
+    # df = pd.read_csv("../flickr/dataset/cleaned_license10.csv")
+    # print(df.shape)
 
 
 if __name__ == "__main__":
