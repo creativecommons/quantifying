@@ -33,6 +33,7 @@ def tags_frequency(csv_path, column_names):
     """
     df = pd.read_csv(csv_path)
     for column_name in column_names:
+        list2 = []
         if column_name == "tags":
             list_tags = (df[column_name][0]).strip("]'[").split("', '")
 
@@ -41,7 +42,6 @@ def tags_frequency(csv_path, column_names):
                 if str(row).strip("]'[").split("', '"):
                     list_tags += str(row).strip("]'[").split("', '")
         else:
-            list2 = []
             for row in df[column_name][1:]:
                 if str(row) is not None and str(row) != "" and str(row) != "nan":
                     print(str(row))
@@ -53,12 +53,13 @@ def tags_frequency(csv_path, column_names):
 
     # The stop words can be customized based on diff cases
     flickr_customized = {"nan", "https", "href", "rel", "de", "en",
+                         "et", "un", "el", "le", "un", "est", "à", "lo",
                          "da", "la", "href", "rel", "noreferrer",
-                         "nofollow", "ly", "photo", "flickr", "archive",
-                         "quot", "photos"}
+                         "nofollow", "ly", "photo", "qui", "que", "dan",
+                         "pa", "ou", "quot", "rolandtanglaophoto"}
     stopwords = stopwords.union(flickr_customized)
-    customized = {"p", "d", "b"}
-    stopwords = stopwords.union(customized)
+    # customized = {"p", "d", "b"}
+    # stopwords = stopwords.union(customized)
 
     for word in list_tags:
         # Splitting each tag into its constituent words
@@ -87,6 +88,7 @@ def tags_frequency(csv_path, column_names):
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(tags_word_cloud, interpolation="bilinear")
     plt.axis("off")
+    plt.title("Flickr Photos under Creative Commons Licenses: Categories Keywords", fontweight="bold")
     plt.savefig('../analyze/wordCloud_plots/license1_wordCloud.png',
                 dpi=300, bbox_inches='tight')
     plt.show()
@@ -112,7 +114,7 @@ def time_trend(csv_path):
 
     # first use subplots() to create a frame of your plot (figure and axes)
     fig, ax = plt.subplots(figsize=(10, 5))
-    plt.plot(count_df["Dates"], count_df["Counts"], alpha=0.5, linewidth=1)
+    plt.plot(count_df["Dates"], count_df["Counts"], alpha=0.5)
     plt.xticks(rotation=60)
 
     # We have 828 time nodes in this dataset.
@@ -122,10 +124,12 @@ def time_trend(csv_path):
     ax.set_xticks(np.arange(0, len(count_df), 100))
     # ["CC BY-NC-SA 2.0", "CC BY-NC 2.0", "CC BY-NC-ND 2.0", "CC BY 2.0",
     #  "CC BY-SA 2.0", "CC BY-ND 2.0", "CC0 1.0", "Public Domain Mark 1.0"]
-    fig.suptitle('CC0 1.0 license usage in flickr pictures 1967-2022', fontweight="bold")
-    plt.xlabel('Year', fontsize=10)
+    plt.title('Data range: first 4000 pictures', fontsize=13)
+    plt.suptitle('CC BY-SA 2.0 license usage in flickr pictures taken during 1962-2022', fontsize=15,
+                 fontweight="bold")
+    plt.xlabel('Day', fontsize=10)
     plt.ylabel('Amount', fontsize=10)
-    plt.savefig('../analyze/line_graphs/license9_total_trend.png',
+    plt.savefig('../analyze/line_graphs/license5_total_trend.png',
                 dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -211,8 +215,9 @@ def time_trend_compile():
     plt.plot(yearly_count10["Years"], yearly_count10["Yearly_counts"], label="Public Domain Mark 1.0", alpha=0.7)
     plt.legend()
     plt.xlabel('Date of photos taken', fontsize=10)
-    plt.ylabel('Amount', fontsize=10)
-    plt.title('Yearly Trend of All Licenses 2018-2022', loc='left', fontweight="bold")
+    plt.ylabel('Amount of photos', fontsize=10)
+    plt.title('Data range: first 4000 pictures for each license', fontsize=13, alpha=0.75)
+    plt.suptitle('Yearly Trend of All Licenses 2018-2022', fontsize=15, fontweight="bold")
     plt.savefig('../analyze/line_graphs/licenses_yearly_trend.png', dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -251,8 +256,13 @@ def view_compare():
     sns.set_style("dark")
     sns.barplot(data=temp_data, x="Licenses", y="views", palette="flare", errorbar="sd")
     ax.bar_label(ax.containers[0])
-    ax.set_title('Maximum Views of All Licenses',
-                 loc='left', fontweight="bold")
+    ax.text(x=0.5, y=1.1, s='Maximum Views of Pictures under all Licenses', fontsize=15,
+            weight='bold', ha='center', va='bottom', transform=ax.transAxes)
+    ax.text(x=0.5, y=1.05, s='Data range: first 4000 pictures for each license',
+            fontsize=13, alpha=0.75, ha='center',
+            va='bottom', transform=ax.transAxes)
+    current_values = plt.gca().get_yticks()
+    plt.gca().set_yticklabels(['{:,.0f}'.format(x) for x in current_values])
     plt.savefig('../analyze/compare_graphs/max_views.png', dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -267,7 +277,7 @@ def total_usage():
 
 
 def main():
-    time_trend("../flickr/dataset/cleaned_license9.csv")
+    tags_frequency("merged_all_cleaned.csv", ["tags"])
     # df = pd.read_csv("../flickr/dataset/cleaned_license10.csv")
     # print(df.shape)
 
