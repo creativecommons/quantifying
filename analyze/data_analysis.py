@@ -112,16 +112,20 @@ def time_trend(csv_path):
 
     # first use subplots() to create a frame of your plot (figure and axes)
     fig, ax = plt.subplots(figsize=(10, 5))
-    plt.plot(count_df["Dates"], count_df["Counts"])
+    plt.plot(count_df["Dates"], count_df["Counts"], alpha=0.5, linewidth=1)
     plt.xticks(rotation=60)
 
     # We have 828 time nodes in this dataset.
     # So we start from the 0th time node, and end at 828th time node.
     # and step 90 digits each time - only have the 0th, 90th,
     # 180th, ... time nodes showing on this graph.
-    ax.set_xticks(np.arange(0, len(count_df), 90))
-    fig.suptitle('license10 usage in flickr pictures 1967-2022', fontweight="bold")
-    plt.savefig('../analyze/line_graphs/license10_total_trend.png',
+    ax.set_xticks(np.arange(0, len(count_df), 100))
+    # ["CC BY-NC-SA 2.0", "CC BY-NC 2.0", "CC BY-NC-ND 2.0", "CC BY 2.0",
+    #  "CC BY-SA 2.0", "CC BY-ND 2.0", "CC0 1.0", "Public Domain Mark 1.0"]
+    fig.suptitle('CC0 1.0 license usage in flickr pictures 1967-2022', fontweight="bold")
+    plt.xlabel('Year', fontsize=10)
+    plt.ylabel('Amount', fontsize=10)
+    plt.savefig('../analyze/line_graphs/license9_total_trend.png',
                 dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -132,12 +136,12 @@ def time_trend_compile_helper(yearly_count):
     This function will return counts - the list of "Counts" with the
     condition that their corresponding "year" is between [2000, 2022]
     """
-    Years = np.arange(2015, 2023)
+    Years = np.arange(2018, 2023)
     yearly_count["year"] = list(yearly_count.index)
     counts = []
     for num in range(len(yearly_count["Counts"])):
         if ((int(yearly_count["year"][num]) <= 2022)
-                & (int(yearly_count["year"][num]) >= 2015)):
+                & (int(yearly_count["year"][num]) >= 2018)):
             counts.append(yearly_count["Counts"][num])
     print(counts)
     final_yearly_count = pd.DataFrame(list(zip(Years, counts)),
@@ -197,16 +201,18 @@ def time_trend_compile():
     print(yearly_count1)
 
     # plot lines
-    plt.plot(yearly_count1["Years"], yearly_count1["Yearly_counts"], label="license 1", alpha=0.7, linestyle='-')
-    plt.plot(yearly_count2["Years"], yearly_count2["Yearly_counts"], label="license 2", alpha=0.7, linestyle='--')
-    plt.plot(yearly_count3["Years"], yearly_count3["Yearly_counts"], label="license 3", alpha=0.7, linestyle='-.')
-    plt.plot(yearly_count4["Years"], yearly_count4["Yearly_counts"], label="license 4", alpha=0.7, linestyle=":")
-    plt.plot(yearly_count5["Years"], yearly_count5["Yearly_counts"], label="license 5", alpha=0.7, linestyle='-')
-    plt.plot(yearly_count6["Years"], yearly_count6["Yearly_counts"], label="license 6", alpha=0.7, linestyle='--')
-    plt.plot(yearly_count9["Years"], yearly_count9["Yearly_counts"], label="license 9", alpha=0.7, linestyle=":")
-    plt.plot(yearly_count10["Years"], yearly_count10["Yearly_counts"], label="license 10", alpha=0.7)
+    plt.plot(yearly_count1["Years"], yearly_count1["Yearly_counts"], label="CC BY-NC-SA 2.0", alpha=0.7, linestyle='-')
+    plt.plot(yearly_count2["Years"], yearly_count2["Yearly_counts"], label="CC BY-NC 2.0", alpha=0.7, linestyle='--')
+    plt.plot(yearly_count3["Years"], yearly_count3["Yearly_counts"], label="CC BY-NC-ND 2.0", alpha=0.7, linestyle='-.')
+    plt.plot(yearly_count4["Years"], yearly_count4["Yearly_counts"], label="CC BY 2.0", alpha=0.7, linestyle=":")
+    plt.plot(yearly_count5["Years"], yearly_count5["Yearly_counts"], label="CC BY-SA 2.0", alpha=0.7, linestyle='-')
+    plt.plot(yearly_count6["Years"], yearly_count6["Yearly_counts"], label="CC BY-ND 2.0", alpha=0.7, linestyle='--')
+    plt.plot(yearly_count9["Years"], yearly_count9["Yearly_counts"], label="CC0 1.0", alpha=0.7, linestyle=":")
+    plt.plot(yearly_count10["Years"], yearly_count10["Yearly_counts"], label="Public Domain Mark 1.0", alpha=0.7)
     plt.legend()
-    plt.title('Yearly Trend of All Licenses 2015-2022', loc='left')
+    plt.xlabel('Date of photos taken', fontsize=10)
+    plt.ylabel('Amount', fontsize=10)
+    plt.title('Yearly Trend of All Licenses 2018-2022', loc='left', fontweight="bold")
     plt.savefig('../analyze/line_graphs/licenses_yearly_trend.png', dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -235,17 +241,18 @@ def view_compare():
         maxs.append(view_compare_helper(lic))
     print(maxs)
     temp_data = pd.DataFrame()
-    temp_data["Licenses"] = ["license1", "license2", "license3", "license4",
-                             "license5", "license6", "license9", "license10"]
+    temp_data["Licenses"] = ["CC BY-NC-SA 2.0", "CC BY-NC 2.0", "CC BY-NC-ND 2.0", "CC BY 2.0",
+                             "CC BY-SA 2.0", "CC BY-ND 2.0", "CC0 1.0", "Public Domain Mark 1.0"]
     temp_data["views"] = maxs
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(13, 10))
     ax.grid(b=True, color='grey',
             linestyle='-.', linewidth=0.5,
             alpha=0.6)
     sns.set_style("dark")
     sns.barplot(data=temp_data, x="Licenses", y="views", palette="flare", errorbar="sd")
+    ax.bar_label(ax.containers[0])
     ax.set_title('Maximum Views of All Licenses',
-                 loc='left')
+                 loc='left', fontweight="bold")
     plt.savefig('../analyze/compare_graphs/max_views.png', dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -260,7 +267,7 @@ def total_usage():
 
 
 def main():
-    total_usage()
+    time_trend("../flickr/dataset/cleaned_license9.csv")
     # df = pd.read_csv("../flickr/dataset/cleaned_license10.csv")
     # print(df.shape)
 
