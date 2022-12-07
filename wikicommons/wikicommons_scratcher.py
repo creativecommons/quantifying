@@ -162,7 +162,7 @@ def get_license_contents(license, session):
 def set_up_data_file():
     """Writes the header row to file to contain WikiCommons Query data."""
     header_title = "LICENSE TYPE,File Count,Page Count\n"
-    with open(DATA_WRITE_FILE, "a") as f:
+    with open(DATA_WRITE_FILE, "w") as f:
         f.write(header_title)
 
 
