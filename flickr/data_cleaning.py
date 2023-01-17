@@ -57,12 +57,12 @@ def save_new_data(
 
 
 def main():
-    drop_empty_column("license3.csv", "dataset/cleaned_license3.csv")
-    drop_duplicate_id("license3.csv", "dataset/cleaned_license3.csv")
+    drop_empty_column("final.csv", "dataset/cleaned_license10.csv")
+    drop_duplicate_id("dataset/cleaned_license10.csv", "dataset/cleaned_license10.csv")
     save_new_data(
-        "license3.csv",
-        ["location", "dates", "license", "tags", "views", "comments"],
-        "dataset/cleaned_license3.csv",
+        "dataset/cleaned_license10.csv",
+        ["location", "dates", "license", "description", "tags", "views", "comments"],
+        "dataset/cleaned_license10.csv",
     )
 
 
