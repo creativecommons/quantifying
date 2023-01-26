@@ -1,13 +1,14 @@
+# noqa: E501
 """
-This is to clean the data pulled
-by the photos_detail.py script
-so as to further delete useless columns
-and reorganize the dataset as this form:
+This is to clean the data pulled by the photos_detail.py script so as to
+further delete useless columns and reorganize the dataset as this form:
 
-       locations                 | amount |   time     | license | content_categories | highest_comment | total_view
-Minneapolis, United States       |     20 | 2022-10-22 |       4 |   football, life   |      105        |    100000
-São José do Rio Preto SP, Brasil |     30 | 2022-10-22 |       4 |   football, life   |       50        |    300000
+|       locations                  | amount |   time     | license | content_categories | highest_comment | total_view |  # noqa: E501
+| -------------------------------- | -----: | ---------- | ------: | ------------------ | --------------: | ---------: |  # noqa: E501
+| Minneapolis, United States       |     20 | 2022-10-22 |       4 | football, life     |             105 |     100000 |  # noqa: E501
+| São José do Rio Preto SP, Brasil |     30 | 2022-10-22 |       4 | football, life     |              50 |     300000 |  # noqa: E501
 ...
+
 Note:
 content_categories will be got from basic NLP on the tags column
 """
