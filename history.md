@@ -3,6 +3,14 @@
 [stateof]: https://github.com/creativecommons/stateof
 
 
+## 2022 Data Science Discovery - UC Berkeley
+
+- [Data Science Discovery: Quantifying the Commons — Creative Commons Open
+  Source][dsdblog]
+
+[dsdblog]: https://opensource.creativecommons.org/blog/entries/2022-12-07-berkeley-quantifying/
+
+
 ## 2017 State of the Commons
 
 - Website: [State of the Commons 2017][state2017]
