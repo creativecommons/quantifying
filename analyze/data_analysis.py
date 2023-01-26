@@ -3,11 +3,11 @@ This file is the script of data analysis and visualization
 """
 
 # Standard library
+import os.path
 import re
 import sys
 import traceback
 import warnings
-from functools import reduce
 
 # Third-party
 import matplotlib.pyplot as plt
@@ -19,6 +19,8 @@ import seaborn as sns
 warnings.filterwarnings("ignore")
 # Third-party
 from wordcloud import STOPWORDS, WordCloud  # noqa: E402
+
+CWD = os.path.dirname(os.path.abspath(__file__))
 
 
 def tags_frequency(csv_path, column_names):
@@ -50,7 +52,7 @@ def tags_frequency(csv_path, column_names):
                     print(str(row))
                     if "ChineseinUS.org" in str(row):
                         row = "ChineseinUS"
-                    list2 += re.split("\s|(?<!\d)[,.](?!\d)", str(row))
+                    list2 += re.split(r"\s|(?<!\d)[,.](?!\d)", str(row))
     text = ""
     stopwords = set(STOPWORDS)
 
@@ -122,7 +124,7 @@ def tags_frequency(csv_path, column_names):
         fontweight="bold",
     )
     plt.savefig(
-        "../analyze/wordCloud_plots/license1_wordCloud.png",
+        os.path.join(CWD, "wordCloud_plots/license1_wordCloud.png"),
         dpi=300,
         bbox_inches="tight",
     )
@@ -173,7 +175,7 @@ def time_trend(csv_path):
     plt.xlabel("Day", fontsize=10)
     plt.ylabel("Amount", fontsize=10)
     plt.savefig(
-        "../analyze/line_graphs/license5_total_trend.png",
+        os.path.join(CWD, "line_graphs/license5_total_trend.png"),
         dpi=300,
         bbox_inches="tight",
     )
@@ -346,14 +348,30 @@ def view_compare_helper(df):
 
 
 def view_compare():
-    license1 = pd.read_csv("../flickr/dataset/cleaned_license1.csv")
-    license2 = pd.read_csv("../flickr/dataset/cleaned_license2.csv")
-    license3 = pd.read_csv("../flickr/dataset/cleaned_license3.csv")
-    license4 = pd.read_csv("../flickr/dataset/cleaned_license4.csv")
-    license5 = pd.read_csv("../flickr/dataset/cleaned_license5.csv")
-    license6 = pd.read_csv("../flickr/dataset/cleaned_license6.csv")
-    license9 = pd.read_csv("../flickr/dataset/cleaned_license9.csv")
-    license10 = pd.read_csv("../flickr/dataset/cleaned_license10.csv")
+    license1 = pd.read_csv(
+        os.path.join(CWD, "../flickr/dataset/cleaned_license1.csv")
+    )
+    license2 = pd.read_csv(
+        os.path.join(CWD, "../flickr/dataset/cleaned_license2.csv")
+    )
+    license3 = pd.read_csv(
+        os.path.join(CWD, "../flickr/dataset/cleaned_license3.csv")
+    )
+    license4 = pd.read_csv(
+        os.path.join(CWD, "../flickr/dataset/cleaned_license4.csv")
+    )
+    license5 = pd.read_csv(
+        os.path.join(CWD, "../flickr/dataset/cleaned_license5.csv")
+    )
+    license6 = pd.read_csv(
+        os.path.join(CWD, "../flickr/dataset/cleaned_license6.csv")
+    )
+    license9 = pd.read_csv(
+        os.path.join(CWD, "../flickr/dataset/cleaned_license9.csv")
+    )
+    license10 = pd.read_csv(
+        os.path.join(CWD, "../flickr/dataset/cleaned_license10.csv")
+    )
     licenses = [
         license1,
         license2,
@@ -410,22 +428,24 @@ def view_compare():
     current_values = plt.gca().get_yticks()
     plt.gca().set_yticklabels(["{:,.0f}".format(x) for x in current_values])
     plt.savefig(
-        "../analyze/compare_graphs/max_views.png", dpi=300, bbox_inches="tight"
+        os.path.join(CWD, "../analyze/compare_graphs/max_views.png"),
+        dpi=300,
+        bbox_inches="tight",
     )
     plt.show()
 
 
 def total_usage():
     # this will use the license total file as input dataset
-    df = pd.read_csv("../flickr/dataset/license_total.csv")
+    df = pd.read_csv(os.path.join(CWD, "../flickr/dataset/license_total.csv"))
     df["License"] = [str(x) for x in list(df["License"])]
     fig = px.bar(df, x="License", y="Total amount", color="License")
-    fig.write_html("../analyze/total_usage.html")
+    fig.write_html(os.path.join(CWD, "../analyze/total_usage.html"))
     # fig.show()
 
 
 def main():
-    tags_frequency("merged_all_cleaned.csv", ["tags"])
+    tags_frequency(os.path.join(CWD, "merged_all_cleaned.csv"), ["tags"])
     # df = pd.read_csv("../flickr/dataset/cleaned_license10.csv")
     # print(df.shape)
 
