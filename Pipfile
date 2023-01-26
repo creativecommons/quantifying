@@ -7,9 +7,11 @@ name = "pypi"
 flickrapi = "*"
 internetarchive = "*"
 jupyterlab = "*"
+matplotlib = "*"
 numpy = "*"
 pandas = "*"
 requests = "*"
+seaborn = "*"
 urllib3 = "*"
 
 [dev-packages]
