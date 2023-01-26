@@ -24,6 +24,7 @@ def main():
     with open("photos.json") as json_file:
         json.dump(dic, json_file)
 
+
 if __name__ == "__main__":
     try:
         main()

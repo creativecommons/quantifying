@@ -10,8 +10,8 @@ step3: saving lists of data to DataFrame
 # Standard library
 import json
 import sys
-import traceback
 import time
+import traceback
 
 # Third-party
 import flickrapi

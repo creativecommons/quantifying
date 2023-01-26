@@ -58,10 +58,20 @@ def save_new_data(
 
 def main():
     drop_empty_column("final.csv", "dataset/cleaned_license10.csv")
-    drop_duplicate_id("dataset/cleaned_license10.csv", "dataset/cleaned_license10.csv")
+    drop_duplicate_id(
+        "dataset/cleaned_license10.csv", "dataset/cleaned_license10.csv"
+    )
     save_new_data(
         "dataset/cleaned_license10.csv",
-        ["location", "dates", "license", "description", "tags", "views", "comments"],
+        [
+            "location",
+            "dates",
+            "license",
+            "description",
+            "tags",
+            "views",
+            "comments",
+        ],
         "dataset/cleaned_license10.csv",
     )
 
