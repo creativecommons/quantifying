@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 flickrapi = "*"
 internetarchive = "*"
+jupyterlab = "*"
 numpy = "*"
 pandas = "*"
 requests = "*"
