@@ -1,4 +1,3 @@
-# noqa: E501
 """
 This is to clean the data pulled by the photos_detail.py script so as to
 further delete useless columns and reorganize the dataset as this form:
