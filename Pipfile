@@ -6,13 +6,19 @@ name = "pypi"
 [packages]
 flickrapi = "*"
 internetarchive = "*"
+jupyterlab = "*"
+matplotlib = "*"
 numpy = "*"
 pandas = "*"
+plotly = "*"
 requests = "*"
+seaborn = "*"
 urllib3 = "*"
+wordcloud = "*"
 
 [dev-packages]
 black = "*"
+"black[jupyter]" = "*"
 flake8 = "*"
 isort = "*"
 
