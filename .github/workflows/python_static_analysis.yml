@@ -21,9 +21,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install --upgrade pip
-        pip install black
-        pip install flake8
-        pip install isort
+        pip install black 'black[jupyter]' flake8 isort
 
     # https://github.com/actions/checkout
     - name: Checkout repository
