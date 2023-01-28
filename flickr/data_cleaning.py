@@ -1,13 +1,13 @@
 """
-This is to clean the data pulled
-by the photos_detail.py script
-so as to further delete useless columns
-and reorganize the dataset as this form:
+This is to clean the data pulled by the photos_detail.py script so as to
+further delete useless columns and reorganize the dataset as this form:
 
-       locations                 | amount |   time     | license | content_categories | highest_comment | total_view
-Minneapolis, United States       |     20 | 2022-10-22 |       4 |   football, life   |      105        |    100000
-São José do Rio Preto SP, Brasil |     30 | 2022-10-22 |       4 |   football, life   |       50        |    300000
+|       locations                  | amount |   time     | license | content_categories | highest_comment | total_view |  # noqa: E501
+| -------------------------------- | -----: | ---------- | ------: | ------------------ | --------------: | ---------: |  # noqa: E501
+| Minneapolis, United States       |     20 | 2022-10-22 |       4 | football, life     |             105 |     100000 |  # noqa: E501
+| São José do Rio Preto SP, Brasil |     30 | 2022-10-22 |       4 | football, life     |              50 |     300000 |  # noqa: E501
 ...
+
 Note:
 content_categories will be got from basic NLP on the tags column
 """
@@ -58,10 +58,20 @@ def save_new_data(
 
 def main():
     drop_empty_column("final.csv", "dataset/cleaned_license10.csv")
-    drop_duplicate_id("dataset/cleaned_license10.csv", "dataset/cleaned_license10.csv")
+    drop_duplicate_id(
+        "dataset/cleaned_license10.csv", "dataset/cleaned_license10.csv"
+    )
     save_new_data(
         "dataset/cleaned_license10.csv",
-        ["location", "dates", "license", "description", "tags", "views", "comments"],
+        [
+            "location",
+            "dates",
+            "license",
+            "description",
+            "tags",
+            "views",
+            "comments",
+        ],
         "dataset/cleaned_license10.csv",
     )
 

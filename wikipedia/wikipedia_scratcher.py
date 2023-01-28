@@ -93,7 +93,7 @@ def get_response_elems(language="en"):
                 f"Received Result is None due to Language {language} absent as"
                 "an available Wikipedia client. Will therefore return an empty"
                 "dictionary for result, but will continue querying.",
-                file=sys.stderr
+                file=sys.stderr,
             )
             return {}
         elif "query" not in search_data:

@@ -9,14 +9,18 @@ step3: saving lists of data to DataFrame
 
 # Standard library
 import json
+import os.path
 import sys
-import traceback
 import time
+import traceback
 
 # Third-party
 import flickrapi
 import pandas as pd
 import query_secrets
+
+CWD = os.path.dirname(os.path.abspath(__file__))
+RETRIES = 0
 
 
 def to_df(datalist, namelist):
@@ -139,10 +143,11 @@ def page1_reset(final_csv, raw_data):
     return raw_data["photos"]["pages"]
 
 
-retries = 0
-
-
 def main():
+    final_csv_path = os.path.join(CWD, "final.csv")
+    record_txt_path = os.path.join(CWD, "rec.txt")
+    hs_csv_path = os.path.join(CWD, "hs.csv")
+
     flickr = flickrapi.FlickrAPI(
         query_secrets.api_key, query_secrets.api_secret, format="json"
     )
@@ -172,7 +177,7 @@ def main():
     # use rec txt to record j(current page), i(current license), and total
     # every time iterating through one page of photos
     # to pick up from where the script errors or stops
-    with open("rec.txt") as f:
+    with open(record_txt_path) as f:
         readed = f.read().split(" ")
         j = int(readed[0])
         i = int(readed[1])
@@ -188,7 +193,7 @@ def main():
             # change total equals to the total picture number
             # and set the final CSV as empty
             if j == 1:
-                total = page1_reset("final.csv", photos)
+                total = page1_reset(final_csv_path, photos)
 
             # use getInfo method to get more detailed photo
             # info from inputting photo id
@@ -224,14 +229,14 @@ def main():
                 "in license",
                 i,
                 "with retry number",
-                retries,
+                RETRIES,
             )
 
             # save csv
-            df_to_csv(temp_list, name_list, "hs.csv", "final.csv")
-            # update j(the current page number in txt)
-            with open("rec.txt", "w") as f:
-                f.write(str(j) + " " + str(i) + " " + str(total))
+            df_to_csv(temp_list, name_list, hs_csv_path, final_csv_path)
+            # update j (the current page number in txt)
+            with open(record_txt_path, "w") as f:
+                f.write(f"{j} {i} {total}")
 
             # set list to empty everytime after saving the data into
             # the csv file to prevent from saving duplicate data
@@ -240,13 +245,14 @@ def main():
             # if current page has reached the max limit of total pages
             # reset j to 1 and update i to the license in the dictionary
             if j == total + 1 or j > total:
-                clean_saveas_csv("final.csv", "license" + str(i) + ".csv")
+                license_i_path = os.path.join(CWD, f"license{i}.csv")
+                clean_saveas_csv(final_csv_path, license_i_path)
                 i += 1
                 j = 1
                 while i not in license_list:
                     i += 1
-                with open("rec.txt", "w") as f:
-                    f.write(str(j) + " " + str(i) + " " + str(total))
+                with open(record_txt_path, "w") as f:
+                    f.write(f"{j} {i} {total}")
 
                 # below is to clear list everytime
                 # before rerun (to prevent duplicate)
@@ -263,11 +269,11 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
             sys.exit(130)
-        except Exception as e:
-            retries += 1
+        except Exception:
+            RETRIES += 1
             print("ERROR (1) Unhandled exception:", file=sys.stderr)
             print(traceback.print_exc(), file=sys.stderr)
-            if retries <= 20:
+            if RETRIES <= 20:
                 continue
             else:
                 sys.exit(1)
