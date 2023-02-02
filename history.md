@@ -86,7 +86,8 @@
 ## 2007
 
 - [Creative Commons metrics (PDF)][cc2007pdf]
-- [Creative Commons Statistics from the CC-Monitor Project][ccmonitor2007pdf]
+- [Creative Commons Statistics from the CC-Monitor Project
+  (PDF)][ccmonitor2007pdf]
 
 [cc2007pdf]: https://wiki.creativecommons.org/images/f/f0/Cc-stats-20070614.pdf
 [ccmonitor2007pdf]: https://wiki.creativecommons.org/images/7/71/Statistics-from-the-CC-Monitor-project_eng.pdf
