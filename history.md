@@ -67,8 +67,26 @@
 
 ## 2012 and Earlier
 
+- https://wiki.creativecommons.org/wiki/Metrics
+- https://wiki.creativecommons.org/wiki/Metrics/License_statistics
 - Repository:
   - [cc-archive/stats][repo-stats]: code for generating statistics on the usage
     of CC licenses
 
 [repo-stats]: https://github.com/cc-archive/stats
+
+
+## 2008 Participatory Media Lab
+
+- [Visualizations - Participatory Media Lab][pmlviz]
+
+[pmlviz]: http://pml.wikidot.com/visualizations
+
+
+## 2007
+
+- [Creative Commons metrics (PDF)][cc2007pdf]
+- [Creative Commons Statistics from the CC-Monitor Project][ccmonitor2007pdf]
+
+[cc2007pdf]: https://wiki.creativecommons.org/images/f/f0/Cc-stats-20070614.pdf
+[ccmonitor2007pdf]: https://wiki.creativecommons.org/images/7/71/Statistics-from-the-CC-Monitor-project_eng.pdf
