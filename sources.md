@@ -14,7 +14,10 @@ This project uses data from various sources that are openly licensed or in the p
 
 ## Flickr
 
-**Description:** The Flickr API exposes identifiers for users, photos, photosets and other uniquely identifiable objects.
+**Description:** _With over 5 billion photos (many with valuable metadata such as tags, geolocation,
+and Exif data), the Flickr community creates wonderfully rich data. The Flickr API is how you can
+access that data. In fact, almost all the functionality that runs flickr.com is available through
+the API._ ([Flickr: The Flickr Developer Guide](https://www.flickr.com/services/developer/))
 
 **API documentation link:** [API documentation - Flickr Services](https://www.flickr.com/services/api/)
 
@@ -52,7 +55,7 @@ This project uses data from various sources that are openly licensed or in the p
 - API documentation link: [Latest Updates | The Metropolitan Museum of Art Collection API](https://metmuseum.github.io/)
 - API information:
   - No API key required
-  - No query limits
+  - 80 queries per second
 
 ## Vimeo API
 
