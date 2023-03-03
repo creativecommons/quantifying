@@ -59,7 +59,7 @@ and access towards related query data using a programmable search engine.
   data's first column is sorted due to intermediate data analysis progress.
 
 [google-json]: https://developers.google.com/custom-search/v1/reference/rest
-[cse-list]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list)
+[cse-list]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
 
 
 ## Internet Archive Python Interface
