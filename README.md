@@ -64,7 +64,7 @@ modules:
 
 ## Data Sources
 
-Kindly visit the [source.md](https://github.com/samadpls/quantifying/blob/main/sources.md) file for it.
+Kindly visit the [source.md](sources.md) file for it.
 
 
 ## History
