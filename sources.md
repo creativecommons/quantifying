@@ -6,7 +6,7 @@ This project uses data from various sources that are openly licensed or in the p
 
 **Description:** A .txt provided by Timid Robot containing all legal tool paths. The data from Google Custom Search will only cover 50+ general, most significant categories of CC License for data collection quota constraint. As an additional note, the order of precedence of license the collected data's first column is sorted due to intermediate data analysis progress.
 
-**API documentation link:** [List of all current CC legal tool paths by TimidRobot](http://code.creativecommons.org/viewgit/cc.api.git/)
+**API documentation link:** [List of all current CC legal tool paths by TimidRobot](https://github.com/creativecommons/quantifying/blob/main/google_custom_search/legal-tool-paths.txt)
 
 **API information:**
 - No API key required
