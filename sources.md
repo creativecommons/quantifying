@@ -40,7 +40,7 @@ This project uses data from various sources that are openly licensed or in the p
 
 **Description:** A python interface to archive.org to achieve API requests towards internet archive.
 
-**API documentation link:** [internetarchive.Search - Internetarchive: A Python Interface to archive.org](https://internetarchive.readthedocs.io/en/latest/api.html#internetarchive.Search)
+**API documentation link:** [internetarchive.Search - Internetarchive: A Python Interface to archive.org](https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search)
 
 **API information:**
 - No API key required
