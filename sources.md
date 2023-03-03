@@ -6,7 +6,7 @@ This project uses data from various sources that are openly licensed or in the p
 
 **Description:** A .txt provided by Timid Robot containing all legal tool paths. The data from Google Custom Search will only cover 50+ general, most significant categories of CC License for data collection quota constraint. As an additional note, the order of precedence of license the collected data's first column is sorted due to intermediate data analysis progress.
 
-**API documentation link:** [List of all current CC legal tool paths by TimidRobot](https://gist.github.com/TimidRobot/6c7f9a1b0d8e5a3c4f2a6b0d5e5f4c7b)
+**API documentation link:** [List of all current CC legal tool paths by TimidRobot](http://code.creativecommons.org/viewgit/cc.api.git/)
 
 **API information:**
 - No API key required
@@ -56,7 +56,7 @@ This project uses data from various sources that are openly licensed or in the p
 
 ## Vimeo API
 
-- Description: The Vimeo API allows users to perform filtered, advanced search on Vimeo videos.
+ Description: The Vimeo API allows users to perform filtered, advanced search on Vimeo videos.
 - API documentation link: [Getting Started with the Vimeo API](https://developer.vimeo.com/api/start)
 - API information:
   - API key required
@@ -71,7 +71,7 @@ This project uses data from various sources that are openly licensed or in the p
   - No API key required
   - Query limit: depends on user status and request type
   - Data available through XML or JSON format
-
+ 
 ## YouTube Data API
 
 - Description: An API from YouTube for platform users to upload videos, adjust video parameters, and obtain search results.
