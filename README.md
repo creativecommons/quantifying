@@ -42,6 +42,25 @@ modules:
         ```
         brew install pipenv
         ```
+### Running Scripts that Require Client Credentials
+To successfully run scripts that require client credentials, you will need to follow these steps:
+  1. Create a `.env` file at the root of the repository by running the following command in your terminal:
+        ```
+        touch .env
+        ```
+  2. Copy the contents of the `example.env` file in the script's directory to `.env`:
+        ```
+        cp path/to/script/example.env .env
+        ```
+  3. Uncomment the variables in the `.env` file and assign values as needed. See [source.md](sources.md) on how to get credentials:
+        ```
+        API_KEYS=your_api_key
+        PSE_KEY=your_pse_key
+       ```
+  4. Save the changes to the .env file.
+
+  5. You should now be able to run scripts that require client credentials without any issues.
+
 
 [pipenvdocs]: https://pipenv.pypa.io/en/latest/
 [homebrew]: https://brew.sh/
