@@ -11,14 +11,17 @@ import sys
 import traceback
 
 # Third-party
-import query_secrets
 import requests
+from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-today = dt.datetime.today()
-API_KEY = query_secrets.API_KEY
 CWD = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
+load_dotenv(dotenv_path)
+
+today = dt.datetime.today()
+API_KEY = os.getenv("API_KEY")
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_youtube_{today.year}_{today.month}_{today.day}.csv"
 )
