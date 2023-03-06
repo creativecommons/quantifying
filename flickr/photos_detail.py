@@ -153,7 +153,7 @@ def main():
     hs_csv_path = os.path.join(CWD, "hs.csv")
 
     flickr = flickrapi.FlickrAPI(
-        os.getenv("API_KEY"), os.getenv("API_SECRET"), format="json"
+        os.getenv("FLICKR_API_KEY"), os.getenv("FLICKR_API_SECRET"), format="json"
     )
     # below is the cc licenses list
     license_list = [1, 2, 3, 4, 5, 6, 9, 10]

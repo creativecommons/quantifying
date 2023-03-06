@@ -16,7 +16,7 @@ load_dotenv(dotenv_path)
 
 def main():
     flickr = flickrapi.FlickrAPI(
-        os.getenv("API_KEY"), os.getenv("API_SECRET"), format="json"
+        os.getenv("FLICKR_API_KEY"), os.getenv("FLICKR_API_SECRET"), format="json"
     )
 
     # use search method to pull general photo info under each cc license data

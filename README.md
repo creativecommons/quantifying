@@ -51,13 +51,13 @@ modules:
 ### Running Scripts that Require Client Credentials
 
 To successfully run scripts that require client credentials, you will need to follow these steps:
-  1. Copy the contents of the `example.env` file in the script's directory to `.env`:
+  1. Copy the contents of the `env.example` file in the script's directory to `.env`:
         ```
-        cp example.env .env
+        cp env.example .env
         ```
   2. Uncomment the variables in the `.env` file and assign values as needed. See [`sources.md`](sources.md) on how to get credentials:
         ```
-        API_KEYS=your_api_key
+        GOOGLE_API_KEYS=your_api_key
         PSE_KEY=your_pse_key
        ```
   3. Save the changes to the `.env` file.

@@ -21,7 +21,7 @@ dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
 today = dt.datetime.today()
-API_KEY = os.getenv("API_KEY")
+API_KEY = os.getenv("YOUTUBE_API_KEY")
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_youtube_{today.year}_{today.month}_{today.day}.csv"
 )

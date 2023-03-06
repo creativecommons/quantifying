@@ -24,8 +24,8 @@ dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
 today = dt.datetime.today()
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
-CLIENT_ID = os.getenv("CLIENT_ID")
+ACCESS_TOKEN = os.getenv("VIMEO_ACCESS_TOKEN")
+CLIENT_ID = os.getenv("VIMEO_CLIENT_ID")
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_vimeo_{today.year}_{today.month}_{today.day}.csv"
 )

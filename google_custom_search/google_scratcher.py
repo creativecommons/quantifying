@@ -22,7 +22,7 @@ dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
 today = dt.datetime.today()
-API_KEYS = os.getenv("API_KEYS").split(",")
+API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 API_KEYS_IND = 0
 DATA_WRITE_FILE = (
     f"{CWD}"
