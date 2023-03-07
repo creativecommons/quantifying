@@ -142,4 +142,5 @@ ehthumbs.db
 Thumbs.db
 
 # secrets
+.env
 query_secrets.py

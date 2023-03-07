@@ -9,6 +9,7 @@ step3: saving lists of data to DataFrame
 
 # Standard library
 import json
+import os
 import os.path
 import sys
 import time
@@ -17,9 +18,12 @@ import traceback
 # Third-party
 import flickrapi
 import pandas as pd
-import query_secrets
+from dotenv import load_dotenv
 
 CWD = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
+load_dotenv(dotenv_path)
+
 RETRIES = 0
 
 
@@ -149,7 +153,9 @@ def main():
     hs_csv_path = os.path.join(CWD, "hs.csv")
 
     flickr = flickrapi.FlickrAPI(
-        query_secrets.api_key, query_secrets.api_secret, format="json"
+        os.getenv("FLICKR_API_KEY"),
+        os.getenv("FLICKR_API_SECRET"),
+        format="json",
     )
     # below is the cc licenses list
     license_list = [1, 2, 3, 4, 5, 6, 9, 10]
