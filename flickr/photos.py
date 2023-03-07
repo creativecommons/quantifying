@@ -1,19 +1,24 @@
 # Standard library
 import json
+import os
 import os.path
 import sys
 import traceback
 
 # Third-party
 import flickrapi
-import query_secrets
+from dotenv import load_dotenv
 
 CWD = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
+load_dotenv(dotenv_path)
 
 
 def main():
     flickr = flickrapi.FlickrAPI(
-        query_secrets.api_key, query_secrets.api_secret, format="json"
+        os.getenv("FLICKR_API_KEY"),
+        os.getenv("FLICKR_API_SECRET"),
+        format="json",
     )
 
     # use search method to pull general photo info under each cc license data

@@ -12,19 +12,22 @@ import traceback
 
 # Third-party
 import pandas as pd
-import query_secrets
 import requests
+from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-today = dt.datetime.today()
-API_KEYS = query_secrets.API_KEYS
-API_KEYS_IND = 0
 CWD = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
+load_dotenv(dotenv_path)
+
+today = dt.datetime.today()
+API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
+API_KEYS_IND = 0
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_deviantart_{today.year}_{today.month}_{today.day}.csv"
 )
-PSE_KEY = query_secrets.PSE_KEY
+PSE_KEY = os.getenv("PSE_KEY")
 
 
 def get_license_list():

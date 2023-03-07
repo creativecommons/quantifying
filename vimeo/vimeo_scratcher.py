@@ -14,15 +14,18 @@ import sys
 import traceback
 
 # Third-party
-import query_secrets
 import requests
+from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-today = dt.datetime.today()
-ACCESS_TOKEN = query_secrets.ACCESS_TOKEN
-CLIENT_ID = query_secrets.CLIENT_ID
 CWD = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
+load_dotenv(dotenv_path)
+
+today = dt.datetime.today()
+ACCESS_TOKEN = os.getenv("VIMEO_ACCESS_TOKEN")
+CLIENT_ID = os.getenv("VIMEO_CLIENT_ID")
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_vimeo_{today.year}_{today.month}_{today.day}.csv"
 )

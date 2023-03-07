@@ -48,6 +48,23 @@ modules:
 [pipenvinstall]: https://pipenv.pypa.io/en/latest/install/#installing-pipenv
 
 
+### Running Scripts that Require Client Credentials
+
+To successfully run scripts that require client credentials, you will need to follow these steps:
+  1. Copy the contents of the `env.example` file in the script's directory to `.env`:
+        ```
+        cp env.example .env
+        ```
+  2. Uncomment the variables in the `.env` file and assign values as needed. See [`sources.md`](sources.md) on how to get credentials:
+        ```
+        GOOGLE_API_KEYS=your_api_key
+        PSE_KEY=your_pse_key
+       ```
+  3. Save the changes to the `.env` file.
+
+  4. You should now be able to run scripts that require client credentials without any issues.
+
+
 ### Tooling
 
 - **[Python Guidelines — Creative Commons Open Source][ccospyguide]**
@@ -64,7 +81,7 @@ modules:
 
 ## Data Sources
 
-Kindly visit the [source.md](sources.md) file for it.
+Kindly visit the [sources.md](sources.md) file for it.
 
 
 ## History
