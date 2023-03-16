@@ -35,7 +35,16 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 This repository uses [pipenv][pipenvdocs] to manage the required Python
 modules:
+
+- Windows: 
+  1. Run windows Powershell as administrator 
+  2. Run the following command 
+     ```
+     pip install pipenv
+     ```
+  
 - Linux: [Installing Pipenv][pipenvinstall]
+
 - macOS:
   1. Install [Homebrew][homebrew]
   2. Install pipenv:
