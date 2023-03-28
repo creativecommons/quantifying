@@ -44,11 +44,7 @@ def tags_frequency(csv_path, column_names):
                     list_tags += str(row).strip("]'[").split("', '")
         else:
             for row in df[column_name][1:]:
-                if (
-                    str(row) is not None
-                    and str(row) != ""
-                    and str(row) != "nan"
-                ):
+                if str(row) is not None and str(row) != "" and str(row) != "nan":
                     print(str(row))
                     if "ChineseinUS.org" in str(row):
                         row = "ChineseinUS"
@@ -348,27 +344,13 @@ def view_compare_helper(df):
 
 
 def view_compare():
-    license1 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license1.csv")
-    )
-    license2 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license2.csv")
-    )
-    license3 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license3.csv")
-    )
-    license4 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license4.csv")
-    )
-    license5 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license5.csv")
-    )
-    license6 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license6.csv")
-    )
-    license9 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license9.csv")
-    )
+    license1 = pd.read_csv(os.path.join(CWD, "../flickr/dataset/cleaned_license1.csv"))
+    license2 = pd.read_csv(os.path.join(CWD, "../flickr/dataset/cleaned_license2.csv"))
+    license3 = pd.read_csv(os.path.join(CWD, "../flickr/dataset/cleaned_license3.csv"))
+    license4 = pd.read_csv(os.path.join(CWD, "../flickr/dataset/cleaned_license4.csv"))
+    license5 = pd.read_csv(os.path.join(CWD, "../flickr/dataset/cleaned_license5.csv"))
+    license6 = pd.read_csv(os.path.join(CWD, "../flickr/dataset/cleaned_license6.csv"))
+    license9 = pd.read_csv(os.path.join(CWD, "../flickr/dataset/cleaned_license9.csv"))
     license10 = pd.read_csv(
         os.path.join(CWD, "../flickr/dataset/cleaned_license10.csv")
     )
@@ -401,9 +383,7 @@ def view_compare():
     fig, ax = plt.subplots(figsize=(13, 10))
     ax.grid(b=True, color="grey", linestyle="-.", linewidth=0.5, alpha=0.6)
     sns.set_style("dark")
-    sns.barplot(
-        data=temp_data, x="Licenses", y="views", palette="flare", errorbar="sd"
-    )
+    sns.barplot(data=temp_data, x="Licenses", y="views", palette="flare", errorbar="sd")
     ax.bar_label(ax.containers[0])
     ax.text(
         x=0.5,
@@ -462,3 +442,5 @@ if __name__ == "__main__":
         print("ERROR (1) Unhandled exception:", file=sys.stderr)
         print(traceback.print_exc(), file=sys.stderr)
     sys.exit(1)
+
+
