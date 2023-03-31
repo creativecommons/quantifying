@@ -1,15 +1,14 @@
-"""
-This file is the script of data analysis and visualization
-"""
+# This file is the script of data analysis and visualization
 
-# Standard library
+
+# Importing Standard library
 import os.path
 import re
 import sys
 import traceback
 import warnings
 
-# Third-party
+# Importing Third-party
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
