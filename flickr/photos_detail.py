@@ -7,7 +7,7 @@ step2: save useful data in the format of [[], []]
 step3: saving lists of data to DataFrame
 """
 
-# Standard library
+# Import Standard library
 import json
 import os
 import os.path
@@ -15,11 +15,12 @@ import sys
 import time
 import traceback
 
-# Third-party
+# Import Third-party
 import flickrapi
 import pandas as pd
 from dotenv import load_dotenv
 
+# Path
 CWD = os.path.dirname(os.path.abspath(__file__))
 dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
@@ -64,6 +65,7 @@ def creat_lisoflis(size):
     return temp_list
 
 
+# Making sustainable
 def clean_saveas_csv(old_csv_str, new_csv_str):
     """
     when iterating through all the data in one license
@@ -107,9 +109,7 @@ def query_data(raw_data, name_list, data_list):
             temp = query_helper1(raw_data, "owner", name_list[a], data_list, a)
             data_list[a].append(next(temp))
         elif a == 6 or a == 7 or a == 10:
-            temp = query_helper1(
-                raw_data, name_list[a], "_content", data_list, a
-            )
+            temp = query_helper1(raw_data, name_list[a], "_content", data_list, a)
             data_list[a].append(next(temp))
         elif a == 8:
             temp = query_helper1(raw_data, name_list[a], "taken", data_list, a)
@@ -123,13 +123,9 @@ def query_data(raw_data, name_list, data_list):
         if a == 11:
             tags = raw_data["photo"]["tags"]["tag"]
             if tags:
-                data_list[a].append(
-                    [tags[num]["raw"] for num in range(len(tags))]
-                )
+                data_list[a].append([tags[num]["raw"] for num in range(len(tags))])
             else:
-                temp = query_helper1(
-                    raw_data, name_list[a], "tag", data_list, a
-                )
+                temp = query_helper1(raw_data, name_list[a], "tag", data_list, a)
                 data_list[a].append(next(temp))
 
 
@@ -206,9 +202,7 @@ def main():
             # and query data and save into list (temp_list)
             # as columns of final dataset
             for index in range(0, len(id)):
-                detailJson = flickr.photos.getInfo(
-                    license=i, photo_id=id[index]
-                )
+                detailJson = flickr.photos.getInfo(license=i, photo_id=id[index])
                 time.sleep(1)
                 photos_detail = json.loads(detailJson.decode("utf-8"))
                 print(
@@ -266,6 +260,7 @@ def main():
                 break
 
 
+# Conditions
 if __name__ == "__main__":
     while True:
         try:
@@ -283,3 +278,4 @@ if __name__ == "__main__":
                 continue
             else:
                 sys.exit(1)
+
