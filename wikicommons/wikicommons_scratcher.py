@@ -1,27 +1,28 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 """
 This file is dedicated to obtain a .csv record report for WikiCommons
 Data.
 """
 
-# Standard library
+# Import Standard library
 import datetime as dt
 import os
 import sys
 import traceback
 
-# Third-party
+# Import Third-party
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 today = dt.datetime.today()
+# Path
 CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_wikicommons_{today.year}_{today.month}_{today.day}.csv"
 )
 
-
+# URL's
 def get_content_request_url(license):
     """Provides the API Endpoint URL for specified parameters' WikiCommons
     contents.
@@ -68,6 +69,7 @@ def get_subcat_request_url(license):
     return base_url
 
 
+# Categories
 def get_subcategories(license, session):
     """Obtain the subcategories of LICENSE in WikiCommons Database for
     recursive searching.
@@ -112,6 +114,7 @@ def get_subcategories(license, session):
             raise e
 
 
+# License
 def get_license_contents(license, session):
     """Provides the metadata for query of specified parameters.
 
@@ -159,6 +162,7 @@ def get_license_contents(license, session):
             raise e
 
 
+# Data Files
 def set_up_data_file():
     """Writes the header row to file to contain WikiCommons Query data."""
     header_title = "LICENSE TYPE,File Count,Page Count\n"
@@ -236,6 +240,7 @@ def main():
     recur_record_all_licenses()
 
 
+# Conditions
 if __name__ == "__main__":
     try:
         main()
@@ -248,3 +253,4 @@ if __name__ == "__main__":
         print("ERROR (1) Unhandled exception:", file=sys.stderr)
         print(traceback.print_exc(), file=sys.stderr)
         sys.exit(1)
+
