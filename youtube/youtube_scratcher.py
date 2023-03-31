@@ -1,30 +1,29 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 """
 This file is dedicated to obtain a .csv record report for Youtube Search
 Data.
 """
 
-# Standard library
+# Import Standard library
 import datetime as dt
 import os
 import sys
 import traceback
 
-# Third-party
+# Import Third-party
 import requests
 from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# Path
 CWD = os.path.dirname(os.path.abspath(__file__))
 dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
 today = dt.datetime.today()
-API_KEY = os.getenv("YOUTUBE_API_KEY")
-DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_youtube_{today.year}_{today.month}_{today.day}.csv"
-)
+API_KEY = os.getenv("YOUTUBE_API_KEY")  # API's
+DATA_WRITE_FILE = f"{CWD}" f"/data_youtube_{today.year}_{today.month}_{today.day}.csv"
 DATA_WRITE_FILE_TIME = (
     f"{CWD}" f"/data_youtube_time_{today.year}_{today.month}_{today.day}.csv"
 )
@@ -84,9 +83,7 @@ def get_request_url(time=None):
     )
     if time is not None:
         base_url = (
-            f"{base_url}&"
-            f"publishedAfter={time[0]}&"
-            f"publishedBefore={time[1]}&"
+            f"{base_url}&" f"publishedAfter={time[0]}&" f"publishedBefore={time[1]}&"
         )
     return f"{base_url}key={API_KEY}"
 
@@ -140,8 +137,7 @@ def record_all_licenses():
     """
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(
-            "licenses/by/3.0,"
-            f"{get_response_elems()['pageInfo']['totalResults']}\n"
+            "licenses/by/3.0," f"{get_response_elems()['pageInfo']['totalResults']}\n"
         )
 
 
@@ -165,6 +161,7 @@ def main():
     record_all_licenses_time()
 
 
+# Conditions
 if __name__ == "__main__":
     try:
         main()
