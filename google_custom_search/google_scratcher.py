@@ -1,32 +1,32 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 """
 This file is dedicated to obtain a .csv record report for Google Custom Search
 Data.
 """
 
-# Standard library
+# Import Standard library
 import datetime as dt
 import os
 import sys
 import traceback
 
-# Third-party
+# Imprt Third-party
 import pandas as pd
 import requests
 from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# Path
 CWD = os.path.dirname(os.path.abspath(__file__))
 dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
 today = dt.datetime.today()
-API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
+API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")  # API's
 API_KEYS_IND = 0
 DATA_WRITE_FILE = (
-    f"{CWD}"
-    f"/data_google_custom_search_{today.year}_{today.month}_{today.day}.csv"
+    f"{CWD}" f"/data_google_custom_search_{today.year}_{today.month}_{today.day}.csv"
 )
 DATA_WRITE_FILE_TIME = (
     f"{CWD}"
@@ -41,7 +41,7 @@ DATA_WRITE_FILE_COUNTRY = (
 SEARCH_HALFYEAR_SPAN = 20
 PSE_KEY = os.getenv("PSE_KEY")
 
-
+# Defining of function for License
 def get_license_list():
     """Provides the list of license from 2018's record of Creative Commons.
 
@@ -52,14 +52,12 @@ def get_license_list():
     cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
-        cc_license_data[0]
-        .str.extract(license_pattern, expand=False)
-        .dropna()
-        .unique()
+        cc_license_data[0].str.extract(license_pattern, expand=False).dropna().unique()
     )
     return license_list
 
 
+# List of Language
 def get_lang_list():
     """Provides the list of language to find Creative Commons usage data on.
 
@@ -89,6 +87,7 @@ def get_lang_list():
     return selected_languages
 
 
+# List of countries
 def get_country_list(select_all=False):
     """Provides the list of countries to find Creative Commons usage data on.
 
@@ -124,6 +123,7 @@ def get_country_list(select_all=False):
     return selected_countries
 
 
+# Fetch URL's
 def get_request_url(license=None, country=None, language=None, time=False):
     """Provides the API Endpoint URL for specified parameter combinations.
 
@@ -223,9 +223,7 @@ def get_response_elems(license=None, country=None, language=None, time=False):
         if isinstance(e, requests.exceptions.HTTPError):
             global API_KEYS_IND
             API_KEYS_IND += 1
-            print(
-                "Changing API KEYS due to depletion of quota", file=sys.stderr
-            )
+            print("Changing API KEYS due to depletion of quota", file=sys.stderr)
             return get_response_elems(license, country, language, time)
         else:
             print(f"Request URL was {request_url}", file=sys.stderr)
@@ -244,8 +242,7 @@ def set_up_data_file():
         f"{','.join(selected_languages.index)}"
     )
     header_title_time = (
-        "LICENSE TYPE,"
-        f"{','.join([str(6 * i) for i in range(SEARCH_HALFYEAR_SPAN)])}"
+        "LICENSE TYPE," f"{','.join([str(6 * i) for i in range(SEARCH_HALFYEAR_SPAN)])}"
     )
     header_title_country = "LICENSE TYPE," f"{','.join(all_countries.index)}"
     with open(DATA_WRITE_FILE, "w") as f:
@@ -303,14 +300,10 @@ def record_license_data(license_type=None, time=False, country=False):
         no_priori_search = get_response_elems(license=license_type)
         data_log += f",{no_priori_search['totalResults']}"
         for country_name in selected_countries.iloc[:, 0]:
-            response = get_response_elems(
-                license=license_type, country=country_name
-            )
+            response = get_response_elems(license=license_type, country=country_name)
             data_log = f"{data_log},{response['totalResults']}"
         for language_name in selected_languages.iloc[:, 0]:
-            response = get_response_elems(
-                license=license_type, language=language_name
-            )
+            response = get_response_elems(license=license_type, language=language_name)
             data_log = f"{data_log},{response['totalResults']}"
         with open(DATA_WRITE_FILE, "a") as f:
             f.write(f"{data_log}\n")
@@ -335,6 +328,7 @@ def main():
     record_all_licenses()
 
 
+# Condition
 if __name__ == "__main__":
     try:
         main()
@@ -347,3 +341,4 @@ if __name__ == "__main__":
         print("ERROR (1) Unhandled exception:", file=sys.stderr)
         print(traceback.print_exc(), file=sys.stderr)
         sys.exit(1)
+
