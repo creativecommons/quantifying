@@ -1,27 +1,25 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 """
 This file is dedicated to obtain a .csv record report for Wikipedia Data.
 """
 
-# Standard library
+# Import Standard library
 import datetime as dt
 import os
 import sys
 import traceback
 
-# Third-party
+# Import Third-party
 import pandas as pd
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 today = dt.datetime.today()
-CWD = os.path.dirname(os.path.abspath(__file__))
-DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_wikipedia_{today.year}_{today.month}_{today.day}.csv"
-)
+CWD = os.path.dirname(os.path.abspath(__file__))  # Path
+DATA_WRITE_FILE = f"{CWD}" f"/data_wikipedia_{today.year}_{today.month}_{today.day}.csv"
 
-
+# Languages List
 def get_wiki_langs():
     """Provides the list of language to find Creative Commons usage data on.
 
@@ -37,6 +35,7 @@ def get_wiki_langs():
     return pd.read_csv(f"{CWD}/language-codes_csv.csv")
 
 
+# URL's
 def get_request_url(lang="en"):
     """Provides the API Endpoint URL for specified parameter combinations.
 
@@ -136,6 +135,7 @@ def record_all_licenses():
         record_lang_data(iso_language_code)
 
 
+# Fetch Data
 def get_current_data():
     """Return a DataFrame for the Creative Commons usage data collected, all
     Wikipedia texts are licensed under CC-BY-SA 3.0
@@ -152,6 +152,7 @@ def main():
     record_all_licenses()
 
 
+# Conditions
 if __name__ == "__main__":
     try:
         main()
@@ -164,3 +165,4 @@ if __name__ == "__main__":
         print("ERROR (1) Unhandled exception:", file=sys.stderr)
         print(traceback.print_exc(), file=sys.stderr)
         sys.exit(1)
+
