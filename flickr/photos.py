@@ -1,19 +1,20 @@
-# Standard library
+# Import Standard library
 import json
 import os
 import os.path
 import sys
 import traceback
 
-# Third-party
+# Import Third-party
 import flickrapi
 from dotenv import load_dotenv
 
+# Path
 CWD = os.path.dirname(os.path.abspath(__file__))
 dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
-
+# Defining Function
 def main():
     flickr = flickrapi.FlickrAPI(
         os.getenv("FLICKR_API_KEY"),
@@ -31,6 +32,7 @@ def main():
         json.dump(dic, json_file)
 
 
+# Conditions
 if __name__ == "__main__":
     try:
         main()
@@ -43,3 +45,4 @@ if __name__ == "__main__":
         print("ERROR (1) Unhandled exception:", file=sys.stderr)
         print(traceback.print_exc(), file=sys.stderr)
     sys.exit(1)
+
