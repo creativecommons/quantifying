@@ -1,35 +1,35 @@
-#!/usr/bin/env python
-"""
-This file is dedicated to obtain a .csv record report for DeviantArt
-data.
-"""
+# !/usr/bin/env python
 
-# Standard library
+# This file is dedicated to obtain a .csv record report for DeviantArt data.
+
+
+#  Import Standard library
 import datetime as dt
 import os
 import sys
 import traceback
 
-# Third-party
+# Import Third-party
 import pandas as pd
 import requests
 from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# Defining of Path
 CWD = os.path.dirname(os.path.abspath(__file__))
 dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
 today = dt.datetime.today()
-API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
+API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")  # API's
 API_KEYS_IND = 0
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_deviantart_{today.year}_{today.month}_{today.day}.csv"
 )
 PSE_KEY = os.getenv("PSE_KEY")
 
-
+# Defining of a Function for List of license
 def get_license_list():
     """Provides the list of license from 2018's record of Creative Commons.
     Returns:
@@ -39,14 +39,12 @@ def get_license_list():
     cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
-        cc_license_data[0]
-        .str.extract(license_pattern, expand=False)
-        .dropna()
-        .unique()
+        cc_license_data[0].str.extract(license_pattern, expand=False).dropna().unique()
     )
     return license_list[4:]
 
 
+# Function to Get URL's
 def get_request_url(license):
     """Provides the API Endpoint URL for specified parameter combinations.
     Args:
@@ -106,14 +104,13 @@ def get_response_elems(license):
         if isinstance(e, requests.exceptions.HTTPError):
             global API_KEYS_IND
             API_KEYS_IND += 1
-            print(
-                "Changing API KEYS due to depletion of quota", file=sys.stderr
-            )
+            print("Changing API KEYS due to depletion of quota", file=sys.stderr)
             return get_response_elems(license)
         else:
             raise e
 
 
+# Setting up a file
 def set_up_data_file():
     """Writes the header row to file to contain DeviantArt data."""
     header_title = "LICENSE TYPE,Document Count"
@@ -130,10 +127,7 @@ def record_license_data(license_type):
             default None value stands for having no assumption about license
             type.
     """
-    data_log = (
-        f"{license_type},"
-        f"{get_response_elems(license_type)['totalResults']}"
-    )
+    data_log = f"{license_type}," f"{get_response_elems(license_type)['totalResults']}"
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(f"{data_log}\n")
 
@@ -152,6 +146,7 @@ def main():
     record_all_licenses()
 
 
+# Conditions
 if __name__ == "__main__":
     try:
         main()
@@ -164,3 +159,4 @@ if __name__ == "__main__":
         print("ERROR (1) Unhandled exception:", file=sys.stderr)
         print(traceback.print_exc(), file=sys.stderr)
         sys.exit(1)
+
