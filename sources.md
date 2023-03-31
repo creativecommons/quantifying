@@ -10,7 +10,7 @@ public domain. Below are the sources and their respective information:
 tool paths.
 
 **API documentation link:**
-- [`google_custom_search/legal-tool-paths.txt`][tools-paths]: a list of all
+- [Tools-paths][tools-paths]: a list of all
   current CC legal tool paths by TimidRobot)
 
 **API information:**
