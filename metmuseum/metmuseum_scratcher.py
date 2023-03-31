@@ -1,27 +1,26 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 """
 This file is dedicated to obtain a .csv record report for MetMuseum Search
 data.
 """
 
-# Standard library
+# Import Standard library
 import datetime as dt
 import os
 import sys
 import traceback
 
-# Third-party
+# Import Third-party
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 today = dt.datetime.today()
+# Path
 CWD = os.path.dirname(os.path.abspath(__file__))
-DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_metmuseum_{today.year}_{today.month}_{today.day}.csv"
-)
+DATA_WRITE_FILE = f"{CWD}" f"/data_metmuseum_{today.year}_{today.month}_{today.day}.csv"
 
-
+# URL's
 def get_request_url():
     """Provides the API Endpoint URL for specified parameter combinations.
     Returns:
@@ -31,6 +30,7 @@ def get_request_url():
     return "https://collectionapi.metmuseum.org/public/collection/v1/objects"
 
 
+# Responses
 def get_response_elems():
     """Provides the metadata for query of specified parameters
 
@@ -66,6 +66,7 @@ def set_up_data_file():
         f.write(f"{header_title}\n")
 
 
+# Csv Stroage with write permit
 def record_all_licenses():
     """Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
@@ -79,6 +80,7 @@ def main():
     record_all_licenses()
 
 
+# Condtions
 if __name__ == "__main__":
     try:
         main()
@@ -91,3 +93,4 @@ if __name__ == "__main__":
         print("ERROR (1) Unhandled exception:", file=sys.stderr)
         print(traceback.print_exc(), file=sys.stderr)
         sys.exit(1)
+
