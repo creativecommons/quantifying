@@ -12,11 +12,11 @@ Note:
 content_categories will be got from basic NLP on the tags column
 """
 
-# Standard library
+# Import Standard library
 import sys
 import traceback
 
-# Third-party
+# Import Third-party
 import pandas as pd
 
 
@@ -37,9 +37,7 @@ def drop_duplicate_id(csv_path, new_csv_path):  # attribute is string
     print("Dropping duplicates")
 
 
-def save_new_data(
-    csv_path, column_name_list, new_csv_path
-):  # attribute is string
+def save_new_data(csv_path, column_name_list, new_csv_path):  # attribute is string
     """
     column_name_list must belongs to the
     existing column names from original csv
@@ -58,9 +56,7 @@ def save_new_data(
 
 def main():
     drop_empty_column("final.csv", "dataset/cleaned_license10.csv")
-    drop_duplicate_id(
-        "dataset/cleaned_license10.csv", "dataset/cleaned_license10.csv"
-    )
+    drop_duplicate_id("dataset/cleaned_license10.csv", "dataset/cleaned_license10.csv")
     save_new_data(
         "dataset/cleaned_license10.csv",
         [
