@@ -3,26 +3,25 @@ This file is dedicated to obtain a .csv record report for internetarchive
 data.
 """
 
-# Standard library
+# Impor Standard library
 import datetime as dt
 import os
 import sys
 import traceback
 
-# Third-party
+# Import Third-party
 import pandas as pd
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# First-party/Local
+# Import First-party/Local
 from internetarchive.search import Search
 from internetarchive.session import ArchiveSession
 
 today = dt.datetime.today()
 CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_WRITE_FILE = (
-    f"{CWD}"
-    f"/data_internetarchive_{today.year}_{today.month}_{today.day}.csv"
+    f"{CWD}" f"/data_internetarchive_{today.year}_{today.month}_{today.day}.csv"
 )
 
 
@@ -37,6 +36,7 @@ def get_license_list():
     return license_list
 
 
+# Response
 def get_response_elems(license):
     """Provides the metadata for query of specified parameters
     Args:
@@ -71,6 +71,7 @@ def get_response_elems(license):
         raise e
 
 
+# Set up
 def set_up_data_file():
     """Writes the header row to file to contain IA data."""
     header_title = "LICENSE TYPE,Document Count"
@@ -87,10 +88,7 @@ def record_license_data(license_type):
             default None value stands for having no assumption about license
             type.
     """
-    data_log = (
-        f"{license_type},"
-        f"{get_response_elems(license_type)['totalResults']}"
-    )
+    data_log = f"{license_type}," f"{get_response_elems(license_type)['totalResults']}"
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(f"{data_log}\n")
 
@@ -109,6 +107,7 @@ def main():
     record_all_licenses()
 
 
+# Conditions
 if __name__ == "__main__":
     try:
         main()
@@ -121,3 +120,4 @@ if __name__ == "__main__":
         print("ERROR (1) Unhandled exception:", file=sys.stderr)
         print(traceback.print_exc(), file=sys.stderr)
         sys.exit(1)
+
