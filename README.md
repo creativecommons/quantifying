@@ -68,15 +68,25 @@ To successfully run scripts that require client credentials, you will need to fo
 ### Tooling
 
 - **[Python Guidelines — Creative Commons Open Source][ccospyguide]**
-- [Black][black]: the uncompromising Python code formatter
+- [Black][black]: the uncompromising Python code formatter, by [psf][psf]. It
+  is opinionated, but provides a consistent style across the codebase. It
+  also provides a `--check` option to check if the code is formatted correctly.
 - [flake8][flake8]: a python tool that glues together pep8, pyflakes, mccabe,
-  and third-party plugins to check the style and quality of some python code.
-- [isort][isort]: A Python utility / library to sort imports.
+  and third-party plugins to check the style and quality of some python code, by [PyCQA][pycqa].
+- [isort][isort]: A Python utility / library to sort imports. It provides a
+  command line utility, Python library and plugins for various editors to
+  automatically sort all your imports.
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
 [flake8]: https://gitlab.com/pycqa/flake8
 [isort]: https://pycqa.github.io/isort/
+
+- Helper scripts:
+  - [`./dev/tools.sh`](dev/tools.sh): install and update development tools
+
+- Github Actions:
+  - [`.github/workflows/python_static_analysis.yml`](.github/workflows/python_static_analysis.yml): runs static analysis on the codebase
 
 
 ## Data Sources
