@@ -43,13 +43,13 @@ modules:
         brew install pipenv
         ```
 - Windows:
-       ```
-       pip install --user pipenv
-      ``` 
+        ```
+        pip install --user pipenv
+        ```
 
 [pipenvdocs]: https://pipenv.pypa.io/en/latest/
 [homebrew]: https://brew.sh/
-[pipenvinstall]:(https://pypi.org/project/pipenv/#installation)
+[pipenvinstall]:(https://pipenv.pypa.io/en/latest/installation/)
 
 
 ### Running Scripts that Require Client Credentials
