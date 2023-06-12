@@ -72,16 +72,37 @@ To successfully run scripts that require client credentials, you will need to fo
 - [flake8][flake8]: a python tool that glues together pep8, pyflakes, mccabe,
   and third-party plugins to check the style and quality of some python code.
 - [isort][isort]: A Python utility / library to sort imports.
+- **Helper Scripts:**
+  - [`/dev/tools.sh`][tools.sh]: A script that runs `isort`, `black`, and `flake8` to automatically format and check the codebase for style issues.
+  
+      To use the script, simply run the following command.
+      ```
+      ./dev/tools.sh
+      ```
+      It can also accept command-line arguments to specify specific files or directories to check. 
+      
+      For example:
+      ```
+      ./dev/tools.sh path/to/my/file.py
+      ```
+- **GitHub Actions:**
+  - [`.github/workflows/python_static_analysis.yml`][python_static_analysis.yml]: A github workflow that checks the quality and style of code also using `isort`, `black`, and `flake8`. 
+  
+      The workflow is triggered automatically when you push changes to the main branch or open a pull request.
+
+      Once it's completed, review the results and fix any issues reported by the tools.
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
 [flake8]: https://gitlab.com/pycqa/flake8
 [isort]: https://pycqa.github.io/isort/
+[tools.sh]: /dev/tools.sh
+[python_static_analysis.yml]: .github/workflows/python_static_analysis.yml
 
 
 ## Data Sources
 
-Kindly visit the [`sources.md`](sources.md) file for it.
+Kindly visit the [sources.md](sources.md) file for it.
 
 
 ## History
