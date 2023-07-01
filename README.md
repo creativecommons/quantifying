@@ -2,12 +2,10 @@
 
 Quantifying the Commons
 
-
 ## Overview
 
 This project seeks to quantify the size and diversity of the commons--the
 collection of works that are openly licensed or in the public domain.
-
 
 ## Code of Conduct
 
@@ -21,25 +19,23 @@ collection of works that are openly licensed or in the public domain.
 [code_of_conduct]: https://opensource.creativecommons.org/community/code-of-conduct/
 [reporting_guide]: https://opensource.creativecommons.org/community/code-of-conduct/enforcement/
 
-
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-
-
 ## Development
-
 
 ### Prerequisites
 
 This repository uses [pipenv][pipenvdocs] to manage the required Python
 modules:
+
 - Linux: [Installing Pipenv][pipenvinstall]
 - macOS:
   1. Install [Homebrew][homebrew]
   2. Install pipenv:
-        ```
+
+        ```install pipenv
         brew install pipenv
         ```
 
@@ -47,57 +43,62 @@ modules:
 [homebrew]: https://brew.sh/
 [pipenvinstall]: https://pipenv.pypa.io/en/latest/install/#installing-pipenv
 
-
 ### Running Scripts that Require Client Credentials
 
 To successfully run scripts that require client credentials, you will need to follow these steps:
+
   1. Copy the contents of the `env.example` file in the script's directory to `.env`:
-        ```
+
+        ```example
         cp env.example .env
         ```
+
   2. Uncomment the variables in the `.env` file and assign values as needed. See [`sources.md`](sources.md) on how to get credentials:
-        ```
+
+        ```Keys
         GOOGLE_API_KEYS=your_api_key
         PSE_KEY=your_pse_key
        ```
+
   3. Save the changes to the `.env` file.
 
   4. You should now be able to run scripts that require client credentials without any issues.
-
 
 ### Tooling
 
 - **[Python Guidelines — Creative Commons Open Source][ccospyguide]**
 - [Black][black]: the uncompromising Python code formatter
-- [flake8][flake8]: a python tool that glues together pep8, pyflakes, mccabe,
-  and third-party plugins to check the style and quality of some python code.
-- [isort][isort]: A Python utility / library to sort imports.
+- [flake8][flake8]: a Python tool that glues together pep8, pyflakes, mccabe,
+  and third-party plugins to check the style and quality of some Python code.
+- [isort][isort]: A Python utility/library to sort imports.
+- **Helper Script**
+  - [tools.sh](./dev/tools.sh): A useful helper script for performing specific tasks. Include a brief description of what this script does and how it can be utilized.
+
+### Continuous Integration (CI) with GitHub Actions
+
+- **Static Analysis**
+  - [python_static_analysis.yml](.github/workflows/python_static_analysis.yml): A GitHub Action workflow for running static analysis on Python code. This workflow checks for code quality, style, and potential issues using popular tools like flake8 and isort. Provide a brief overview of how this workflow works and how to incorporate it into the development process.
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
 [flake8]: https://gitlab.com/pycqa/flake8
 [isort]: https://pycqa.github.io/isort/
 
-
 ## Data Sources
 
 Kindly visit the [`sources.md`](sources.md) file for it.
-
 
 ## History
 
 For information on past efforts, see [`history.md`](history.md).
 
-
 ## Copying & License
-
 
 ### Code
 
 [`LICENSE`](LICENSE): the code within this repository is licensed under the Expat/[MIT][mit] license.
 
 [mit]: http://www.opensource.org/licenses/MIT "The MIT License | Open Source Initiative"
-
 
 ### Data
 
@@ -109,7 +110,6 @@ The data within this repository is dedicated to the public domain under the
 
 [cc-zero-png]: https://licensebuttons.net/l/zero/1.0/88x31.png "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication button"
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
-
 
 ### Documentation
 
