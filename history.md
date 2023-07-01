@@ -2,14 +2,12 @@
 
 [stateof]: https://github.com/creativecommons/stateof
 
-
 ## 2022 Data Science Discovery - UC Berkeley
 
 - [Data Science Discovery: Quantifying the Commons — Creative Commons Open
   Source][dsdblog]
 
 [dsdblog]: https://opensource.creativecommons.org/blog/entries/2022-12-07-berkeley-quantifying/
-
 
 ## 2017 State of the Commons
 
@@ -24,7 +22,6 @@
 [state2017]: https://stateof.creativecommons.org/
 [repo-2017]: https://github.com/cc-archive/sotc-2017
 
-
 ## 2016 State of the Commons
 
 - Website: [State of the Commons – Creative Commons 2016][state2016]
@@ -37,7 +34,6 @@
 
 [state2016]: https://stateof.creativecommons.org/2016/
 [repo-2016]: https://github.com/cc-archive/sotc-2016
-
 
 ## 2015 State of the Commons
 
@@ -52,7 +48,6 @@
 [repo-2015]: https://github.com/cc-archive/sotc-2015
 [datamdwn]: https://github.com/cc-archive/sotc-2015/blob/main/data.mdwn
 
-
 ## 2014 State of the Commons
 
 - Website: [State of the Commons — Creative Commons - IA Wayback
@@ -64,24 +59,21 @@
 [state2014]: https://web.archive.org/web/20141121162907/https://stateof.creativecommons.org/
 [notes2014]: https://github.com/cc-archive/sotc-2014/blob/main/data/notes.md
 
-
 ## 2012 and Earlier
 
-- https://wiki.creativecommons.org/wiki/Metrics
-- https://wiki.creativecommons.org/wiki/Metrics/License_statistics
+- <https://wiki.creativecommons.org/wiki/Metrics>
+- <https://wiki.creativecommons.org/wiki/Metrics/License_statistics>
 - Repository:
   - [cc-archive/stats][repo-stats]: code for generating statistics on the usage
     of CC licenses
 
 [repo-stats]: https://github.com/cc-archive/stats
 
-
 ## 2008 Participatory Media Lab
 
 - [Visualizations - Participatory Media Lab][pmlviz]
 
 [pmlviz]: http://pml.wikidot.com/visualizations
-
 
 ## 2007
 
