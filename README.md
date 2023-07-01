@@ -25,6 +25,21 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Development
 
+To set up the development environment for this project, you'll need to install [Pipenv](https://pipenv.pypa.io/) and its dependencies. Here's how to do it on Windows:
+
+1. Install Python: If you haven't already, download and install Python from the official website: [python.org](https://www.python.org/downloads/). Make sure to check the box that says "Add Python to PATH" during the installation.
+
+2. Install Pipenv: Open a command prompt and run the following command to install Pipenv using pip (Python package installer):
+
+   ```shell
+   pip install pipenv
+
+   pipenv --version
+   pipenv install --dev
+   pipenv shell
+
+Replace the existing Development section in the Readme.md file with this code snippet. Remember to modify it further if needed to fit the specific requirements of your project.
+
 ### Prerequisites
 
 This repository uses [pipenv][pipenvdocs] to manage the required Python
