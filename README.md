@@ -71,7 +71,10 @@ To successfully run scripts that require client credentials, you will need to fo
 - [flake8][flake8]: a Python tool that glues together pep8, pyflakes, mccabe,
   and third-party plugins to check the style and quality of some Python code.
 - [isort][isort]: A Python utility/library to sort imports.
-- **Helper Script**
+- **Helper Script**  
+git config --global user.name "Abhishek Anand"
+git config --global user.email "<anandshek14052@gmail.com>"
+
   - [tools.sh](./dev/tools.sh): A useful helper script for performing specific tasks. Include a brief description of what this script does and how it can be utilized.
 
 ### Continuous Integration (CI) with GitHub Actions
@@ -83,6 +86,10 @@ To successfully run scripts that require client credentials, you will need to fo
 [black]: https://github.com/psf/black
 [flake8]: https://gitlab.com/pycqa/flake8
 [isort]: https://pycqa.github.io/isort/
+git commit -s -m "Fixes #53 by @TimidRobot
+
+Add /dev/tools.sh documentation and usage in README.md
+Add .github/workflows/python_static_analysis.yml documentation in README.md"
 
 ## Data Sources
 
