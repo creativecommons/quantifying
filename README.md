@@ -43,6 +43,7 @@ modules:
         brew install pipenv
         ```
 
+
 [pipenvdocs]: https://pipenv.pypa.io/en/latest/
 [homebrew]: https://brew.sh/
 [pipenvinstall]: https://pipenv.pypa.io/en/latest/install/#installing-pipenv
@@ -64,6 +65,7 @@ To successfully run scripts that require client credentials, you will need to fo
 
   4. You should now be able to run scripts that require client credentials without any issues.
 
+For complete instructions about setting up the project and for details about how to run isort, black, flake8 visit : https://github.com/creativecommons/quantifying/blob/main/.github/workflows/python_static_analysis.yml
 
 ### Tooling
 
@@ -71,7 +73,7 @@ To successfully run scripts that require client credentials, you will need to fo
 - [Black][black]: the uncompromising Python code formatter
 - [flake8][flake8]: a python tool that glues together pep8, pyflakes, mccabe,
   and third-party plugins to check the style and quality of some python code.
-- [isort][isort]: A Python utility / library to sort imports.
+- [isort][isort]: A Python utility / library to sort imports (It doesn't import any libraries, it only sorts and formats them). 
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
