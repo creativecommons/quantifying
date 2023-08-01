@@ -42,6 +42,22 @@ modules:
         ```
         brew install pipenv
         ```
+To make this code work in VSCode follow the below steps:
+•	Install the Start git-bash extension.
+•	In command palette either type `bash` or `bash in workspace``.
+•	Now the terminal will work as git-bash terminal
+•	Install python3:
+	       sudo apt update
+	       sudo apt install python3
+•	Create a vitual environment with:
+	       python -m venv venv
+•	Activate the virtual environment with :
+	       venv\Scripts\activate
+•	pip install python-dotenv  – >use this to install dotenv
+•	Then we can run :
+	       ./tools.sh
+
+      For complete instructions about setting up the project and for details about how to run isort, black, flake8 visit : https://github.com/creativecommons/quantifying/blob/main/.github/workflows/python_static_analysis.yml
 
 
 [pipenvdocs]: https://pipenv.pypa.io/en/latest/
@@ -65,7 +81,6 @@ To successfully run scripts that require client credentials, you will need to fo
 
   4. You should now be able to run scripts that require client credentials without any issues.
 
-For complete instructions about setting up the project and for details about how to run isort, black, flake8 visit : https://github.com/creativecommons/quantifying/blob/main/.github/workflows/python_static_analysis.yml
 
 ### Tooling
 
