@@ -42,22 +42,15 @@ modules:
         ```
         brew install pipenv
         ```
-To make this code work in VSCode follow the below steps:
-•	Install the Start git-bash extension.
-•	In command palette either type `bash` or `bash in workspace``.
-•	Now the terminal will work as git-bash terminal
-•	Install python3:
-	       sudo apt update
-	       sudo apt install python3
-•	Create a vitual environment with:
-	       python -m venv venv
-•	Activate the virtual environment with :
-	       venv\Scripts\activate
-•	pip install python-dotenv  – >use this to install dotenv
-•	Then we can run :
-	       ./tools.sh
-
-      For complete instructions about setting up the project and for details about how to run isort, black, flake8 visit : https://github.com/creativecommons/quantifying/blob/main/.github/workflows/python_static_analysis.yml
+  3. Create the Python virtual environment and install prerequisites using:
+       `pipenv`:
+       	```
+     	shell pipenv sync --dev
+    	``` 
+  4. Then you can run the static analysis tools:
+        ```
+     	shell ./tools.sh
+        ```
 
 
 [pipenvdocs]: https://pipenv.pypa.io/en/latest/
@@ -88,7 +81,8 @@ To successfully run scripts that require client credentials, you will need to fo
 - [Black][black]: the uncompromising Python code formatter
 - [flake8][flake8]: a python tool that glues together pep8, pyflakes, mccabe,
   and third-party plugins to check the style and quality of some python code.
-- [isort][isort]: A Python utility / library to sort imports (It doesn't import any libraries, it only sorts and formats them). 
+- [isort][isort]: A Python utility / library to sort imports
+	- It doesn't import any libraries, it only sorts and formats them. 
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
