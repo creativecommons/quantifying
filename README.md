@@ -42,6 +42,16 @@ modules:
         ```
         brew install pipenv
         ```
+  3. Create the Python virtual environment and install prerequisites using:
+       `pipenv`:
+       	```
+     	shell pipenv sync --dev
+    	``` 
+  4. Then you can run the static analysis tools:
+        ```
+     	shell ./tools.sh
+        ```
+
 
 [pipenvdocs]: https://pipenv.pypa.io/en/latest/
 [homebrew]: https://brew.sh/
@@ -71,7 +81,8 @@ To successfully run scripts that require client credentials, you will need to fo
 - [Black][black]: the uncompromising Python code formatter
 - [flake8][flake8]: a python tool that glues together pep8, pyflakes, mccabe,
   and third-party plugins to check the style and quality of some python code.
-- [isort][isort]: A Python utility / library to sort imports.
+- [isort][isort]: A Python utility / library to sort imports
+	- It doesn't import any libraries, it only sorts and formats them. 
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
