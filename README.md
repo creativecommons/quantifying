@@ -47,7 +47,12 @@ modules:
         ```shell
         pipenv sync --dev
         ```
-  4. Then you can run the static analysis tools:
+  4. Install dependencies
+      ```shell
+      pip install -r requirements.txt
+      ```
+
+  5. Then you can run the static analysis tools:
         ```shell
         ./tools.sh
         ```
