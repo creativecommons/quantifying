@@ -76,10 +76,19 @@ follow these steps:
 
 ### Static analysis
 
-The `dev/tools.sh` helper script runs the static analysis tools:
+The [`dev/tools.sh`][tools-sh] helper script runs the static analysis tools
+(`black`, `flake8`, and `isort`):
 ```shell
 ./dev/tools.sh
 ```
+
+It can also accept command-line arguments to specify specific files or
+directories to check:
+```shell
+./dev/tools.sh PATH/TO/MY/FILE.PY
+```
+
+[tools-sh]: /dev/tools.sh
 
 
 ### Resources
@@ -97,6 +106,16 @@ The `dev/tools.sh` helper script runs the static analysis tools:
 [flake8]: https://gitlab.com/pycqa/flake8
 [isort]: https://pycqa.github.io/isort/
 [pipenv]: https://github.com/pypa/pipenv
+
+
+### GitHub Actions
+
+The [`.github/workflows/python_static_analysis.yml`][workflow-static-analysis]
+GitHub Actions workflow performs static analysis (`black`, `flake8`, and
+`isort`) on committed changes. The workflow is triggered automatically when you
+push changes to the main branch or open a pull request.
+
+[workflow-static-analysis]: .github/workflows/python_static_analysis.yml
 
 
 ## Data sources
