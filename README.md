@@ -42,7 +42,7 @@ modules:
         ```shell
         brew install pipenv
         ```
-  - Windows: [Installing Pipenv][pipenvinstall]
+   - Windows: [Installing Pipenv][pipenvinstall]
 2. Create the Python virtual environment and install prerequisites using
    `pipenv`:
     ```shell
