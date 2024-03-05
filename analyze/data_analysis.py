@@ -98,7 +98,7 @@ def tags_frequency(csv_path, column_names):
     # Iterate over each tag in list_tags and list2
     for tag in list_tags + list2:
     # Split the tag into its constituent words, convert to lowercase, and append to the list
-     lowercase_words.extend([word.lower() for word in tag.split()])
+    lowercase_words.extend([word.lower() for word in tag.split()])
 
     # Join the lowercase words with a space separator
     text = ' '.join(lowercase_words)
