@@ -54,7 +54,7 @@ modules:
 [homebrew]: https://brew.sh/
 
 
-### Running scripts that require client cedentials
+### Running scripts that require client credentials
 
 To successfully run scripts that require client credentials, you will need to
 follow these steps:
