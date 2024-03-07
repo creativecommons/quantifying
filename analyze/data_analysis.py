@@ -92,19 +92,16 @@ def tags_frequency(csv_path, column_names):
     # customized = {"p", "d", "b"}
     # stopwords = stopwords.union(customized)
 
-    for word in list_tags:
-        # Splitting each tag into its constituent words
-        tokens = word.split()
-        # Converting each word to lower case
-        for i in range(len(tokens)):
-            tokens[i] = tokens[i].lower()
-        # Adding each word to text
-        text += " ".join(tokens) + " "
-    for word in list2:
-        tokens = word.split()
-        for j in range(len(tokens)):
-            tokens[j] = tokens[j].lower()
-        text += " ".join(tokens) + " "
+    # Initialize an empty list to store lowercase words
+    lowercase_words = []
+
+    # Iterate over each tag in list_tags and list2
+    for tag in list_tags + list2:
+        # Split the tag into words, convert to lowercase,& append to the list.
+        lowercase_words.extend([word.lower() for word in tag.split()])
+
+    # Join the lowercase words with a space separator
+    text = ' '.join(lowercase_words)
 
     # Creating the word cloud
     tags_word_cloud = WordCloud(
