@@ -101,7 +101,7 @@ def tags_frequency(csv_path, column_names):
         lowercase_words.extend([word.lower() for word in tag.split()])
 
     # Join the lowercase words with a space separator
-    text = ' '.join(lowercase_words)
+    text = " ".join(lowercase_words)
 
     # Creating the word cloud
     tags_word_cloud = WordCloud(
