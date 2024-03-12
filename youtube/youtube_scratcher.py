@@ -16,12 +16,17 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# Get the current working directory
 CWD = os.path.dirname(os.path.abspath(__file__))
+# Load environment variables
 dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
+# Get the current date
 today = dt.datetime.today()
+# Get the YouTube API key
 API_KEY = os.getenv("YOUTUBE_API_KEY")
+# Set up file path for CSV report
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_youtube_{today.year}_{today.month}_{today.day}.csv"
 )
@@ -31,13 +36,14 @@ DATA_WRITE_FILE_TIME = (
 
 
 def get_next_time_search_interval():
-    """Provides the next searching interval of time for Creative Commons
+    """
+    Provides the next searching interval of time for Creative Commons
     licensed video.
 
     Yields:
-        tuple: A tuple representing the time search interval currently dealt
-        via 2 RFC 3339 formatted date-time values (by YouTube API Standards),
-        and the current starting year and month of the interval.
+    - tuple: A tuple representing the time search interval currently dealt
+    via 2 RFC 3339 formatted date-time values (by YouTube API Standards),
+    and the current starting year and month of the interval.
     """
     cur_year, cur_month = 2009, 1
     while cur_year * 100 + cur_month <= today.year * 100 + today.month:
@@ -66,17 +72,18 @@ def get_next_time_search_interval():
 
 
 def get_request_url(time=None):
-    """Provides the API Endpoint URL for specified parameter combinations.
+    """
+    Provides the API Endpoint URL for specified parameter combinations.
 
     Args:
-        time: A tuple indicating whether this query is related to video time
-        occurrence, and the time interval which it would like to investigate.
-        Defaults to None to indicate the query is not related to video time
-        occurrence.
+    - time: A tuple indicating whether this query is related to video time
+    occerrence, and the time interval which it would like to investigate.
+    Defaults to None to indicate the query is not related to video time
+    occurrence.
 
     Returns:
-        string: A string representing the API Endpoint URL for the query
-        specified by this function's parameters.
+    - string: A string representing the API Endpoint URL for the query
+    specified by this function's parameters.
     """
     base_url = (
         r"https://youtube.googleapis.com/youtube/v3/search?part=snippet"
@@ -92,17 +99,18 @@ def get_request_url(time=None):
 
 
 def get_response_elems(time=None):
-    """Provides the metadata for query of specified parameters
+    """
+    Provides the metadata for query of specified parameters
 
     Args:
-        time: A tuple indicating whether this query is related to video time
-        occurrence, and the time interval which it would like to investigate.
-        Defaults to None to indicate the query is not related to video time
-        occurrence.
+    - time: A tuple indicating whether this query is related to video time
+    occurrence, and the time interval which it would like to investigate.
+    Defaults to None to indicate the query is not related to video time
+    occurrence.
 
     Returns:
-        dict: A dictionary mapping metadata to its value provided from the API
-        query of specified parameters.
+    - dict: A dictionary mapping metadata to its value provided from the API
+    query of specified parameters.
     """
     search_data = None
     try:
@@ -114,6 +122,7 @@ def get_response_elems(time=None):
         )
         session = requests.Session()
         session.mount("https://", HTTPAdapter(max_retries=max_retries))
+        # Send GET request to YouTube API
         with session.get(request_url) as response:
             response.raise_for_status()
             search_data = response.json()
