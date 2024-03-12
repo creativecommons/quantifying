@@ -36,7 +36,6 @@ repos:
         - --fix=no
       - id: trailing-whitespace
 
-repos:
   - repo: local
     hooks:
       - id: black
