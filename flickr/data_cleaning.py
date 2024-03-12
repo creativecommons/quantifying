@@ -24,8 +24,8 @@ def drop_empty_column(csv_path, new_csv_path):
     """
     Drops columns with 'Unnamed' in the name from the CSV file.
     Args:
-        csv_path (str): Path to the original CSV file.
-        new_csv_path (str): Path to save the cleaned CSV file.
+    - csv_path (str): Path to the original CSV file.
+    - new_csv_path (str): Path to save the cleaned CSV file.
     """
     df = pd.read_csv(csv_path)
     for col in df.columns:
@@ -41,8 +41,8 @@ def drop_duplicate_id(csv_path, new_csv_path):
     Drops duplicate rows based on the 'id' column from the CSV file.
 
     Args:
-        csv_path (str): Path to the original CSV file.
-        new_csv_path (str): Path to save the cleaned CSV file.
+    - csv_path (str): Path to the original CSV file.
+    - new_csv_path (str): Path to save the cleaned CSV file.
     """
     df = pd.read_csv(csv_path)
     data = df.drop_duplicates(subset=["id"])
@@ -55,10 +55,10 @@ def save_new_data(csv_path, column_name_list, new_csv_path):
     Saves specified columns from the original CSV file to a new CSV file.
 
     Args:
-        csv_path (str): Path to the original CSV file.
-        column_name_list (list of str): List of column names to be saved
-        (belongs to the existing column names from original csv)
-        new_csv_path (str): Path to save the new CSV file.
+    - csv_path (str): Path to the original CSV file.
+    - column_name_list (list of str): List of column names to be saved
+    (belongs to the existing column names from original csv)
+    - new_csv_path (str): Path to save the new CSV file.
     """
     df = pd.read_csv(csv_path)
     new_df = pd.DataFrame()

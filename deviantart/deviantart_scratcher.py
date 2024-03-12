@@ -41,8 +41,8 @@ def get_license_list():
     Provides the list of license from 2018's record of Creative Commons.
 
     Returns:
-        np.array: An array containing all license types that should be
-        searched via Programmable Search Engine.
+    - np.array: An array containing all license types that should be
+    searched via Programmable Search Engine.
     """
     # Read license data from file
     cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
@@ -61,11 +61,11 @@ def get_request_url(license):
     """
     Provides the API Endpoint URL for specified parameter combinations.
     Args:
-        license (str): A string representing the type of license. It's a
-        segment of the URL towards the license description.
+    - license (str): A string representing the type of license. It's a
+    segment of the URL towards the license description.
 
     Returns:
-        str: The API Endpoint URL for the query specified by parameters.
+    - str: The API Endpoint URL for the query specified by parameters.
     """
     try:
         api_key = API_KEYS[API_KEYS_IND]
@@ -86,14 +86,13 @@ def get_response_elems(license):
     """
     Provides the metadata for query of specified parameters
     Args:
-        license (str):
-        A string representing the type of license. It's a segment of the URL
-        towards the license description. If not provided, it defaults to None,
-        indicating no assumption about the license type.
+    - license (str): A string representing the type of license.
+    It's a segment of the URL towards the license description. If not provided,
+    it defaults to None, indicating no assumption about the license type.
 
     Returns:
-        dict: A dictionary mapping metadata to its value provided from the API
-        query.
+    - dict: A dictionary mapping metadata to its value provided from the API
+    query.
     """
     try:
         # Make a request to the API and handle potential retries
@@ -136,10 +135,9 @@ def set_up_data_file():
 def record_license_data(license_type):
     """Writes the row for LICENSE_TYPE to the file to contain DeviantArt data.
     Args:
-        license_type(str):
-            A string representing the type of license. It's a segment of the
-            URL towards the license description. If not provided, it defaults
-            to None, indicating no assumption about the license type.
+    - license_type(str): A string representing the type of license.
+    It's a segment of the URL towards the license description. If not provided,
+    it defaults to None, indicating no assumption about the license type.
     """
     data_log = (
         f"{license_type},"

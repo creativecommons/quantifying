@@ -138,10 +138,10 @@ def time_trend_helper(df):
     Extract year-wise count of entries from a DataFrame.
 
     Args:
-        df (DataFrame): Input DataFrame containing dates.
+    - df (DataFrame): Input DataFrame containing dates.
 
     Returns:
-        DataFrame: DataFrame with counts of entries per year.
+    - DataFrame: DataFrame with counts of entries per year.
     """
     year_list = []
     for date_row in df["dates"][0:]:
@@ -167,7 +167,7 @@ def time_trend(csv_path):
     Generate a line graph to show the time trend of the license usage.
 
     Args:
-        csv_path (str): Path to the CSV file.
+    - csv_path (str): Path to the CSV file.
     """
     df = pd.read_csv(csv_path)
     count_df = time_trend_helper(df)
@@ -205,10 +205,10 @@ def time_trend_compile_helper(yearly_count):
     Filter yearly trend data for the years between 2018 and 2022.
 
     Args:
-        yearly_count (DataFrame): DataFrame with "year" and "Counts" columns.
+    - yearly_count (DataFrame): DataFrame with "year" and "Counts" columns.
 
     Returns:
-        DataFrame: Filtered yearly count data.
+    - DataFrame: Filtered yearly count data.
     """
     Years = np.arange(2018, 2023)
     yearly_count["year"] = list(yearly_count.index)
@@ -370,10 +370,10 @@ def view_compare_helper(df):
     Calculate maximum views of pictures under a license.
 
     Args:
-        df (DataFrame): Input DataFrame.
+    - df (DataFrame): Input DataFrame.
 
     Returns:
-        int: Maximum views.
+    - int: Maximum views.
     """
     highest_view = int(max(df["views"]))
     df = df.sort_values("views", ascending=False)
