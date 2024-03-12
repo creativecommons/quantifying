@@ -1,8 +1,7 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
-exclude: \\.coverage.*
 default_language_version:
-  python: python3.9
+  python: python3.11
 
 ci:
     autofix_commit_msg: |
@@ -17,11 +16,32 @@ ci:
     submodules: false
 
 repos:
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: destroyed-symlinks
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args:
+        - --fix=no
+      - id: trailing-whitespace
+
+repos:
   - repo: local
     hooks:
       - id: black
         name: "Black"
-        entry: black --check
+        entry: black
         language: system
         types: ["file", "python", "text"]
 
@@ -33,6 +53,6 @@ repos:
 
       - id: isort
         name: "isort"
-        entry: isort --check --filter-files
+        entry: isort --filter-files
         language: system
         types: ["file", "python", "text"]
