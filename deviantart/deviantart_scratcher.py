@@ -17,26 +17,36 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# Set up current working directory
 CWD = os.path.dirname(os.path.abspath(__file__))
+# Load environment variables
 dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
+# Get the current date
 today = dt.datetime.today()
+# Retrieve API keys
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 API_KEYS_IND = 0
+# Set up file path for CSV report
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_deviantart_{today.year}_{today.month}_{today.day}.csv"
 )
+# Retrieve Programmable Search Engine key from environment variables
 PSE_KEY = os.getenv("PSE_KEY")
 
 
 def get_license_list():
-    """Provides the list of license from 2018's record of Creative Commons.
-    Returns:
-        np.array: An np array containing all license types that should be
-        searched via Programmable Search Engine.
     """
+    Provides the list of license from 2018's record of Creative Commons.
+
+    Returns:
+    - np.array: An array containing all license types that should be
+    searched via Programmable Search Engine.
+    """
+    # Read license data from file
     cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
+    # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
         cc_license_data[0]
@@ -48,14 +58,14 @@ def get_license_list():
 
 
 def get_request_url(license):
-    """Provides the API Endpoint URL for specified parameter combinations.
+    """
+    Provides the API Endpoint URL for specified parameter combinations.
     Args:
-        license:
-            A string representing the type of license, and should be a segment
-            of its URL towards the license description.
+    - license (str): A string representing the type of license. It's a
+    segment of the URL towards the license description.
+
     Returns:
-        string: A string representing the API Endpoint URL for the query
-        specified by this function's parameters.
+    - str: The API Endpoint URL for the query specified by parameters.
     """
     try:
         api_key = API_KEYS[API_KEYS_IND]
@@ -73,19 +83,19 @@ def get_request_url(license):
 
 
 def get_response_elems(license):
-    """Provides the metadata for query of specified parameters
+    """
+    Provides the metadata for query of specified parameters
     Args:
-        license:
-            A string representing the type of license, and should be a segment
-            of its URL towards the license description. Alternatively, the
-            default None value stands for having no assumption about license
-            type.
+    - license (str): A string representing the type of license.
+    It's a segment of the URL towards the license description. If not provided,
+    it defaults to None, indicating no assumption about the license type.
 
     Returns:
-        dict: A dictionary mapping metadata to its value provided from the API
-        query of specified parameters.
+    - dict: A dictionary mapping metadata to its value provided from the API
+    query.
     """
     try:
+        # Make a request to the API and handle potential retries
         request_url = get_request_url(license)
         max_retries = Retry(
             total=5,
@@ -104,6 +114,7 @@ def get_response_elems(license):
         return search_data_dict
     except Exception as e:
         if isinstance(e, requests.exceptions.HTTPError):
+            # If quota limit exceeded, switch to the next API key
             global API_KEYS_IND
             API_KEYS_IND += 1
             print(
@@ -115,20 +126,18 @@ def get_response_elems(license):
 
 
 def set_up_data_file():
-    """Writes the header row to file to contain DeviantArt data."""
+    """Writes the header row to the file to contain DeviantArt data."""
     header_title = "LICENSE TYPE,Document Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
 
 
 def record_license_data(license_type):
-    """Writes the row for LICENSE_TYPE to file to contain DeviantArt data.
+    """Writes the row for LICENSE_TYPE to the file to contain DeviantArt data.
     Args:
-        license_type:
-            A string representing the type of license, and should be a segment
-            of its URL towards the license description. Alternatively, the
-            default None value stands for having no assumption about license
-            type.
+    - license_type(str): A string representing the type of license.
+    It's a segment of the URL towards the license description. If not provided,
+    it defaults to None, indicating no assumption about the license type.
     """
     data_log = (
         f"{license_type},"
@@ -139,10 +148,14 @@ def record_license_data(license_type):
 
 
 def record_all_licenses():
-    """Records the data of all license types findable in the license list and
-    records these data into the DATA_WRITE_FILE as specified in that constant.
     """
+    Records the data for all available license types listed in the license
+    list and writes this data into the DATA_WRITE_FILE, as specified by the
+    constant.
+    """
+    # Get the list of license types
     license_list = get_license_list()
+    # Record data for each license types
     for license_type in license_list:
         record_license_data(license_type)
 

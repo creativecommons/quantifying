@@ -20,9 +20,15 @@ import traceback
 import pandas as pd
 
 
-def drop_empty_column(csv_path, new_csv_path):  # attribute is string
+def drop_empty_column(csv_path, new_csv_path):
+    """
+    Drops columns with 'Unnamed' in the name from the CSV file.
+    Args:
+    - csv_path (str): Path to the original CSV file.
+    - new_csv_path (str): Path to save the cleaned CSV file.
+    """
     df = pd.read_csv(csv_path)
-    for col in df.columns:  # to get the column list
+    for col in df.columns:
         if "Unnamed" in col:
             data = df.drop(col, axis=1)
             print("Dropping column", col)
@@ -30,22 +36,29 @@ def drop_empty_column(csv_path, new_csv_path):  # attribute is string
     print("Dropping empty columns")
 
 
-def drop_duplicate_id(csv_path, new_csv_path):  # attribute is string
+def drop_duplicate_id(csv_path, new_csv_path):
+    """
+    Drops duplicate rows based on the 'id' column from the CSV file.
+
+    Args:
+    - csv_path (str): Path to the original CSV file.
+    - new_csv_path (str): Path to save the cleaned CSV file.
+    """
     df = pd.read_csv(csv_path)
     data = df.drop_duplicates(subset=["id"])
     data.to_csv(new_csv_path)
     print("Dropping duplicates")
 
 
-def save_new_data(
-    csv_path, column_name_list, new_csv_path
-):  # attribute is string
+def save_new_data(csv_path, column_name_list, new_csv_path):
     """
-    column_name_list must belongs to the
-    existing column names from original csv
-    csv_path is the path of original csv
-    This function generate a new dataframe
-    to save final data with useful columns
+    Saves specified columns from the original CSV file to a new CSV file.
+
+    Args:
+    - csv_path (str): Path to the original CSV file.
+    - column_name_list (list of str): List of column names to be saved
+    (belongs to the existing column names from original csv)
+    - new_csv_path (str): Path to save the new CSV file.
     """
     df = pd.read_csv(csv_path)
     new_df = pd.DataFrame()
