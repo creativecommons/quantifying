@@ -13,7 +13,7 @@ collection of works that are openly licensed or in the public domain.
 
 [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md):
 > The Creative Commons team is committed to fostering a welcoming community.
-> This project and all other Creative Commons open-source projects are governed
+> This project and all other Creative Commons open source projects are governed
 > by our [Code of Conduct][code_of_conduct]. Please report unacceptable
 > behavior to [conduct@creativecommons.org](mailto:conduct@creativecommons.org)
 > per our [reporting guidelines][reporting_guide].
@@ -95,6 +95,16 @@ follow these steps:
 
 It will run on every commit automatically.
 
+### pre-commit Configuration
+
+A `.pre-commit-config.yaml` file has been added to the repository. This configuration file defines hooks to maintain code quality and formatting standards. These hooks are automatically executed before each commit to ensure consistency across the codebase. They include:
+
+- **Black**: A code formatter for Python.
+- **Flake8**: A tool that checks Python code for style and quality.
+- **isort**: A utility for sorting and formatting Python imports.
+
+The configuration ensures that the codebase adheres to consistent formatting and style guidelines, enhancing readability and maintainability.
+
 #### Using [`dev/tools.sh`][tools-sh] helper script
 The [`dev/tools.sh`][tools-sh] helper script runs the static analysis tools
 (`black`, `flake8`, and `isort`):
@@ -116,8 +126,8 @@ directories to check:
 
 - **[Python Guidelines — Creative Commons Open Source][ccospyguide]**
 - [Black][black]: _the uncompromising Python code formatter_
-- [flake8][flake8]: _a Python tool that glues together pep8, pyflakes, mccabe,
-  and third-party plugins to check the style and quality of some Python code._
+- [flake8][flake8]: _a python tool that glues together pep8, pyflakes, mccabe,
+  and third-party plugins to check the style and quality of some python code._
 - [isort][isort]: _A Python utility / library to sort imports_
   - (It doesn't import any libraries, it only sorts and formats them.)
 - [ppypa/pipenv][pipenv]: _Python Development Workflow for Humans._
@@ -126,7 +136,7 @@ directories to check:
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
-[flake8]: https://gitlab.com/pycqa/flake8
+[flake8]: https://github.com/PyCQA/flake8
 [isort]: https://pycqa.github.io/isort/
 [pipenv]: https://github.com/pypa/pipenv
 [pre-commit]: https://pre-commit.com/
@@ -173,18 +183,6 @@ The data within this repository is dedicated to the public domain under the
 
 [cc-zero-png]: https://licensebuttons.net/l/zero/1.0/88x31.png "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication button"
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
-
-## Additional Configuration
-
-### pre-commit Configuration
-
-A `.pre-commit-config.yaml` file has been added to the repository. This configuration file defines hooks to maintain code quality and formatting standards. These hooks are automatically executed before each commit to ensure consistency across the codebase. They include:
-
-- **Black**: A code formatter for Python.
-- **Flake8**: A tool that checks Python code for style and quality.
-- **isort**: A utility for sorting and formatting Python imports.
-
-The configuration ensures that the codebase adheres to consistent formatting and style guidelines, enhancing readability and maintainability.
 
 ### Documentation
 
