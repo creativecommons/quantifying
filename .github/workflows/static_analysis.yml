@@ -1,0 +1,35 @@
+name: Static Analysis
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  job:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # https://github.com/actions/setup-python
+    - name: Install Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Python dependencies
+      run: |
+        pip install --upgrade pip
+        pip install black 'black[jupyter]' flake8 isort
+        pip install pre-commit
+
+    # https://github.com/actions/checkout
+    - name: Checkout quantifying
+      uses: actions/checkout@v4
+      with:
+        path: quantifying
+
+    - name: pre-commit
+      run: pre-commit run --show-diff-on-failure --color=always --all-files
+      working-directory: ./quantifying

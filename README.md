@@ -76,6 +76,26 @@ follow these steps:
 
 ### Static analysis
 
+#### Using [`pre-commit`][pre-commit]
+1. Install pre-commit
+
+      - Using pip:
+        ```shell
+        pip install pre-commit
+        ```
+      - Using homebrew:
+        ```shell
+        brew install pre-commit
+        ```
+
+2. Install the git hook scripts
+   ```shell
+   pre-commit install
+   ```
+
+It will run on every commit automatically.
+
+#### Using [`dev/tools.sh`][tools-sh] helper script
 The [`dev/tools.sh`][tools-sh] helper script runs the static analysis tools
 (`black`, `flake8`, and `isort`):
 ```shell
@@ -89,6 +109,7 @@ directories to check:
 ```
 
 [tools-sh]: /dev/tools.sh
+[pre-commit]: https://pre-commit.com/
 
 
 ### Resources
@@ -100,12 +121,15 @@ directories to check:
 - [isort][isort]: _A Python utility / library to sort imports_
   - (It doesn't import any libraries, it only sorts and formats them.)
 - [ppypa/pipenv][pipenv]: _Python Development Workflow for Humans._
+- [pre-commit][pre-commit]: _A framework for managing and maintaining
+  multi-language pre-commit hooks._
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
 [flake8]: https://gitlab.com/pycqa/flake8
 [isort]: https://pycqa.github.io/isort/
 [pipenv]: https://github.com/pypa/pipenv
+[pre-commit]: https://pre-commit.com/
 
 
 ### GitHub Actions
@@ -115,7 +139,7 @@ GitHub Actions workflow performs static analysis (`black`, `flake8`, and
 `isort`) on committed changes. The workflow is triggered automatically when you
 push changes to the main branch or open a pull request.
 
-[workflow-static-analysis]: .github/workflows/python_static_analysis.yml
+[workflow-static-analysis]: .github/workflows/static_analysis.yml
 
 
 ## Data sources
