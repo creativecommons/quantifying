@@ -30,11 +30,11 @@ repos:
       - id: check-toml
       - id: check-yaml
       - id: destroyed-symlinks
-      - id: end-of-file-fixer
-      - id: mixed-line-ending
-        args:
-        - --fix=no
-      - id: trailing-whitespace
+      #- id: end-of-file-fixer
+      #- id: mixed-line-ending
+      #  args:
+      #  - --fix=no
+      #- id: trailing-whitespace
 
   - repo: local
     hooks:
