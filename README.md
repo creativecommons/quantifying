@@ -121,7 +121,8 @@ directories to check:
 - [isort][isort]: _A Python utility / library to sort imports_
   - (It doesn't import any libraries, it only sorts and formats them.)
 - [ppypa/pipenv][pipenv]: _Python Development Workflow for Humans._
-- [pre-commit][pre-commit]: _A framework for managing and maintaining multi-language pre-commit hooks._
+- [pre-commit][pre-commit]: _A framework for managing and maintaining
+  multi-language pre-commit hooks._
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
