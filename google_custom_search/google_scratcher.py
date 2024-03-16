@@ -6,6 +6,7 @@ Google Custom Search Data.
 
 # Standard library
 import datetime as dt
+import logging
 import os
 import sys
 import traceback
@@ -49,6 +50,12 @@ PSE_KEY = os.getenv("PSE_KEY")
 # Global Variables for API_KEYS indexing and Search Halfyear Span
 API_KEYS_IND = 0
 SEARCH_HALFYEAR_SPAN = 20
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 def get_license_list():
@@ -192,7 +199,7 @@ def get_request_url(license=None, country=None, language=None, time=False):
         return base_url
     except Exception as e:
         if isinstance(e, IndexError):
-            print("Depleted all API Keys provided", file=sys.stderr)
+            logger.error("Depleted all API Keys provided")
         else:
             raise e
 
@@ -248,12 +255,10 @@ def get_response_elems(license=None, country=None, language=None, time=False):
             # If quota limit exceeded, switch to the next API key
             global API_KEYS_IND
             API_KEYS_IND += 1
-            print(
-                "Changing API KEYS due to depletion of quota", file=sys.stderr
-            )
+            logger.error("Changing API KEYS due to depletion of quota")
             return get_response_elems(license, country, language, time)
         else:
-            print(f"Request URL was {request_url}", file=sys.stderr)
+            logging.error(f"Request URL was {request_url}")
             raise e
 
 
@@ -370,9 +375,9 @@ if __name__ == "__main__":
     except SystemExit as e:
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        logger.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        logger.exception("Unhandled exception:")
+        logger.exception(traceback.print_exc())
         sys.exit(1)
