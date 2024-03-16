@@ -33,14 +33,16 @@ DATA_WRITE_FILE = (
 def get_license_list():
     """
     Provides the list of license from a Creative Commons provided tool list.
-    
+
     Returns:
-    - np.array: 
+    - np.array:
                 An np array containing all license types that should be
                 searched from Internet Archive.
     """
     # Read license data from file
-    cc_license_data = pd.read_csv(f"{root_path}/legal-tool-paths.txt", header=None)
+    cc_license_data = pd.read_csv(
+        f"{root_path}/legal-tool-paths.txt", header=None
+    )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
@@ -55,7 +57,7 @@ def get_license_list():
 def get_response_elems(license):
     """
     Provides the metadata for query of specified parameters
-    
+
     Args:
     - license:
             A string representing the type of license, and should be a segment
@@ -64,7 +66,7 @@ def get_response_elems(license):
             type.
 
     Returns:
-    - dict: 
+    - dict:
             A dictionary mapping metadata to its value provided from the API
             query of specified parameters.
     """
@@ -99,7 +101,7 @@ def set_up_data_file():
 def record_license_data(license_type):
     """
     Writes the row for LICENSE_TYPE to file to contain IA Query data.
-    
+
     Args:
     -   license_type:
             A string representing the type of license, and should be a segment

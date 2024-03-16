@@ -50,6 +50,7 @@ PSE_KEY = os.getenv("PSE_KEY")
 API_KEYS_IND = 0
 SEARCH_HALFYEAR_SPAN = 20
 
+
 def get_license_list():
     """
     Provides the list of licenses from 2018's record of Creative Commons.
@@ -60,7 +61,9 @@ def get_license_list():
             via Programmable Search Engine (PSE).
     """
     # Read license data from file
-    cc_license_data = pd.read_csv(f"{root_path}/legal-tool-paths.txt", header=None)
+    cc_license_data = pd.read_csv(
+        f"{root_path}/legal-tool-paths.txt", header=None
+    )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
@@ -108,12 +111,12 @@ def get_country_list(select_all=False):
     Provides the list of countries to find Creative Commons usage data on.
 
     Args:
-    - select_all: 
+    - select_all:
                 A boolean indicating whether the returned list will have all
                 countries.
 
     Returns:
-    - pd.DataFrame: 
+    - pd.DataFrame:
                 A Dataframe whose index is country name and has a column for
                 the corresponding country code.
     """
@@ -164,7 +167,7 @@ def get_request_url(license=None, country=None, language=None, time=False):
             occurrence.
 
     Returns:
-    - string: 
+    - string:
             A string representing the API Endpoint URL for the query specified
             by this function's parameters.
     """
@@ -218,7 +221,7 @@ def get_response_elems(license=None, country=None, language=None, time=False):
             occurrence.
 
     Returns:
-    - dict: 
+    - dict:
             A dictionary mapping metadata to its value provided from the API
             query of specified parameters.
     """
@@ -269,10 +272,7 @@ def set_up_data_file():
         "LICENSE TYPE,"
         f"{','.join([str(6 * i) for i in range(SEARCH_HALFYEAR_SPAN)])}"
     )
-    header_title_country = (
-        "LICENSE TYPE,"
-        f"{','.join(all_countries.index)}"
-    )
+    header_title_country = "LICENSE TYPE," f"{','.join(all_countries.index)}"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
     with open(DATA_WRITE_FILE_TIME, "w") as f:

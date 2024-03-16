@@ -37,17 +37,20 @@ API_KEYS_IND = 0
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 PSE_KEY = os.getenv("PSE_KEY")
 
+
 def get_license_list():
     """
     Provides the list of license from 2018's record of Creative Commons.
 
     Returns:
-    - np.array: 
+    - np.array:
             An np array containing all license types that should be searched
             via Programmable Search Engine (PSE).
     """
     # Read license data from file
-    cc_license_data = pd.read_csv(f"{root_path}/legal-tool-paths.txt", header=None)
+    cc_license_data = pd.read_csv(
+        f"{root_path}/legal-tool-paths.txt", header=None
+    )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
