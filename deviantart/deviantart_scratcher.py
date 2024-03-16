@@ -18,11 +18,10 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Set up current working directory (CWD) and root_path
+# Set up current working directory (CWD)
 CWD = os.path.dirname(os.path.abspath(__file__))
-root_path = os.path.dirname(CWD)
 # Load environment variables
-dotenv_path = os.path.join(root_path, ".env")
+dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
 # Gets Date then Create File in CWD with Date Attached
@@ -56,7 +55,7 @@ def get_license_list():
     """
     # Read license data from file
     cc_license_data = pd.read_csv(
-        f"{root_path}/legal-tool-paths.txt", header=None
+        f"{os.path.dirname(CWD)}/legal-tool-paths.txt", header=None
     )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
