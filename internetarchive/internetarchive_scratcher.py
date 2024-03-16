@@ -5,6 +5,7 @@ data.
 
 # Standard library
 import datetime as dt
+import logging
 import os
 import sys
 import traceback
@@ -28,6 +29,12 @@ DATA_WRITE_FILE = (
     f"{CWD}"
     f"/data_internetarchive_{today.year}_{today.month}_{today.day}.csv"
 )
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 def get_license_list():
@@ -139,9 +146,9 @@ if __name__ == "__main__":
     except SystemExit as e:
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        logger.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        logger.exception("Unhandled exception:")
+        logger.exception(traceback.print_exc())
         sys.exit(1)
