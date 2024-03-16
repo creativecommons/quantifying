@@ -18,8 +18,12 @@ from urllib3.util.retry import Retry
 from internetarchive.search import Search
 from internetarchive.session import ArchiveSession
 
-today = dt.datetime.today()
+# Set up current working directory (CWD) and root_path
 CWD = os.path.dirname(os.path.abspath(__file__))
+root_path = os.path.dirname(CWD)
+
+# Gets Date then Create File in CWD with Date Attached
+today = dt.datetime.today()
 DATA_WRITE_FILE = (
     f"{CWD}"
     f"/data_internetarchive_{today.year}_{today.month}_{today.day}.csv"
@@ -27,28 +31,42 @@ DATA_WRITE_FILE = (
 
 
 def get_license_list():
-    """Provides the list of license from a Creative Commons provided tool list.
-    Returns:
-        np.array: An np array containing all license types that should be
-        searched via Programmable Search Engine.
     """
-    cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
-    license_list = cc_license_data[0].unique()
+    Provides the list of license from a Creative Commons provided tool list.
+    
+    Returns:
+    - np.array: 
+                An np array containing all license types that should be
+                searched from Internet Archive.
+    """
+    # Read license data from file
+    cc_license_data = pd.read_csv(f"{root_path}/legal-tool-paths.txt", header=None)
+    # Define regex pattern to extract license types
+    license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
+    license_list = (
+        cc_license_data[0]
+        .str.extract(license_pattern, expand=False)
+        .dropna()
+        .unique()
+    )
     return license_list
 
 
 def get_response_elems(license):
-    """Provides the metadata for query of specified parameters
+    """
+    Provides the metadata for query of specified parameters
+    
     Args:
-        license:
+    - license:
             A string representing the type of license, and should be a segment
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
             type.
 
     Returns:
-        dict: A dictionary mapping metadata to its value provided from the API
-        query of specified parameters.
+    - dict: 
+            A dictionary mapping metadata to its value provided from the API
+            query of specified parameters.
     """
     try:
         max_retries = Retry(
@@ -72,16 +90,18 @@ def get_response_elems(license):
 
 
 def set_up_data_file():
-    """Writes the header row to file to contain IA data."""
+    # Writes the header row to file to contain IA data.
     header_title = "LICENSE TYPE,Document Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
 
 
 def record_license_data(license_type):
-    """Writes the row for LICENSE_TYPE to file to contain IA Query data.
+    """
+    Writes the row for LICENSE_TYPE to file to contain IA Query data.
+    
     Args:
-        license_type:
+    -   license_type:
             A string representing the type of license, and should be a segment
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
@@ -96,9 +116,11 @@ def record_license_data(license_type):
 
 
 def record_all_licenses():
-    """Records the data of all license types findable in the license list and
+    """
+    Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
+    # Gets the list of license types and record data for each license type
     license_list = get_license_list()
     for license_type in license_list:
         record_license_data(license_type)
