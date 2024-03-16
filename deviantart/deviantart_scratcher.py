@@ -9,6 +9,7 @@ import datetime as dt
 import os
 import sys
 import traceback
+import logging
 
 # Third-party
 import pandas as pd
@@ -16,6 +17,9 @@ import requests
 from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
+# Set up logging configuration
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Set up current working directory (CWD) and root_path
 CWD = os.path.dirname(os.path.abspath(__file__))
@@ -36,7 +40,6 @@ API_KEYS_IND = 0
 # Gets API_KEYS and PSE_KEY from .env file
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 PSE_KEY = os.getenv("PSE_KEY")
-
 
 def get_license_list():
     """
@@ -61,7 +64,6 @@ def get_license_list():
     )
     return license_list[4:]
 
-
 def get_request_url(license):
     """
     Provides the API Endpoint URL for specified parameter combinations.
@@ -82,10 +84,9 @@ def get_request_url(license):
         )
     except Exception as e:
         if isinstance(e, IndexError):
-            print("Depleted all API Keys provided", file=sys.stderr)
+            logging.error("Depleted all API Keys provided")
         else:
             raise e
-
 
 def get_response_elems(license):
     """
@@ -122,20 +123,16 @@ def get_response_elems(license):
             # If quota limit exceeded, switch to the next API key
             global API_KEYS_IND
             API_KEYS_IND += 1
-            print(
-                "Changing API KEYS due to depletion of quota", file=sys.stderr
-            )
+            logging.error("Changing API KEYS due to depletion of quota")
             return get_response_elems(license)
         else:
             raise e
-
 
 def set_up_data_file():
     # Writes the header row to the file to contain DeviantArt data.
     header_title = "LICENSE TYPE,Document Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
-
 
 def record_license_data(license_type):
     """Writes the row for LICENSE_TYPE to the file to contain DeviantArt data.
@@ -153,7 +150,6 @@ def record_license_data(license_type):
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(f"{data_log}\n")
 
-
 def record_all_licenses():
     """
     Records the data for all available license types listed in the license
@@ -165,21 +161,19 @@ def record_all_licenses():
     for license_type in license_list:
         record_license_data(license_type)
 
-
 def main():
     set_up_data_file()
     record_all_licenses()
-
 
 if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        logging.error(f"System exit with code {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        logging.info("INFO (130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        logging.exception("ERROR (1) Unhandled exception:")
         sys.exit(1)
