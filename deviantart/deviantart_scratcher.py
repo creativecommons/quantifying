@@ -17,35 +17,37 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Set up current working directory
+# Set up current working directory (CWD) and root_path
 CWD = os.path.dirname(os.path.abspath(__file__))
+root_path = os.path.dirname(CWD)
 # Load environment variables
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
+dotenv_path = os.path.join(root_path, ".env")
 load_dotenv(dotenv_path)
 
-# Get the current date
+# Gets Date then Create File in CWD with Date Attached
 today = dt.datetime.today()
-# Retrieve API keys
-API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
-API_KEYS_IND = 0
-# Set up file path for CSV report
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_deviantart_{today.year}_{today.month}_{today.day}.csv"
 )
-# Retrieve Programmable Search Engine key from environment variables
-PSE_KEY = os.getenv("PSE_KEY")
 
+# Global Variable for API_KEYS indexing
+API_KEYS_IND = 0
+
+# Gets API_KEYS and PSE_KEY from .env file
+API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
+PSE_KEY = os.getenv("PSE_KEY")
 
 def get_license_list():
     """
     Provides the list of license from 2018's record of Creative Commons.
 
     Returns:
-    - np.array: An array containing all license types that should be
-    searched via Programmable Search Engine.
+    - np.array: 
+            An np array containing all license types that should be searched
+            via Programmable Search Engine (PSE).
     """
     # Read license data from file
-    cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
+    cc_license_data = pd.read_csv(f"{root_path}/legal-tool-paths.txt", header=None)
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
@@ -126,7 +128,7 @@ def get_response_elems(license):
 
 
 def set_up_data_file():
-    """Writes the header row to the file to contain DeviantArt data."""
+    # Writes the header row to the file to contain DeviantArt data.
     header_title = "LICENSE TYPE,Document Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
@@ -135,9 +137,11 @@ def set_up_data_file():
 def record_license_data(license_type):
     """Writes the row for LICENSE_TYPE to the file to contain DeviantArt data.
     Args:
-    - license_type(str): A string representing the type of license.
-    It's a segment of the URL towards the license description. If not provided,
-    it defaults to None, indicating no assumption about the license type.
+    - license_type:
+            A string representing the type of license, and should be a segment
+            of its URL towards the license description. Alternatively, the
+            default None value stands for having no assumption about license
+            type.
     """
     data_log = (
         f"{license_type},"
@@ -153,9 +157,8 @@ def record_all_licenses():
     list and writes this data into the DATA_WRITE_FILE, as specified by the
     constant.
     """
-    # Get the list of license types
+    # Gets the list of license types and record data for each license type
     license_list = get_license_list()
-    # Record data for each license types
     for license_type in license_list:
         record_license_data(license_type)
 
