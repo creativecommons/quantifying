@@ -19,7 +19,7 @@ from internetarchive.session import ArchiveSession
 
 # Setup paths, Date and LOGGER using quantify.setup()
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+PATH_REPO_ROOT, PATH_WORK_DIR, _, DATETIME_TODAY, LOGGER = (
     quantify.setup(__file__)
 )
 # Set up file path for CSV report
