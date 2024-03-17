@@ -9,9 +9,9 @@ cannot be mounted with exponential backoff adapter.
 
 # Standard library
 import datetime as dt
+import logging
 import os
 import sys
-import traceback
 
 # Third-party
 import requests
@@ -29,6 +29,14 @@ CLIENT_ID = os.getenv("VIMEO_CLIENT_ID")
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_vimeo_{today.year}_{today.month}_{today.day}.csv"
 )
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("logfile.log"), logging.StreamHandler()],
+)
+logger = logging.getLogger(__name__)
 
 
 def get_license_list():
@@ -95,6 +103,7 @@ def get_response_elems(license):
             search_data = response.json()
         return {"totalResults": search_data["total"]}
     except Exception as e:
+        logger.error(f"Error occurred during request: {e}")
         raise e
 
 
@@ -142,9 +151,8 @@ if __name__ == "__main__":
     except SystemExit as e:
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        logger.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        logger.exception("Unhandled exception:")
         sys.exit(1)
