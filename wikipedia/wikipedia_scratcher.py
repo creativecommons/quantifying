@@ -5,9 +5,9 @@ This file is dedicated to obtain a .csv record report for Wikipedia Data.
 
 # Standard library
 import datetime as dt
+import logging
 import os
 import sys
-import traceback
 
 # Third-party
 import pandas as pd
@@ -20,6 +20,14 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 DATA_WRITE_FILE = (
     f"{CWD}" f"/data_wikipedia_{today.year}_{today.month}_{today.day}.csv"
 )
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("logfile.log"), logging.StreamHandler()],
+)
+logger = logging.getLogger(__name__)
 
 
 def get_wiki_langs():
@@ -88,17 +96,18 @@ def get_response_elems(language="en"):
         return search_data_dict
     except Exception as e:
         if search_data is None:
-            print(
+            logger.error(
                 f"Received Result is None due to Language {language} absent as"
                 "an available Wikipedia client. Will therefore return an empty"
-                "dictionary for result, but will continue querying.",
-                file=sys.stderr,
+                "dictionary for result, but will continue querying."
             )
+
             return {}
         elif "query" not in search_data:
-            print(f"search data is: \n{search_data}", file=sys.stderr)
+            logger.error(f"Search data is: \n{search_data}")
             sys.exit(1)
         else:
+            logger.error(f"Error occurred during request: {e}")
             raise e
 
 
@@ -155,9 +164,8 @@ if __name__ == "__main__":
     except SystemExit as e:
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        logger.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        logger.exception("Unhandled exception:")
         sys.exit(1)
