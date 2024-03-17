@@ -51,6 +51,7 @@ PSE_KEY = os.getenv("PSE_KEY")
 API_KEYS_IND = 0
 SEARCH_HALFYEAR_SPAN = 20
 
+
 def get_license_list():
     """
     Provides the list of licenses from 2018's record of Creative Commons.
@@ -85,7 +86,10 @@ def get_lang_list():
                 the corresponding language code.
     """
     languages = pd.read_csv(
-        f"{PATH_WORK_DIR}/google_lang.txt", sep=": ", header=None, engine="python"
+        f"{PATH_WORK_DIR}/google_lang.txt",
+        sep=": ",
+        header=None,
+        engine="python",
     )
     languages[0] = languages[0].str.extract(r'"([^"]+)"')
     languages = languages.set_index(1)
