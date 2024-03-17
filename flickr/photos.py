@@ -17,9 +17,7 @@ import quantify
 
 # Setup paths, and LOGGER using quantify.setup()
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-_, PATH_WORK_DIR, PATH_DOTENV, _, LOGGER = (
-    quantify.setup(__file__)
-)
+_, PATH_WORK_DIR, PATH_DOTENV, _, LOGGER = quantify.setup(__file__)
 
 # Load environment variables
 load_dotenv(PATH_DOTENV)

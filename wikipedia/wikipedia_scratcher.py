@@ -18,9 +18,7 @@ import quantify
 
 # Setup paths, Date and LOGGER using quantify.setup()
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-_, PATH_WORK_DIR, _, DATETIME_TODAY, LOGGER = (
-    quantify.setup(__file__)
-)
+_, PATH_WORK_DIR, _, DATETIME_TODAY, LOGGER = quantify.setup(__file__)
 # Set up file path for CSV report
 DATA_WRITE_FILE = (
     f"{PATH_WORK_DIR}"
