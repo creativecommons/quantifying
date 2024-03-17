@@ -26,7 +26,7 @@ PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, Today, logger = quantify.setup(
 # Load environment variables
 load_dotenv(PATH_DOTENV)
 
-# Create Files in CWD with Date Attached
+# Set up file path for CSV report
 DATA_WRITE_FILE = (
     f"{PATH_WORK_DIR}"
     f"/data_deviantart_{Today.year}_{Today.month}_{Today.day}.csv"
