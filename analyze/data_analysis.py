@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore")
 from wordcloud import STOPWORDS, WordCloud  # noqa: E402
 
 # Set the current working directory
-CWD = os.path.dirname(os.path.abspath(__file__))
+PATH_WORK_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def tags_frequency(csv_path, column_names):
@@ -126,7 +126,7 @@ def tags_frequency(csv_path, column_names):
         fontweight="bold",
     )
     plt.savefig(
-        os.path.join(CWD, "wordCloud_plots/license1_wordCloud.png"),
+        os.path.join(PATH_WORK_DIR, "wordCloud_plots/license1_wordCloud.png"),
         dpi=300,
         bbox_inches="tight",
     )
@@ -193,7 +193,7 @@ def time_trend(csv_path):
     plt.xlabel("Day", fontsize=10)
     plt.ylabel("Amount", fontsize=10)
     plt.savefig(
-        os.path.join(CWD, "line_graphs/license5_total_trend.png"),
+        os.path.join(PATH_WORK_DIR, "line_graphs/license5_total_trend.png"),
         dpi=300,
         bbox_inches="tight",
     )
@@ -387,28 +387,28 @@ def view_compare():
     Compare maximum views of pictures under different licenses.
     """
     license1 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license1.csv")
+        os.path.join(PATH_WORK_DIR, "../flickr/dataset/cleaned_license1.csv")
     )
     license2 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license2.csv")
+        os.path.join(PATH_WORK_DIR, "../flickr/dataset/cleaned_license2.csv")
     )
     license3 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license3.csv")
+        os.path.join(PATH_WORK_DIR, "../flickr/dataset/cleaned_license3.csv")
     )
     license4 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license4.csv")
+        os.path.join(PATH_WORK_DIR, "../flickr/dataset/cleaned_license4.csv")
     )
     license5 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license5.csv")
+        os.path.join(PATH_WORK_DIR, "../flickr/dataset/cleaned_license5.csv")
     )
     license6 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license6.csv")
+        os.path.join(PATH_WORK_DIR, "../flickr/dataset/cleaned_license6.csv")
     )
     license9 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license9.csv")
+        os.path.join(PATH_WORK_DIR, "../flickr/dataset/cleaned_license9.csv")
     )
     license10 = pd.read_csv(
-        os.path.join(CWD, "../flickr/dataset/cleaned_license10.csv")
+        os.path.join(PATH_WORK_DIR, "../flickr/dataset/cleaned_license10.csv")
     )
     licenses = [
         license1,
@@ -469,7 +469,7 @@ def view_compare():
     current_values = plt.gca().get_yticks()
     plt.gca().set_yticklabels(["{:,.0f}".format(x) for x in current_values])
     plt.savefig(
-        os.path.join(CWD, "../analyze/compare_graphs/max_views.png"),
+        os.path.join(PATH_WORK_DIR, "../analyze/compare_graphs/max_views.png"),
         dpi=300,
         bbox_inches="tight",
     )
@@ -481,15 +481,19 @@ def total_usage():
     Generate a bar plot showing the total usage of different licenses.
     """
     # Reads the license total file as the input dataset
-    df = pd.read_csv(os.path.join(CWD, "../flickr/dataset/license_total.csv"))
+    df = pd.read_csv(
+        os.path.join(PATH_WORK_DIR, "../flickr/dataset/license_total.csv")
+    )
     df["License"] = [str(x) for x in list(df["License"])]
     fig = px.bar(df, x="License", y="Total amount", color="License")
-    fig.write_html(os.path.join(CWD, "../analyze/total_usage.html"))
+    fig.write_html(os.path.join(PATH_WORK_DIR, "../analyze/total_usage.html"))
     # fig.show()
 
 
 def main():
-    tags_frequency(os.path.join(CWD, "merged_all_cleaned.csv"), ["tags"])
+    tags_frequency(
+        os.path.join(PATH_WORK_DIR, "merged_all_cleaned.csv"), ["tags"]
+    )
     # df = pd.read_csv("../flickr/dataset/cleaned_license10.csv")
     # print(df.shape)
 
