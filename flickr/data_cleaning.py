@@ -13,11 +13,19 @@ content_categories will be got from basic NLP on the tags column
 """
 
 # Standard library
+import logging
 import sys
-import traceback
 
 # Third-party
 import pandas as pd
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("logfile.log"), logging.StreamHandler()],
+)
+logger = logging.getLogger(__name__)
 
 
 def drop_empty_column(csv_path, new_csv_path):
@@ -95,9 +103,8 @@ if __name__ == "__main__":
     except SystemExit as e:
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        logger.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
-    sys.exit(1)
+        logger.exception("Unhandled exception:")
+        sys.exit(1)

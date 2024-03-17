@@ -9,11 +9,11 @@ step3: saving lists of data to DataFrame
 
 # Standard library
 import json
+import logging
 import os
 import os.path
 import sys
 import time
-import traceback
 
 # Third-party
 import flickrapi
@@ -28,6 +28,14 @@ load_dotenv(dotenv_path)
 
 # Global variable: Number of retries for error handling
 RETRIES = 0
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("logfile.log"), logging.StreamHandler()],
+)
+logger = logging.getLogger(__name__)
 
 
 def to_df(datalist, namelist):
@@ -305,18 +313,18 @@ def main():
 
 
 if __name__ == "__main__":
+    RETRIES = 0  # Initialize RETRIES counter
     while True:
         try:
             main()
         except SystemExit as e:
             sys.exit(e.code)
         except KeyboardInterrupt:
-            print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+            logger.info("Halted via KeyboardInterrupt.")
             sys.exit(130)
         except Exception:
             RETRIES += 1
-            print("ERROR (1) Unhandled exception:", file=sys.stderr)
-            print(traceback.print_exc(), file=sys.stderr)
+            logger.exception("Unhandled exception:")
             if RETRIES <= 20:
                 continue
             else:

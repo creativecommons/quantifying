@@ -5,10 +5,10 @@ each Creative Commons license and saving the data into a JSON file
 
 # Standard library
 import json
+import logging
 import os
 import os.path
 import sys
-import traceback
 
 # Third-party
 import flickrapi
@@ -19,6 +19,14 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 # Load environment variables
 dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("logfile.log"), logging.StreamHandler()],
+)
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -47,9 +55,8 @@ if __name__ == "__main__":
     except SystemExit as e:
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        logger.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
-    sys.exit(1)
+        logger.exception("Unhandled exception:")
+        sys.exit(1)
