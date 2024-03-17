@@ -18,9 +18,8 @@ from urllib3.util.retry import Retry
 from internetarchive.search import Search
 from internetarchive.session import ArchiveSession
 
-# Set up current working directory (CWD) and root_path
+# Set up current working directory (CWD)
 CWD = os.path.dirname(os.path.abspath(__file__))
-root_path = os.path.dirname(CWD)
 
 # Gets Date then Create File in CWD with Date Attached
 today = dt.datetime.today()
@@ -41,7 +40,7 @@ def get_license_list():
     """
     # Read license data from file
     cc_license_data = pd.read_csv(
-        f"{root_path}/legal-tool-paths.txt", header=None
+        f"{os.path.dirname(CWD)}/legal-tool-paths.txt", header=None
     )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
