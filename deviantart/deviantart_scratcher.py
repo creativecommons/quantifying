@@ -18,19 +18,15 @@ from urllib3.util.retry import Retry
 # First-party/Local
 import quantify
 
+# Setup paths, Date and LOGGER using quantify.setup()
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, Today, logger = quantify.setup(
-    __file__
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+    quantify.setup(__file__)
 )
 
 # Load environment variables
 load_dotenv(PATH_DOTENV)
 
-# Set up file path for CSV report
-DATA_WRITE_FILE = (
-    f"{PATH_WORK_DIR}"
-    f"/data_deviantart_{Today.year}_{Today.month}_{Today.day}.csv"
-)
 
 # Global Variable for API_KEYS indexing
 API_KEYS_IND = 0
@@ -38,6 +34,13 @@ API_KEYS_IND = 0
 # Gets API_KEYS and PSE_KEY from .env file
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 PSE_KEY = os.getenv("PSE_KEY")
+
+# Set up file path for CSV report
+DATA_WRITE_FILE = (
+    f"{PATH_WORK_DIR}"
+    f"/data_deviantart_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+)
 
 
 def get_license_list():
@@ -84,7 +87,7 @@ def get_request_url(license):
         )
     except Exception as e:
         if isinstance(e, IndexError):
-            logger.error("Depleted all API Keys provided")
+            LOGGER.error("Depleted all API Keys provided")
         else:
             raise e
 
@@ -124,7 +127,7 @@ def get_response_elems(license):
             # If quota limit exceeded, switch to the next API key
             global API_KEYS_IND
             API_KEYS_IND += 1
-            logger.error("Changing API KEYS due to depletion of quota")
+            LOGGER.error("Changing API KEYS due to depletion of quota")
             return get_response_elems(license)
         else:
             raise e
@@ -175,10 +178,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOGGER.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        logger.info("Halted via KeyboardInterrupt.")
+        LOGGER.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        logger.exception("Unhandled exception:")
+        LOGGER.exception("Unhandled exception:")
         sys.exit(1)

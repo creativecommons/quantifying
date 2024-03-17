@@ -10,21 +10,25 @@ step3: saving lists of data to DataFrame
 # Standard library
 import json
 import os
-import os.path
 import sys
 import time
-import traceback
 
 # Third-party
 import flickrapi
 import pandas as pd
 from dotenv import load_dotenv
 
-# Set up current working directory
-CWD = os.path.dirname(os.path.abspath(__file__))
+# First-party/Local
+import quantify
+
+# Setup paths, Date and LOGGER using quantify.setup()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+    quantify.setup(__file__)
+)
+
 # Load environment variables
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+load_dotenv(PATH_DOTENV)
 
 # Global variable: Number of retries for error handling
 RETRIES = 0
@@ -188,9 +192,9 @@ def page1_reset(final_csv, raw_data):
 
 
 def main():
-    final_csv_path = os.path.join(CWD, "final.csv")
-    record_txt_path = os.path.join(CWD, "rec.txt")
-    hs_csv_path = os.path.join(CWD, "hs.csv")
+    final_csv_path = os.path.join(PATH_WORK_DIR, "final.csv")
+    record_txt_path = os.path.join(PATH_WORK_DIR, "rec.txt")
+    hs_csv_path = os.path.join(PATH_WORK_DIR, "hs.csv")
 
     # Initialize Flickr API instance
     flickr = flickrapi.FlickrAPI(
@@ -290,7 +294,7 @@ def main():
             # If reached max limit of pages, reset j to 1 and
             # update i to the license in the dictionary
             if j == total + 1 or j > total:
-                license_i_path = os.path.join(CWD, f"license{i}.csv")
+                license_i_path = os.path.join(PATH_WORK_DIR, f"license{i}.csv")
                 clean_saveas_csv(final_csv_path, license_i_path)
                 i += 1
                 j = 1
@@ -305,18 +309,19 @@ def main():
 
 
 if __name__ == "__main__":
+    RETRIES = 0  # Initialize RETRIES counter
     while True:
         try:
             main()
         except SystemExit as e:
+            LOGGER.error("System exit with code: %d", e.code)
             sys.exit(e.code)
         except KeyboardInterrupt:
-            print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+            LOGGER.info("Halted via KeyboardInterrupt.")
             sys.exit(130)
         except Exception:
             RETRIES += 1
-            print("ERROR (1) Unhandled exception:", file=sys.stderr)
-            print(traceback.print_exc(), file=sys.stderr)
+            LOGGER.exception("Unhandled exception:")
             if RETRIES <= 20:
                 continue
             else:

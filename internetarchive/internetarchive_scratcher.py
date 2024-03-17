@@ -4,11 +4,8 @@ data.
 """
 
 # Standard library
-import datetime as dt
-import logging
 import os
 import sys
-import traceback
 
 # Third-party
 import pandas as pd
@@ -16,24 +13,21 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 # First-party/Local
+import quantify
 from internetarchive.search import Search
 from internetarchive.session import ArchiveSession
 
-# Set up current working directory (CWD)
-CWD = os.path.dirname(os.path.abspath(__file__))
-
-# Gets Date then Create File in CWD with Date Attached
-today = dt.datetime.today()
+# Setup paths, Date and LOGGER using quantify.setup()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+    quantify.setup(__file__)
+)
+# Set up file path for CSV report
 DATA_WRITE_FILE = (
-    f"{CWD}"
-    f"/data_internetarchive_{today.year}_{today.month}_{today.day}.csv"
+    f"{PATH_WORK_DIR}"
+    f"/data_internetarchive_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
 
 
 def get_license_list():
@@ -47,7 +41,7 @@ def get_license_list():
     """
     # Read license data from file
     cc_license_data = pd.read_csv(
-        f"{os.path.dirname(CWD)}/legal-tool-paths.txt", header=None
+        f"{PATH_REPO_ROOT}/legal-tool-paths.txt", header=None
     )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
@@ -143,11 +137,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOGGER.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        logger.info("Halted via KeyboardInterrupt.")
+        LOGGER.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        logger.exception("Unhandled exception:")
-        logger.exception(traceback.print_exc())
+        LOGGER.exception("Unhandled exception:")
         sys.exit(1)

@@ -4,10 +4,8 @@ This file is dedicated to obtain a .csv record report for Wikipedia Data.
 """
 
 # Standard library
-import datetime as dt
 import os
 import sys
-import traceback
 
 # Third-party
 import pandas as pd
@@ -15,10 +13,19 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-today = dt.datetime.today()
-CWD = os.path.dirname(os.path.abspath(__file__))
+# First-party/Local
+import quantify
+
+# Setup paths, Date and LOGGER using quantify.setup()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+    quantify.setup(__file__)
+)
+# Set up file path for CSV report
 DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_wikipedia_{today.year}_{today.month}_{today.day}.csv"
+    f"{PATH_WORK_DIR}"
+    f"/data_wikipedia_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
 
 
@@ -35,7 +42,7 @@ def get_wiki_langs():
     - pd.DataFrame: A Dataframe containing information of each Wikipedia
     language and its respective encoding on web address.
     """
-    return pd.read_csv(f"{CWD}/language-codes_csv.csv")
+    return pd.read_csv(f"{PATH_WORK_DIR}/language-codes_csv.csv")
 
 
 def get_request_url(lang="en"):
@@ -88,17 +95,18 @@ def get_response_elems(language="en"):
         return search_data_dict
     except Exception as e:
         if search_data is None:
-            print(
+            LOGGER.error(
                 f"Received Result is None due to Language {language} absent as"
                 "an available Wikipedia client. Will therefore return an empty"
-                "dictionary for result, but will continue querying.",
-                file=sys.stderr,
+                "dictionary for result, but will continue querying."
             )
+
             return {}
         elif "query" not in search_data:
-            print(f"search data is: \n{search_data}", file=sys.stderr)
+            LOGGER.error(f"Search data is: \n{search_data}")
             sys.exit(1)
         else:
+            LOGGER.error(f"Error occurred during request: {e}")
             raise e
 
 
@@ -153,11 +161,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOGGER.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOGGER.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        LOGGER.exception("Unhandled exception:")
         sys.exit(1)

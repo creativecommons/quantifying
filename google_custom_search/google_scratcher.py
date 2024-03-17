@@ -18,30 +18,15 @@ from urllib3.util.retry import Retry
 # First-party/Local
 import quantify
 
+# Setup paths, Date and LOGGER using quantify.setup()
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, Today, logger = quantify.setup(
-    __file__
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+    quantify.setup(__file__)
 )
 
 # Load environment variables
 load_dotenv(PATH_DOTENV)
 
-
-# Set up file path for CSV report
-DATA_WRITE_FILE = (
-    f"{PATH_WORK_DIR}"
-    f"/data_google_custom_search_{Today.year}_{Today.month}_{Today.day}.csv"
-)
-DATA_WRITE_FILE_TIME = (
-    f"{PATH_WORK_DIR}"
-    f"/data_google_custom_search_time_"
-    f"{Today.year}_{Today.month}_{Today.day}.csv"
-)
-DATA_WRITE_FILE_COUNTRY = (
-    f"{PATH_WORK_DIR}"
-    f"/data_google_custom_search_country_"
-    f"{Today.year}_{Today.month}_{Today.day}.csv"
-)
 
 # Gets API_KEYS and PSE_KEY from .env file
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
@@ -50,6 +35,23 @@ PSE_KEY = os.getenv("PSE_KEY")
 # Global Variables for API_KEYS indexing and Search Halfyear Span
 API_KEYS_IND = 0
 SEARCH_HALFYEAR_SPAN = 20
+
+# Set up file path for CSV report
+DATA_WRITE_FILE = (
+    f"{PATH_WORK_DIR}"
+    f"/data_google_custom_search_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+)
+DATA_WRITE_FILE_TIME = (
+    f"{PATH_WORK_DIR}"
+    f"/data_google_custom_search_time_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+)
+DATA_WRITE_FILE_COUNTRY = (
+    f"{PATH_WORK_DIR}"
+    f"/data_google_custom_search_country_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+)
 
 
 def get_license_list():
@@ -196,7 +198,7 @@ def get_request_url(license=None, country=None, language=None, time=False):
         return base_url
     except Exception as e:
         if isinstance(e, IndexError):
-            logger.error("Depleted all API Keys provided")
+            LOGGER.error("Depleted all API Keys provided")
         else:
             raise e
 
@@ -252,10 +254,10 @@ def get_response_elems(license=None, country=None, language=None, time=False):
             # If quota limit exceeded, switch to the next API key
             global API_KEYS_IND
             API_KEYS_IND += 1
-            logger.error("Changing API KEYS due to depletion of quota")
+            LOGGER.error("Changing API KEYS due to depletion of quota")
             return get_response_elems(license, country, language, time)
         else:
-            logger.error(f"Request URL was {request_url}")
+            LOGGER.error(f"Request URL was {request_url}")
             raise e
 
 
@@ -370,10 +372,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOGGER.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        logger.info("Halted via KeyboardInterrupt.")
+        LOGGER.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        logger.exception("Unhandled exception:")
+        LOGGER.exception("Unhandled exception:")
         sys.exit(1)

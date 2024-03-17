@@ -6,19 +6,23 @@ each Creative Commons license and saving the data into a JSON file
 # Standard library
 import json
 import os
-import os.path
 import sys
-import traceback
 
 # Third-party
 import flickrapi
 from dotenv import load_dotenv
 
-# Get the current working directory
-CWD = os.path.dirname(os.path.abspath(__file__))
+# First-party/Local
+import quantify
+
+# Setup paths, Date and LOGGER using quantify.setup()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+    quantify.setup(__file__)
+)
+
 # Load environment variables
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+load_dotenv(PATH_DOTENV)
 
 
 def main():
@@ -37,7 +41,7 @@ def main():
         photosJson = flickr.photos.search(license=i, per_page=500)
         dic[i] = [json.loads(photosJson.decode("utf-8"))]
     # Save the dictionary containing photo data to a JSON file
-    with open(os.path.join(CWD, "photos.json"), "w") as json_file:
+    with open(os.path.join(PATH_WORK_DIR, "photos.json"), "w") as json_file:
         json.dump(dic, json_file)
 
 
@@ -45,11 +49,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOGGER.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOGGER.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
-    sys.exit(1)
+        LOGGER.exception("Unhandled exception:")
+        sys.exit(1)

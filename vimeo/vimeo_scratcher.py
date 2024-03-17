@@ -8,10 +8,8 @@ cannot be mounted with exponential backoff adapter.
 """
 
 # Standard library
-import datetime as dt
 import os
 import sys
-import traceback
 
 # Third-party
 import requests
@@ -19,15 +17,26 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-CWD = os.path.dirname(os.path.abspath(__file__))
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+# First-party/Local
+import quantify
 
-today = dt.datetime.today()
+# Setup paths, Date and LOGGER using quantify.setup()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+    quantify.setup(__file__)
+)
+# Load environment variables
+load_dotenv(PATH_DOTENV)
+
+# Gets API_KEYS and PSE_KEY from .env file
 ACCESS_TOKEN = os.getenv("VIMEO_ACCESS_TOKEN")
 CLIENT_ID = os.getenv("VIMEO_CLIENT_ID")
+
+# Set up file path for CSV report
 DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_vimeo_{today.year}_{today.month}_{today.day}.csv"
+    f"{PATH_WORK_DIR}"
+    f"/data_vimeo_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
 
 
@@ -95,6 +104,7 @@ def get_response_elems(license):
             search_data = response.json()
         return {"totalResults": search_data["total"]}
     except Exception as e:
+        LOGGER.error(f"Error occurred during request: {e}")
         raise e
 
 
@@ -140,11 +150,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOGGER.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOGGER.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        LOGGER.exception("Unhandled exception:")
         sys.exit(1)
