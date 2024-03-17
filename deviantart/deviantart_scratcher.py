@@ -5,8 +5,6 @@ data.
 """
 
 # Standard library
-import datetime as dt
-import logging
 import os
 import sys
 import traceback
@@ -18,16 +16,21 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# First-party/Local
+import quantify
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PATH_REPO_ROOT, PATH_DOTENV, Today, logger = quantify.setup()
+
 # Set up current working directory (CWD)
 CWD = os.path.dirname(os.path.abspath(__file__))
 # Load environment variables
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+load_dotenv(PATH_DOTENV)
 
 # Gets Date then Create File in CWD with Date Attached
-today = dt.datetime.today()
+
 DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_deviantart_{today.year}_{today.month}_{today.day}.csv"
+    f"{CWD}" f"/data_deviantart_{Today.year}_{Today.month}_{Today.day}.csv"
 )
 
 # Global Variable for API_KEYS indexing
@@ -36,12 +39,6 @@ API_KEYS_IND = 0
 # Gets API_KEYS and PSE_KEY from .env file
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 PSE_KEY = os.getenv("PSE_KEY")
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
 
 
 def get_license_list():
@@ -55,7 +52,7 @@ def get_license_list():
     """
     # Read license data from file
     cc_license_data = pd.read_csv(
-        f"{os.path.dirname(CWD)}/legal-tool-paths.txt", header=None
+        f"{PATH_REPO_ROOT}/legal-tool-paths.txt", header=None
     )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
