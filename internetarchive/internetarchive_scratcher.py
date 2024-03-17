@@ -149,5 +149,4 @@ if __name__ == "__main__":
         sys.exit(130)
     except Exception:
         logger.exception("Unhandled exception:")
-        logger.exception(traceback.print_exc())
         sys.exit(1)
