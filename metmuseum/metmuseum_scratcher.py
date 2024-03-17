@@ -27,6 +27,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 def get_request_url():
     """Provides the API Endpoint URL for specified parameter combinations.
     Returns:
