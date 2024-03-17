@@ -257,7 +257,7 @@ def get_response_elems(license=None, country=None, language=None, time=False):
             logger.error("Changing API KEYS due to depletion of quota")
             return get_response_elems(license, country, language, time)
         else:
-            logging.error(f"Request URL was {request_url}")
+            logger.error(f"Request URL was {request_url}")
             raise e
 
 
