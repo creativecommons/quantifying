@@ -1,10 +1,10 @@
 # Standard library
 import datetime
 import logging
-import os.path
+import os
 
 
-def setup():
+def setup(current_file):
     # Datetime
     datetime_today = datetime.datetime.today()
 
@@ -19,5 +19,8 @@ def setup():
         os.path.abspath(os.path.realpath(__file__))
     )
     path_dotenv = os.path.join(path_repo_root, ".env")
+    path_work_dir = os.path.dirname(
+        os.path.abspath(os.path.realpath(current_file))
+    )
 
-    return path_repo_root, path_dotenv, datetime_today, logger
+    return path_repo_root, path_work_dir, path_dotenv, datetime_today, logger

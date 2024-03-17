@@ -5,10 +5,8 @@ Data.
 """
 
 # Standard library
-import datetime as dt
 import os
 import sys
-import traceback
 
 # Third-party
 import requests
@@ -16,22 +14,28 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Get the current working directory
-CWD = os.path.dirname(os.path.abspath(__file__))
-# Load environment variables
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+# First-party/Local
+import quantify
 
-# Get the current date
-today = dt.datetime.today()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, Today, logger = quantify.setup(
+    __file__
+)
+
+# Load environment variables
+load_dotenv(PATH_DOTENV)
+
 # Get the YouTube API key
 API_KEY = os.getenv("YOUTUBE_API_KEY")
+
 # Set up file path for CSV report
 DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_youtube_{today.year}_{today.month}_{today.day}.csv"
+    f"{PATH_WORK_DIR}"
+    f"/data_youtube_{Today.year}_{Today.month}_{Today.day}.csv"
 )
 DATA_WRITE_FILE_TIME = (
-    f"{CWD}" f"/data_youtube_time_{today.year}_{today.month}_{today.day}.csv"
+    f"{PATH_WORK_DIR}"
+    f"/data_youtube_time_{Today.year}_{Today.month}_{Today.day}.csv"
 )
 
 
@@ -46,7 +50,7 @@ def get_next_time_search_interval():
     and the current starting year and month of the interval.
     """
     cur_year, cur_month = 2009, 1
-    while cur_year * 100 + cur_month <= today.year * 100 + today.month:
+    while cur_year * 100 + cur_month <= Today.year * 100 + Today.month:
         end_month, end_day = 12, 31
         if cur_month == 1:
             end_month, end_day = 2, 28 + int(cur_year % 4 == 0)
@@ -129,9 +133,10 @@ def get_response_elems(time=None):
         return search_data
     except Exception as e:
         if "pageInfo" not in search_data:
-            print(f"search data is: \n{search_data}", file=sys.stderr)
+            logger.error(f"Search data is: \n{search_data}")
             sys.exit(1)
         else:
+            logger.error(f"Error occurred during request: {e}")
             raise e
 
 
@@ -180,9 +185,8 @@ if __name__ == "__main__":
     except SystemExit as e:
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        logger.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        logger.exception("Unhandled exception:")
         sys.exit(1)

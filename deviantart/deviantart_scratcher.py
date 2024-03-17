@@ -7,7 +7,6 @@ data.
 # Standard library
 import os
 import sys
-import traceback
 
 # Third-party
 import pandas as pd
@@ -20,17 +19,17 @@ from urllib3.util.retry import Retry
 import quantify
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-PATH_REPO_ROOT, PATH_DOTENV, Today, logger = quantify.setup()
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, Today, logger = quantify.setup(
+    __file__
+)
 
-# Set up current working directory (CWD)
-CWD = os.path.dirname(os.path.abspath(__file__))
 # Load environment variables
 load_dotenv(PATH_DOTENV)
 
-# Gets Date then Create File in CWD with Date Attached
-
+# Create Files in CWD with Date Attached
 DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_deviantart_{Today.year}_{Today.month}_{Today.day}.csv"
+    f"{PATH_WORK_DIR}"
+    f"/data_deviantart_{Today.year}_{Today.month}_{Today.day}.csv"
 )
 
 # Global Variable for API_KEYS indexing
@@ -182,5 +181,4 @@ if __name__ == "__main__":
         sys.exit(130)
     except Exception:
         logger.exception("Unhandled exception:")
-        logger.exception(traceback.print_exc())
         sys.exit(1)
