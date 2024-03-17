@@ -7,7 +7,6 @@ Google Custom Search Data.
 # Standard library
 import os
 import sys
-import traceback
 
 # Third-party
 import pandas as pd
@@ -20,25 +19,26 @@ from urllib3.util.retry import Retry
 import quantify
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-PATH_REPO_ROOT, PATH_DOTENV, Today, logger = quantify.setup()
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, Today, logger = quantify.setup(
+    __file__
+)
 
-# Set up current working directory (CWD)
-CWD = os.path.dirname(os.path.abspath(__file__))
+# Load environment variables
 load_dotenv(PATH_DOTENV)
 
 
-# Gets Date then Create Files in CWD with Date Attached
+# Set up file path for CSV report
 DATA_WRITE_FILE = (
-    f"{CWD}"
+    f"{PATH_WORK_DIR}"
     f"/data_google_custom_search_{Today.year}_{Today.month}_{Today.day}.csv"
 )
 DATA_WRITE_FILE_TIME = (
-    f"{CWD}"
+    f"{PATH_WORK_DIR}"
     f"/data_google_custom_search_time_"
     f"{Today.year}_{Today.month}_{Today.day}.csv"
 )
 DATA_WRITE_FILE_COUNTRY = (
-    f"{CWD}"
+    f"{PATH_WORK_DIR}"
     f"/data_google_custom_search_country_"
     f"{Today.year}_{Today.month}_{Today.day}.csv"
 )
@@ -50,7 +50,6 @@ PSE_KEY = os.getenv("PSE_KEY")
 # Global Variables for API_KEYS indexing and Search Halfyear Span
 API_KEYS_IND = 0
 SEARCH_HALFYEAR_SPAN = 20
-
 
 def get_license_list():
     """
@@ -86,7 +85,7 @@ def get_lang_list():
                 the corresponding language code.
     """
     languages = pd.read_csv(
-        f"{CWD}/google_lang.txt", sep=": ", header=None, engine="python"
+        f"{PATH_WORK_DIR}/google_lang.txt", sep=": ", header=None, engine="python"
     )
     languages[0] = languages[0].str.extract(r'"([^"]+)"')
     languages = languages.set_index(1)
@@ -121,7 +120,7 @@ def get_country_list(select_all=False):
                 A Dataframe whose index is country name and has a column for
                 the corresponding country code.
     """
-    countries = pd.read_csv(CWD + "/google_countries.tsv", sep="\t")
+    countries = pd.read_csv(PATH_WORK_DIR + "/google_countries.tsv", sep="\t")
     countries["Country"] = countries["Country"].str.replace(",", " ")
     countries = countries.set_index("Country").sort_index()
     if select_all:
@@ -373,5 +372,4 @@ if __name__ == "__main__":
         sys.exit(130)
     except Exception:
         logger.exception("Unhandled exception:")
-        logger.exception(traceback.print_exc())
         sys.exit(1)
