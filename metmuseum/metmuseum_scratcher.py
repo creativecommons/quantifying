@@ -5,8 +5,6 @@ data.
 """
 
 # Standard library
-import datetime as dt
-import os
 import sys
 import traceback
 
@@ -15,10 +13,15 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-today = dt.datetime.today()
-CWD = os.path.dirname(os.path.abspath(__file__))
+# First-party/Local
+import quantify
+
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup()
+
 DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_metmuseum_{today.year}_{today.month}_{today.day}.csv"
+    f"{PATH_WORK_DIR}"
+    f"/data_metmuseum_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
 
 

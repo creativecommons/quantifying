@@ -5,7 +5,6 @@ Data.
 """
 
 # Standard library
-import datetime as dt
 import os
 import sys
 import traceback
@@ -16,22 +15,24 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Get the current working directory
-CWD = os.path.dirname(os.path.abspath(__file__))
-# Load environment variables
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+# First-party/Local
+import quantify
 
-# Get the current date
-today = dt.datetime.today()
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup()
+load_dotenv(PATH_DOTENV)
+
 # Get the YouTube API key
 API_KEY = os.getenv("YOUTUBE_API_KEY")
 # Set up file path for CSV report
 DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_youtube_{today.year}_{today.month}_{today.day}.csv"
+    f"{PATH_WORK_DIR}"
+    f"/data_youtube_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
 DATA_WRITE_FILE_TIME = (
-    f"{CWD}" f"/data_youtube_time_{today.year}_{today.month}_{today.day}.csv"
+    f"{PATH_WORK_DIR}"
+    f"/data_youtube_time_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
 
 
@@ -46,7 +47,10 @@ def get_next_time_search_interval():
     and the current starting year and month of the interval.
     """
     cur_year, cur_month = 2009, 1
-    while cur_year * 100 + cur_month <= today.year * 100 + today.month:
+    while (
+        cur_year * 100 + cur_month
+        <= DATETIME_TODAY.year * 100 + DATETIME_TODAY.month
+    ):
         end_month, end_day = 12, 31
         if cur_month == 1:
             end_month, end_day = 2, 28 + int(cur_year % 4 == 0)

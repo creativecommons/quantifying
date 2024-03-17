@@ -20,11 +20,11 @@ import flickrapi
 import pandas as pd
 from dotenv import load_dotenv
 
-# Set up current working directory
-CWD = os.path.dirname(os.path.abspath(__file__))
-# Load environment variables
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+# First-party/Local
+import quantify
+
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup()
+load_dotenv(PATH_DOTENV)
 
 # Global variable: Number of retries for error handling
 RETRIES = 0
@@ -188,9 +188,9 @@ def page1_reset(final_csv, raw_data):
 
 
 def main():
-    final_csv_path = os.path.join(CWD, "final.csv")
-    record_txt_path = os.path.join(CWD, "rec.txt")
-    hs_csv_path = os.path.join(CWD, "hs.csv")
+    final_csv_path = os.path.join(PATH_WORK_DIR, "final.csv")
+    record_txt_path = os.path.join(PATH_WORK_DIR, "rec.txt")
+    hs_csv_path = os.path.join(PATH_WORK_DIR, "hs.csv")
 
     # Initialize Flickr API instance
     flickr = flickrapi.FlickrAPI(
@@ -290,7 +290,7 @@ def main():
             # If reached max limit of pages, reset j to 1 and
             # update i to the license in the dictionary
             if j == total + 1 or j > total:
-                license_i_path = os.path.join(CWD, f"license{i}.csv")
+                license_i_path = os.path.join(PATH_WORK_DIR, f"license{i}.csv")
                 clean_saveas_csv(final_csv_path, license_i_path)
                 i += 1
                 j = 1
