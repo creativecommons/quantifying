@@ -13,11 +13,16 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 # First-party/Local
-import quantify
 from internetarchive.search import Search
 from internetarchive.session import ArchiveSession
 
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup()
+sys.path.append("..")
+# First-party/Local
+from quantify import quantify  # noqa: E402
+
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
+    __file__
+)
 DATA_WRITE_FILE = (
     f"{PATH_WORK_DIR}"
     f"/data_internetarchive_"

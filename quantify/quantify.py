@@ -5,15 +5,13 @@ import datetime
 import os.path
 
 
-def setup():
+def setup(path):
 
     # Datetime
     datetime_today = datetime.datetime.today()
 
     # Paths
-    path_work_dir = os.path.dirname(
-        os.path.abspath(os.path.realpath(__file__))
-    )
+    path_work_dir = os.path.dirname(os.path.abspath(os.path.realpath(path)))
     path_repo_root = os.path.dirname(
         os.path.abspath(os.path.realpath(path_work_dir))
     )

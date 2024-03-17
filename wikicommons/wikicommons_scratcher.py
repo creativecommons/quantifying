@@ -13,10 +13,13 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+sys.path.append("..")
 # First-party/Local
-import quantify
+from quantify import quantify  # noqa: E402
 
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup()
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
+    __file__
+)
 
 DATA_WRITE_FILE = (
     f"{PATH_WORK_DIR}"

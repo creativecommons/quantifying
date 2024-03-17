@@ -14,10 +14,13 @@ import traceback
 import flickrapi
 from dotenv import load_dotenv
 
+sys.path.append("..")
 # First-party/Local
-import quantify
+from quantify import quantify  # noqa: E402
 
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup()
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
+    __file__
+)
 load_dotenv(PATH_DOTENV)
 
 
