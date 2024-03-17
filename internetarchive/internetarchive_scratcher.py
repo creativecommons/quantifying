@@ -8,7 +8,6 @@ import datetime as dt
 import logging
 import os
 import sys
-import traceback
 
 # Third-party
 import pandas as pd

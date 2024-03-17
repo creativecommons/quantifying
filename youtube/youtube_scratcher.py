@@ -9,7 +9,6 @@ import datetime as dt
 import logging
 import os
 import sys
-import traceback
 
 # Third-party
 import requests
@@ -42,6 +41,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler("logfile.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
+
 
 def get_next_time_search_interval():
     """
