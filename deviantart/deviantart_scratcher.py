@@ -8,7 +8,8 @@ data.
 import datetime as dt
 import os
 import sys
-import traceback
+# import traceback - no longer in use after logging
+import logging
 
 # Third-party
 import pandas as pd
@@ -35,6 +36,22 @@ DATA_WRITE_FILE = (
 # Retrieve Programmable Search Engine key from environment variables
 PSE_KEY = os.getenv("PSE_KEY")
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
 
 def get_license_list():
     """
@@ -44,6 +61,8 @@ def get_license_list():
     - np.array: An array containing all license types that should be
     searched via Programmable Search Engine.
     """
+    LOG.info("Retrieving list of license from Creative Commons' record.")
+
     # Read license data from file
     cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
     # Define regex pattern to extract license types
@@ -67,6 +86,8 @@ def get_request_url(license):
     Returns:
     - str: The API Endpoint URL for the query specified by parameters.
     """
+    LOG.info("Generating API Endpoint URL for specified license: %s", license)
+    
     try:
         api_key = API_KEYS[API_KEYS_IND]
         return (
@@ -77,7 +98,7 @@ def get_request_url(license):
         )
     except Exception as e:
         if isinstance(e, IndexError):
-            print("Depleted all API Keys provided", file=sys.stderr)
+            LOG.exception("Depleted all API Keys provided")
         else:
             raise e
 
@@ -94,6 +115,8 @@ def get_response_elems(license):
     - dict: A dictionary mapping metadata to its value provided from the API
     query.
     """
+    LOG.info("Making a request to the API and handling potential retries.")
+    
     try:
         # Make a request to the API and handle potential retries
         request_url = get_request_url(license)
@@ -117,9 +140,7 @@ def get_response_elems(license):
             # If quota limit exceeded, switch to the next API key
             global API_KEYS_IND
             API_KEYS_IND += 1
-            print(
-                "Changing API KEYS due to depletion of quota", file=sys.stderr
-            )
+            LOG.exception("Changing API KEYS due to depletion of quota")
             return get_response_elems(license)
         else:
             raise e
@@ -127,6 +148,8 @@ def get_response_elems(license):
 
 def set_up_data_file():
     """Writes the header row to the file to contain DeviantArt data."""
+    LOG.info("Setting up data file by writing the header row.")
+    
     header_title = "LICENSE TYPE,Document Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
@@ -139,6 +162,8 @@ def record_license_data(license_type):
     It's a segment of the URL towards the license description. If not provided,
     it defaults to None, indicating no assumption about the license type.
     """
+    LOG.info("Writing the row for license type %s to contain DeviantArt data", license_type)
+    
     data_log = (
         f"{license_type},"
         f"{get_response_elems(license_type)['totalResults']}"
@@ -153,6 +178,8 @@ def record_all_licenses():
     list and writes this data into the DATA_WRITE_FILE, as specified by the
     constant.
     """
+    LOG.info("Recording data for all available license types.")
+    
     # Get the list of license types
     license_list = get_license_list()
     # Record data for each license types
@@ -169,11 +196,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOG.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOG.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        LOG.exception("Unhandled exception occurred during script execution:")
         sys.exit(1)
