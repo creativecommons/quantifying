@@ -14,11 +14,27 @@ content_categories will be got from basic NLP on the tags column
 
 # Standard library
 import sys
-import traceback
+import logging
 
 # Third-party
 import pandas as pd
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
 
 def drop_empty_column(csv_path, new_csv_path):
     """
@@ -27,13 +43,15 @@ def drop_empty_column(csv_path, new_csv_path):
     - csv_path (str): Path to the original CSV file.
     - new_csv_path (str): Path to save the cleaned CSV file.
     """
+    LOG.info("Dropping 'Unnamed' columns from the CSV file.")
+    
     df = pd.read_csv(csv_path)
     for col in df.columns:
         if "Unnamed" in col:
             data = df.drop(col, axis=1)
-            print("Dropping column", col)
+            LOG.info(f"Dropping column {col}")
     data.to_csv(new_csv_path)
-    print("Dropping empty columns")
+    LOG.info("Dropping empty columns completed.")
 
 
 def drop_duplicate_id(csv_path, new_csv_path):
@@ -44,10 +62,12 @@ def drop_duplicate_id(csv_path, new_csv_path):
     - csv_path (str): Path to the original CSV file.
     - new_csv_path (str): Path to save the cleaned CSV file.
     """
+    LOG.info("Dropping duplicate rows based on the 'id' column from the CSV file.")
+    
     df = pd.read_csv(csv_path)
     data = df.drop_duplicates(subset=["id"])
     data.to_csv(new_csv_path)
-    print("Dropping duplicates")
+    LOG.info("Dropping duplicates completed.")
 
 
 def save_new_data(csv_path, column_name_list, new_csv_path):
@@ -60,13 +80,15 @@ def save_new_data(csv_path, column_name_list, new_csv_path):
     (belongs to the existing column names from original csv)
     - new_csv_path (str): Path to save the new CSV file.
     """
+    LOG.info("Saving columns from the original CSV to a new CSV.")
+    
     df = pd.read_csv(csv_path)
     new_df = pd.DataFrame()
     for col in column_name_list:
         new_df[col] = list(df[col])
-        print("Saving column", col)
+        LOG.info(f"Saving column {col}")
     new_df.to_csv(new_csv_path)
-    print("Saving new data to new csv")
+    LOG.info("Saving new data to new csv")
 
 
 def main():
@@ -93,11 +115,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOG.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOG.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
-    sys.exit(1)
+        LOG.exception("Unhandled exception occurred during script execution:")
+        sys.exit(1)
