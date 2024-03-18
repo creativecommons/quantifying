@@ -8,7 +8,7 @@ Data.
 import datetime as dt
 import os
 import sys
-import traceback
+import logging
 
 # Third-party
 import pandas as pd
@@ -41,6 +41,22 @@ DATA_WRITE_FILE_COUNTRY = (
 SEARCH_HALFYEAR_SPAN = 20
 PSE_KEY = os.getenv("PSE_KEY")
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
 
 def get_license_list():
     """Provides the list of license from 2018's record of Creative Commons.
@@ -49,6 +65,8 @@ def get_license_list():
         np.array: An np array containing all license types that should be
         searched via Programmable Search Engine.
     """
+    LOG.info("Providing the list of licenses from Creative Commons' records.")
+    
     cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
@@ -67,6 +85,8 @@ def get_lang_list():
         pd.DataFrame: A Dataframe whose index is language name and has a column
         for the corresponding language code.
     """
+    LOG.info("Providing the list of languages to find Creative Commons usage data on.")
+    
     languages = pd.read_csv(
         f"{CWD}/google_lang.txt", sep=": ", header=None, engine="python"
     )
@@ -101,6 +121,8 @@ def get_country_list(select_all=False):
         pd.DataFrame: A Dataframe whose index is country name and has a column
         for the corresponding country code.
     """
+    LOG.info("Providing the list of countries to find Creative Commons usage data on.")
+    
     countries = pd.read_csv(CWD + "/google_countries.tsv", sep="\t")
     countries["Country"] = countries["Country"].str.replace(",", " ")
     countries = countries.set_index("Country").sort_index()
@@ -150,6 +172,8 @@ def get_request_url(license=None, country=None, language=None, time=False):
         string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
+    LOG.info("Providing the API Endpoint URL for specified parameter combinations.")
+    
     try:
         api_key = API_KEYS[API_KEYS_IND]
         base_url = (
@@ -171,7 +195,7 @@ def get_request_url(license=None, country=None, language=None, time=False):
         return base_url
     except Exception as e:
         if isinstance(e, IndexError):
-            print("Depleted all API Keys provided", file=sys.stderr)
+            LOG.exception("Depleted all API Keys provided")
         else:
             raise e
 
@@ -202,6 +226,8 @@ def get_response_elems(license=None, country=None, language=None, time=False):
         dict: A dictionary mapping metadata to its value provided from the API
         query of specified parameters.
     """
+    LOG.info("Providing the metadata for a query of specified parameters.")
+    
     try:
         request_url = get_request_url(license, country, language, time)
         max_retries = Retry(
@@ -223,17 +249,17 @@ def get_response_elems(license=None, country=None, language=None, time=False):
         if isinstance(e, requests.exceptions.HTTPError):
             global API_KEYS_IND
             API_KEYS_IND += 1
-            print(
-                "Changing API KEYS due to depletion of quota", file=sys.stderr
-            )
+            LOG.exception("Changing API KEYS due to depletion of quota")
             return get_response_elems(license, country, language, time)
         else:
-            print(f"Request URL was {request_url}", file=sys.stderr)
+            LOG.exception(f"Request URL was {request_url}")
             raise e
 
 
 def set_up_data_file():
     """Writes the header row to file to contain Google Query data."""
+    LOG.info("Writing the header row to file to contain Google Query data.")
+    
     header_title = "LICENSE TYPE,No Priori,"
     selected_countries = get_country_list()
     all_countries = get_country_list(select_all=True)
@@ -272,6 +298,8 @@ def record_license_data(license_type=None, time=False, country=False):
             A boolean indicating whether this query is related to country
             occurrence.
     """
+    LOG.info("Writing the row for LICENSE_TYPE to file to contain Google Query data.")
+    
     if license_type is None:
         data_log = "all"
     else:
@@ -321,6 +349,8 @@ def record_all_licenses():
     records these data into the DATA_WRITE_FILE and DATA_WRITE_FILE_TIME as
     specified in that constant.
     """
+    LOG.info("Recording the data of all license types findable in the license list into DATA_WRITE_FILE and DATA_WRITE_FILE_TIME")
+    
     license_list = get_license_list()
     record_license_data(time=False)
     record_license_data(time=True)
@@ -339,11 +369,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOG.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOG.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        LOG.exception("Unhandled exception occurred during script execution:")
         sys.exit(1)
