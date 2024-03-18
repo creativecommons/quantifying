@@ -13,7 +13,7 @@ import os
 import os.path
 import sys
 import time
-import traceback
+import logging
 
 # Third-party
 import flickrapi
@@ -29,6 +29,22 @@ load_dotenv(dotenv_path)
 # Global variable: Number of retries for error handling
 RETRIES = 0
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
 
 def to_df(datalist, namelist):
     """
@@ -41,6 +57,8 @@ def to_df(datalist, namelist):
     Returns:
     - df (DataFrame): DataFrame constructed from the data.
     """
+    LOG.info("Transforming data into a DataFrame.")
+    
     df = [pd.DataFrame() for ind in range(len(datalist))]
     df = pd.DataFrame(datalist).transpose()
     df.columns = namelist
@@ -58,6 +76,8 @@ def df_to_csv(temp_list, name_list, temp_csv, final_csv):
     - temp_csv (str): Temporary CSV file path.
     - final_csv (str): Final CSV file path.
     """
+    LOG.info("Saving data to temporary CSV and merging with final CSV.")
+    
     df = to_df(temp_list, name_list)
     df.to_csv(temp_csv)
     # Merge temporary CSV with final CSV, ignoring index to avoid duplication
@@ -76,6 +96,8 @@ def creat_lisoflis(size):
     Returns:
     - temp_list (list): List of empty lists.
     """
+    LOG.info("Saving all the columns with each column as a list")
+    
     temp_list = [[] for i in range(size)]
     return temp_list
 
@@ -88,6 +110,8 @@ def clean_saveas_csv(old_csv_str, new_csv_str):
     - old_csv_str (str): Path to the old CSV file.
     - new_csv_str (str): Path to the new CSV file.
     """
+    LOG.info("Cleaning empty columns and save CSV to a new file.")
+    
     data = pd.read_csv(old_csv_str, low_memory=False)
     for col in list(data.columns):
         if "Unnamed" in col:
@@ -138,6 +162,9 @@ def query_data(raw_data, name_list, data_list):
     - name_list (list): List of column names.
     - data_list (list): List of lists to store data.
     """
+    
+    LOG.info("Querying useful data from raw pulled data and storing it in lists.")
+    
     for a in range(0, len(name_list)):
         if (0 <= a < 4) or a == 9:
             temp = query_helper2(raw_data, name_list[a], data_list, a)
@@ -180,6 +207,8 @@ def page1_reset(final_csv, raw_data):
     Returns:
     - int: Total number of pages.
     """
+    LOG.info("Reset page count and update total picture count.")
+    
     data = pd.read_csv(final_csv, low_memory=False)
     for col in list(data.columns):
         data.drop(col, inplace=True, axis=1)
@@ -250,31 +279,14 @@ def main():
                 )
                 time.sleep(1)
                 photos_detail = json.loads(detailJson.decode("utf-8"))
-                print(
-                    index,
-                    "id out of",
-                    len(id),
-                    "in license",
-                    i,
-                    "page",
-                    j,
-                    "out of",
-                    total,
-                )
+                LOG.info(f"{index} id out of {len(id)} in license {i}, page {j} out of {total}")
 
                 # query process of useful data
                 query_data(photos_detail, name_list, temp_list)
 
             j += 1
-            print(
-                "page",
-                j,
-                "out of",
-                total,
-                "in license",
-                i,
-                "with retry number",
-                RETRIES,
+            LOG.info(
+                f"Page {j} out of {total} in license {i} with retry number {RETRIES}"
             )
 
             # save data to csv
@@ -311,12 +323,11 @@ if __name__ == "__main__":
         except SystemExit as e:
             sys.exit(e.code)
         except KeyboardInterrupt:
-            print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+            LOG.info("Halted via KeyboardInterrupt.")
             sys.exit(130)
         except Exception:
             RETRIES += 1
-            print("ERROR (1) Unhandled exception:", file=sys.stderr)
-            print(traceback.print_exc(), file=sys.stderr)
+            LOG.exception("Unhandled exception occurred:")
             if RETRIES <= 20:
                 continue
             else:
