@@ -100,13 +100,13 @@ def get_response_elems(language="en"):
 
     except requests.HTTPError as e:
         print(f"HTTP Error: {e}", file=sys.stderr)
-        return {}
+        raise
     except requests.RequestException as e:
         print(f"Request Exception: {e}", file=sys.stderr)
-        return {}
+        raise
     except KeyError as e:
         print(f"KeyError: {e}. Search data is: {search_data}", file=sys.stderr)
-        return {}
+        raise
 
 
 def set_up_data_file():
