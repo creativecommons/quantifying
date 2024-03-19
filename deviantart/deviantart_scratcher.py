@@ -28,10 +28,10 @@ load_dotenv(PATH_DOTENV)
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 API_KEYS_IND = 0
 # Set up file path for CSV report
-DATA_WRITE_FILE = (
-    f"{PATH_WORK_DIR}"
-    f"/data_deviantart_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
+    f"data_deviantart_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 # Retrieve Programmable Search Engine key from environment variables
 PSE_KEY = os.getenv("PSE_KEY")
@@ -47,7 +47,7 @@ def get_license_list():
     """
     # Read license data from file
     cc_license_data = pd.read_csv(
-        f"{PATH_WORK_DIR}/legal-tool-paths.txt", header=None
+        os.path.join(PATH_WORK_DIR, "legal-tool-paths.txt"), header=None
     )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
