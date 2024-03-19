@@ -4,6 +4,7 @@ data.
 """
 
 # Standard library
+import os
 import sys
 import traceback
 
@@ -23,10 +24,10 @@ from quantify import quantify  # noqa: E402
 PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
     __file__
 )
-DATA_WRITE_FILE = (
-    f"{PATH_WORK_DIR}"
-    f"/data_internetarchive_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
+    f"data_internetarchive_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
 
@@ -37,7 +38,7 @@ def get_license_list():
         searched via Programmable Search Engine.
     """
     cc_license_data = pd.read_csv(
-        f"{PATH_WORK_DIR}/legal-tool-paths.txt", header=None
+        os.path.join(PATH_WORK_DIR, "legal-tool-paths.txt"), header=None
     )
     license_list = cc_license_data[0].unique()
     return license_list
