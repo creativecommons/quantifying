@@ -56,7 +56,7 @@ def get_license_list():
         searched via Programmable Search Engine.
     """
     cc_license_data = pd.read_csv(
-        f"{PATH_WORK_DIR}/legal-tool-paths.txt", header=None
+        os.path.join(PATH_WORK_DIR, "legal-tool-paths.txt"), header=None
     )
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (

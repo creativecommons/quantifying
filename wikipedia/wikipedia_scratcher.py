@@ -42,7 +42,7 @@ def get_wiki_langs():
     - pd.DataFrame: A Dataframe containing information of each Wikipedia
     language and its respective encoding on web address.
     """
-    return pd.read_csv(f"{PATH_WORK_DIR}/language-codes_csv.csv")
+    return pd.read_csv(os.path.join(PATH_WORK_DIR, "language-codes_csv.csv"))
 
 
 def get_request_url(lang="en"):
