@@ -5,6 +5,7 @@ data.
 """
 
 # Standard library
+import os
 import sys
 import traceback
 
@@ -21,10 +22,10 @@ PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
     __file__
 )
 
-DATA_WRITE_FILE = (
-    f"{PATH_WORK_DIR}"
-    f"/data_metmuseum_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
+    f"data_metmuseum_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
 
