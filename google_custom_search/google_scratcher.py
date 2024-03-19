@@ -29,20 +29,20 @@ load_dotenv(PATH_DOTENV)
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 API_KEYS_IND = 0
 # Set up file path for CSV report
-DATA_WRITE_FILE = (
-    f"{PATH_WORK_DIR}"
-    f"/data_google_custom_search_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
+    f"data_google_custom_search_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
-DATA_WRITE_FILE_TIME = (
-    f"{PATH_WORK_DIR}"
-    f"/data_google_custom_search_time_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+DATA_WRITE_FILE_TIME = os.path.join(
+    PATH_WORK_DIR,
+    f"data_google_custom_search_time_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
-DATA_WRITE_FILE_COUNTRY = (
-    f"{PATH_WORK_DIR}"
-    f"/data_google_custom_search_country_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+DATA_WRITE_FILE_COUNTRY = os.path.join(
+    PATH_WORK_DIR,
+    f"data_google_custom_search_country_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 SEARCH_HALFYEAR_SPAN = 20
 PSE_KEY = os.getenv("PSE_KEY")
@@ -76,7 +76,7 @@ def get_lang_list():
         for the corresponding language code.
     """
     languages = pd.read_csv(
-        f"{PATH_WORK_DIR}/google_lang.txt",
+        os.path.join(PATH_WORK_DIR, "google_lang.txt"),
         sep=": ",
         header=None,
         engine="python",
@@ -112,7 +112,9 @@ def get_country_list(select_all=False):
         pd.DataFrame: A Dataframe whose index is country name and has a column
         for the corresponding country code.
     """
-    countries = pd.read_csv(PATH_WORK_DIR + "/google_countries.tsv", sep="\t")
+    countries = pd.read_csv(
+        os.path.join(PATH_WORK_DIR, "google_countries.tsv"), sep="\t"
+    )
     countries["Country"] = countries["Country"].str.replace(",", " ")
     countries = countries.set_index("Country").sort_index()
     if select_all:
