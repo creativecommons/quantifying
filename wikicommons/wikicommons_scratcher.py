@@ -24,7 +24,7 @@ PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
 
 DATA_WRITE_FILE = os.path.join(
     PATH_WORK_DIR,
-    f"data_wikicommons_"
+    "data_wikicommons_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
