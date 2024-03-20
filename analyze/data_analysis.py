@@ -409,8 +409,8 @@ def view_compare_helper(df):
     
     highest_view = int(max(df["views"]))
     df = df.sort_values("views", ascending=False)
-    LOG.info("DataFrame sorted by views in descending order:\n%s", df)
-    LOG.info("Maximum views found: %d", highest_view)
+    LOG.info(f"DataFrame sorted by views in descending order: {df}")
+    LOG.info(f"Maximum views found: {highest_view}")
     return highest_view
 
 
@@ -535,11 +535,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
-        LOG.error("System exit with code: %d", e.code)
+        LOG.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        LOG.info("Halted via KeyboardInterrupt.")
+        LOG.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOG.exception("Unhandled exception occurred during script execution:")
+        LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)
