@@ -202,5 +202,5 @@ if __name__ == "__main__":
         LOG.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOG.exception("Unhandled exception occurred during script execution:")
+        LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)
