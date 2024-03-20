@@ -327,7 +327,7 @@ if __name__ == "__main__":
             sys.exit(130)
         except Exception:
             RETRIES += 1
-            LOG.exception("Unhandled exception occurred:")
+            LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
             if RETRIES <= 20:
                 continue
             else:
