@@ -136,14 +136,15 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:
-        LOG.error("System exit with code: %d", e.code)
+        LOG.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        LOG.info("Halted via KeyboardInterrupt.")
+        LOG.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOG.exception("Unhandled exception occurred during script execution:")
+        LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)
