@@ -321,9 +321,10 @@ if __name__ == "__main__":
         try:
             main()
         except SystemExit as e:
+            LOG.error(f"System exit with code: {e.code}")
             sys.exit(e.code)
         except KeyboardInterrupt:
-            LOG.info("Halted via KeyboardInterrupt.")
+            LOG.info("(130) Halted via KeyboardInterrupt.")
             sys.exit(130)
         except Exception:
             RETRIES += 1
