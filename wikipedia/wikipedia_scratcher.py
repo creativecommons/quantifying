@@ -7,7 +7,7 @@ This file is dedicated to obtain a .csv record report for Wikipedia Data.
 import datetime as dt
 import os
 import sys
-import traceback
+import logging
 
 # Third-party
 import pandas as pd
@@ -21,6 +21,22 @@ DATA_WRITE_FILE = (
     f"{CWD}" f"/data_wikipedia_{today.year}_{today.month}_{today.day}.csv"
 )
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
 
 def get_wiki_langs():
     """Provides the list of language to find Creative Commons usage data on.
@@ -34,6 +50,7 @@ def get_wiki_langs():
         pd.DataFrame: A Dataframe containing information of each Wikipedia
         language and its respective encoding on web address.
     """
+    LOG.info("Providing the list of language to find Creative Commons usage data on.")
     return pd.read_csv(f"{CWD}/language-codes_csv.csv")
 
 
@@ -50,6 +67,8 @@ def get_request_url(lang="en"):
         string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
+    LOG.info("Providing the API Endpoint URL for specified parameter combinations.")
+    
     base_url = (
         r"wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=statistics"
         r"&format=json"
@@ -70,6 +89,8 @@ def get_response_elems(language="en"):
     - dict: A dictionary mapping metadata to its value provided from the API
     query of specified parameters.
     """
+    LOG.info("Providing the metadata for query of specified parameters")
+    
     search_data = None
     try:
         request_url = get_request_url(language)
@@ -86,12 +107,10 @@ def get_response_elems(language="en"):
             search_data = response.json()
 
         if search_data is None:
-            print(
+            LOG.exception(
                 f"Received Result is None due to Language {language} absent as"
                 "an available Wikipedia client. Will therefore return an empty"
-                "dictionary for result, but will continue querying.",
-                file=sys.stderr,
-            )
+                "dictionary for result, but will continue querying.")
             return {}
 
         search_data_dict = search_data["query"]["statistics"]
@@ -99,18 +118,20 @@ def get_response_elems(language="en"):
         return search_data_dict
 
     except requests.HTTPError as e:
-        print(f"HTTP Error: {e}", file=sys.stderr)
+        LOG.exception(f"HTTP Error: {e}")
         raise
     except requests.RequestException as e:
-        print(f"Request Exception: {e}", file=sys.stderr)
+        LOG.exception(f"Request Exception: {e}")
         raise
     except KeyError as e:
-        print(f"KeyError: {e}. Search data is: {search_data}", file=sys.stderr)
+        LOG.exception(f"KeyError: {e}. Search data is: {search_data}",)
         raise
 
 
 def set_up_data_file():
     """Writes the header row to file to contain Wikipedia Query data."""
+    LOG.info("Writing the header row to file to contain Wikipedia Query data.")
+    
     header_title = ",".join(get_response_elems())
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
@@ -125,6 +146,8 @@ def record_lang_data(lang="en"):
             presented in. Alternatively, the default value is by Wikipedia
             customs "en".
     """
+    LOG.info("Writing the row for LICENSE_TYPE to file to contain Google Query data.")
+    
     response = get_response_elems(lang)
     if response != {}:
         response_values = response.values()
@@ -137,6 +160,8 @@ def record_all_licenses():
     """Records the data of all language types findable in the language list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
+    LOG.info("Recording the data of all language types findable in the language list and recording into DATA_WRITE_FILE")
+    
     wiki_langs = get_wiki_langs()
     for iso_language_code in wiki_langs["alpha2"]:
         record_lang_data(iso_language_code)
@@ -150,6 +175,7 @@ def get_current_data():
         pd.DataFrame: A DataFrame recording the number of CC-licensed documents
         per search query of assumption.
     """
+    LOG.info("Returning a DataFrame for the Creative Commons usage data collected")
     return pd.read_csv(DATA_WRITE_FILE).set_index("language")
 
 
@@ -159,14 +185,15 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:
+        LOG.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOG.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)

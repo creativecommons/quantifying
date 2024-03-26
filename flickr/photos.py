@@ -8,7 +8,7 @@ import json
 import os
 import os.path
 import sys
-import traceback
+import logging
 
 # Third-party
 import flickrapi
@@ -20,6 +20,22 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
 load_dotenv(dotenv_path)
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
 
 def main():
     # Initialize Flickr API instance
@@ -42,14 +58,15 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:
+        LOG.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOG.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
-    sys.exit(1)
+        LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
+        sys.exit(1)
