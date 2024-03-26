@@ -86,7 +86,7 @@ def get_request_url(license):
     Returns:
     - str: The API Endpoint URL for the query specified by parameters.
     """
-    LOG.info("Generating API Endpoint URL for specified license: %s", license)
+    LOG.info(f"Generating API Endpoint URL for specified license: {license}")
     
     try:
         api_key = API_KEYS[API_KEYS_IND]
