@@ -14,7 +14,7 @@ import traceback
 import flickrapi
 from dotenv import load_dotenv
 
-sys.path.append("..")
+sys.path.append(".")
 # First-party/Local
 import quantify  # noqa: E402
 
