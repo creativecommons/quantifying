@@ -13,11 +13,18 @@ content_categories will be got from basic NLP on the tags column
 """
 
 # Standard library
+import os
 import sys
-import traceback
 
 # Third-party
 import pandas as pd
+
+# First-party/Local
+import quantify
+
+# Setup only LOGGER using quantify.setup()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+_, _, _, _, LOGGER = quantify.setup(__file__)
 
 
 def drop_empty_column(csv_path, new_csv_path):
@@ -93,11 +100,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOGGER.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOGGER.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
-    sys.exit(1)
+        LOGGER.exception("Unhandled exception:")
+        sys.exit(1)

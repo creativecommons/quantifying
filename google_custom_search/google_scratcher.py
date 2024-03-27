@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 """
-This file is dedicated to obtain a .csv record report for Google Custom Search
-Data.
+This file is dedicated to obtain a .csv record report for
+Google Custom Search Data.
 """
 
 # Standard library
-import datetime as dt
 import os
 import sys
-import traceback
 
 # Third-party
 import pandas as pd
@@ -17,39 +15,59 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-CWD = os.path.dirname(os.path.abspath(__file__))
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+# First-party/Local
+import quantify
 
-today = dt.datetime.today()
+# Setup paths, Date and LOGGER using quantify.setup()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+    quantify.setup(__file__)
+)
+
+# Load environment variables
+load_dotenv(PATH_DOTENV)
+
+# Gets API_KEYS and PSE_KEY from .env file
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
-API_KEYS_IND = 0
-DATA_WRITE_FILE = (
-    f"{CWD}"
-    f"/data_google_custom_search_{today.year}_{today.month}_{today.day}.csv"
-)
-DATA_WRITE_FILE_TIME = (
-    f"{CWD}"
-    f"/data_google_custom_search_time_"
-    f"{today.year}_{today.month}_{today.day}.csv"
-)
-DATA_WRITE_FILE_COUNTRY = (
-    f"{CWD}"
-    f"/data_google_custom_search_country_"
-    f"{today.year}_{today.month}_{today.day}.csv"
-)
-SEARCH_HALFYEAR_SPAN = 20
 PSE_KEY = os.getenv("PSE_KEY")
 
 
+# Global Variables for API_KEYS indexing and Search Halfyear Span
+API_KEYS_IND = 0
+SEARCH_HALFYEAR_SPAN = 20
+
+# Set up file path for CSV report
+DATA_WRITE_FILE = (
+    f"{PATH_WORK_DIR}"
+    f"/data_google_custom_search_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+)
+DATA_WRITE_FILE_TIME = (
+    f"{PATH_WORK_DIR}"
+    f"/data_google_custom_search_time_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+)
+DATA_WRITE_FILE_COUNTRY = (
+    f"{PATH_WORK_DIR}"
+    f"/data_google_custom_search_country_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+)
+
+
 def get_license_list():
-    """Provides the list of license from 2018's record of Creative Commons.
+    """
+    Provides the list of licenses from 2018's record of Creative Commons.
 
     Returns:
-        np.array: An np array containing all license types that should be
-        searched via Programmable Search Engine.
+    - np.array:
+            An np array containing all license types that should be searched
+            via Programmable Search Engine (PSE).
     """
-    cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
+    # Read license data from file
+    cc_license_data = pd.read_csv(
+        f"{PATH_REPO_ROOT}/legal-tool-paths.txt", header=None
+    )
+    # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
         cc_license_data[0]
@@ -61,14 +79,19 @@ def get_license_list():
 
 
 def get_lang_list():
-    """Provides the list of language to find Creative Commons usage data on.
+    """
+    Provides the list of languages to find Creative Commons usage data on.
 
     Returns:
-        pd.DataFrame: A Dataframe whose index is language name and has a column
-        for the corresponding language code.
+    - pd.DataFrame:
+                A Dataframe whose index is language name and has a column for
+                the corresponding language code.
     """
     languages = pd.read_csv(
-        f"{CWD}/google_lang.txt", sep=": ", header=None, engine="python"
+        f"{PATH_WORK_DIR}/google_lang.txt",
+        sep=": ",
+        header=None,
+        engine="python",
     )
     languages[0] = languages[0].str.extract(r'"([^"]+)"')
     languages = languages.set_index(1)
@@ -90,18 +113,20 @@ def get_lang_list():
 
 
 def get_country_list(select_all=False):
-    """Provides the list of countries to find Creative Commons usage data on.
+    """
+    Provides the list of countries to find Creative Commons usage data on.
 
     Args:
-        select_all:
-            A boolean indicating whether the returned list will have all
-            countries.
+    - select_all:
+                A boolean indicating whether the returned list will have all
+                countries.
 
     Returns:
-        pd.DataFrame: A Dataframe whose index is country name and has a column
-        for the corresponding country code.
+    - pd.DataFrame:
+                A Dataframe whose index is country name and has a column for
+                the corresponding country code.
     """
-    countries = pd.read_csv(CWD + "/google_countries.tsv", sep="\t")
+    countries = pd.read_csv(PATH_WORK_DIR + "/google_countries.tsv", sep="\t")
     countries["Country"] = countries["Country"].str.replace(",", " ")
     countries = countries.set_index("Country").sort_index()
     if select_all:
@@ -125,30 +150,32 @@ def get_country_list(select_all=False):
 
 
 def get_request_url(license=None, country=None, language=None, time=False):
-    """Provides the API Endpoint URL for specified parameter combinations.
+    """
+    Provides the API Endpoint URL for specified parameter combinations.
 
     Args:
-        license:
+    - license:
             A string representing the type of license, and should be a segment
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
             type.
-        country:
+    - country:
             A string representing the country code of country that the search
             results would be originating from. Alternatively, the default None
             value or "all" stands for having no assumption about country of
             origin.
-        language:
+    - language:
             A string representing the language that the search results are
             presented in. Alternatively, the default None value or "all" stands
             for having no assumption about language of document.
-        time:
+    - time:
             A boolean indicating whether this query is related to video time
             occurrence.
 
     Returns:
-        string: A string representing the API Endpoint URL for the query
-        specified by this function's parameters.
+    - string:
+            A string representing the API Endpoint URL for the query specified
+            by this function's parameters.
     """
     try:
         api_key = API_KEYS[API_KEYS_IND]
@@ -171,38 +198,41 @@ def get_request_url(license=None, country=None, language=None, time=False):
         return base_url
     except Exception as e:
         if isinstance(e, IndexError):
-            print("Depleted all API Keys provided", file=sys.stderr)
+            LOGGER.error("Depleted all API Keys provided")
         else:
             raise e
 
 
 def get_response_elems(license=None, country=None, language=None, time=False):
-    """Provides the metadata for query of specified parameters
+    """
+    Provides the metadata for query of specified parameters
 
     Args:
-        license:
+    - license:
             A string representing the type of license, and should be a segment
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
             type.
-        country:
+    - country:
             A string representing the country code of country that the search
             results would be originating from. Alternatively, the default None
             value or "all" stands for having no assumption about country of
             origin.
-        lang:
+    - lang:
             A string representing the language that the search results are
             presented in. Alternatively, the default None value or "all" stands
             for having no assumption about language of document.
-        time:
+    - time:
             A boolean indicating whether this query is related to video time
             occurrence.
 
     Returns:
-        dict: A dictionary mapping metadata to its value provided from the API
-        query of specified parameters.
+    - dict:
+            A dictionary mapping metadata to its value provided from the API
+            query of specified parameters.
     """
     try:
+        # Make a request to the API and handle potential retries
         request_url = get_request_url(license, country, language, time)
         max_retries = Retry(
             total=5,
@@ -221,19 +251,18 @@ def get_response_elems(license=None, country=None, language=None, time=False):
         return search_data_dict
     except Exception as e:
         if isinstance(e, requests.exceptions.HTTPError):
+            # If quota limit exceeded, switch to the next API key
             global API_KEYS_IND
             API_KEYS_IND += 1
-            print(
-                "Changing API KEYS due to depletion of quota", file=sys.stderr
-            )
+            LOGGER.error("Changing API KEYS due to depletion of quota")
             return get_response_elems(license, country, language, time)
         else:
-            print(f"Request URL was {request_url}", file=sys.stderr)
+            LOGGER.error(f"Request URL was {request_url}")
             raise e
 
 
 def set_up_data_file():
-    """Writes the header row to file to contain Google Query data."""
+    # Write header rows in files to contain Google Query data.
     header_title = "LICENSE TYPE,No Priori,"
     selected_countries = get_country_list()
     all_countries = get_country_list(select_all=True)
@@ -257,18 +286,19 @@ def set_up_data_file():
 
 
 def record_license_data(license_type=None, time=False, country=False):
-    """Writes the row for LICENSE_TYPE to file to contain Google Query data.
+    """
+    Writes the row for LICENSE_TYPE to file to contain Google Query data.
 
     Args:
-        license:
+    - license_type:
             A string representing the type of license, and should be a segment
             of its URL towards the license description. Alternatively, the
             default None value stands for having no assumption about license
             type.
-        time:
+    - time:
             A boolean indicating whether this query is related to video time
             occurrence.
-        country:
+    - country:
             A boolean indicating whether this query is related to country
             occurrence.
     """
@@ -317,16 +347,19 @@ def record_license_data(license_type=None, time=False, country=False):
 
 
 def record_all_licenses():
-    """Records the data of all license types findable in the license list and
+    """
+    Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE and DATA_WRITE_FILE_TIME as
     specified in that constant.
     """
-    license_list = get_license_list()
-    record_license_data(time=False)
+    # Record license data with no assumption about license type
+    record_license_data()
     record_license_data(time=True)
     record_license_data(country=True)
+    # Gets the list of license types and record data for each license type
+    license_list = get_license_list()
     for license_type in license_list:
-        record_license_data(license_type, time=False)
+        record_license_data(license_type)
         record_license_data(license_type, time=True)
 
 
@@ -339,11 +372,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOGGER.error("System exit with code: %d", e.code)
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOGGER.info("Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        LOGGER.exception("Unhandled exception:")
         sys.exit(1)
