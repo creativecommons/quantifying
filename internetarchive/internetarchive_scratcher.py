@@ -4,7 +4,6 @@ data.
 """
 
 # Standard library
-import datetime as dt
 import os
 import sys
 import traceback
@@ -18,11 +17,17 @@ from urllib3.util.retry import Retry
 from internetarchive.search import Search
 from internetarchive.session import ArchiveSession
 
-today = dt.datetime.today()
-CWD = os.path.dirname(os.path.abspath(__file__))
-DATA_WRITE_FILE = (
-    f"{CWD}"
-    f"/data_internetarchive_{today.year}_{today.month}_{today.day}.csv"
+sys.path.append(".")
+# First-party/Local
+import quantify  # noqa: E402
+
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
+    __file__
+)
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
+    f"data_internetarchive_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
 
@@ -32,7 +37,9 @@ def get_license_list():
         np.array: An np array containing all license types that should be
         searched via Programmable Search Engine.
     """
-    cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
+    cc_license_data = pd.read_csv(
+        os.path.join(PATH_WORK_DIR, "legal-tool-paths.txt"), header=None
+    )
     license_list = cc_license_data[0].unique()
     return license_list
 

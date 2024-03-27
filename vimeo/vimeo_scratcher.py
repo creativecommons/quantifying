@@ -8,7 +8,6 @@ cannot be mounted with exponential backoff adapter.
 """
 
 # Standard library
-import datetime as dt
 import os
 import sys
 import traceback
@@ -19,15 +18,21 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-CWD = os.path.dirname(os.path.abspath(__file__))
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+sys.path.append(".")
+# First-party/Local
+import quantify  # noqa: E402
 
-today = dt.datetime.today()
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
+    __file__
+)
+load_dotenv(PATH_DOTENV)
+
 ACCESS_TOKEN = os.getenv("VIMEO_ACCESS_TOKEN")
 CLIENT_ID = os.getenv("VIMEO_CLIENT_ID")
-DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_vimeo_{today.year}_{today.month}_{today.day}.csv"
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
+    "data_vimeo_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
 

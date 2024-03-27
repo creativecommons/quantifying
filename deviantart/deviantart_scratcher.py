@@ -3,9 +3,7 @@
 This file is dedicated to obtain a .csv record report for DeviantArt
 data.
 """
-
 # Standard library
-import datetime as dt
 import os
 import sys
 import traceback
@@ -17,20 +15,23 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Set up current working directory
-CWD = os.path.dirname(os.path.abspath(__file__))
-# Load environment variables
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+sys.path.append(".")
+# First-party/Local
+import quantify  # noqa: E402
 
-# Get the current date
-today = dt.datetime.today()
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
+    __file__
+)
+load_dotenv(PATH_DOTENV)
+
 # Retrieve API keys
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 API_KEYS_IND = 0
 # Set up file path for CSV report
-DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_deviantart_{today.year}_{today.month}_{today.day}.csv"
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
+    f"data_deviantart_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 # Retrieve Programmable Search Engine key from environment variables
 PSE_KEY = os.getenv("PSE_KEY")
@@ -45,7 +46,9 @@ def get_license_list():
     searched via Programmable Search Engine.
     """
     # Read license data from file
-    cc_license_data = pd.read_csv(f"{CWD}/legal-tool-paths.txt", header=None)
+    cc_license_data = pd.read_csv(
+        os.path.join(PATH_WORK_DIR, "legal-tool-paths.txt"), header=None
+    )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (

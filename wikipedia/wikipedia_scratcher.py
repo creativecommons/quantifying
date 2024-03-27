@@ -4,7 +4,6 @@ This file is dedicated to obtain a .csv record report for Wikipedia Data.
 """
 
 # Standard library
-import datetime as dt
 import os
 import sys
 import traceback
@@ -15,10 +14,18 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-today = dt.datetime.today()
-CWD = os.path.dirname(os.path.abspath(__file__))
-DATA_WRITE_FILE = (
-    f"{CWD}" f"/data_wikipedia_{today.year}_{today.month}_{today.day}.csv"
+sys.path.append(".")
+# First-party/Local
+import quantify  # noqa: E402
+
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
+    __file__
+)
+
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
+    f"data_wikipedia_"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
 
@@ -34,7 +41,7 @@ def get_wiki_langs():
         pd.DataFrame: A Dataframe containing information of each Wikipedia
         language and its respective encoding on web address.
     """
-    return pd.read_csv(f"{CWD}/language-codes_csv.csv")
+    return pd.read_csv(os.path.join(PATH_WORK_DIR, "language-codes_csv.csv"))
 
 
 def get_request_url(lang="en"):
