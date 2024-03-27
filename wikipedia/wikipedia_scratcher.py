@@ -101,7 +101,7 @@ def get_response_elems(language="en"):
         search_data_dict = search_data["query"]["statistics"]
         search_data_dict["language"] = language
         return search_data_dict
-    
+
     except requests.HTTPError as e:
         LOGGER.error(f"HTTP Error: {e}")
         raise

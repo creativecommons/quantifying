@@ -65,9 +65,7 @@ def get_license_list():
     """
     # Read license data from file
     cc_license_data = pd.read_csv(
-
         f"{PATH_REPO_ROOT}/legal-tool-paths.txt", header=None
-
     )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
