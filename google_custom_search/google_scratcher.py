@@ -27,10 +27,10 @@ PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
 # Load environment variables
 load_dotenv(PATH_DOTENV)
 
-
 # Gets API_KEYS and PSE_KEY from .env file
 API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 PSE_KEY = os.getenv("PSE_KEY")
+
 
 # Global Variables for API_KEYS indexing and Search Halfyear Span
 API_KEYS_IND = 0
@@ -65,7 +65,9 @@ def get_license_list():
     """
     # Read license data from file
     cc_license_data = pd.read_csv(
+
         f"{PATH_REPO_ROOT}/legal-tool-paths.txt", header=None
+
     )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"

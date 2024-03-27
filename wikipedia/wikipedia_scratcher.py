@@ -28,8 +28,7 @@ DATA_WRITE_FILE = (
 
 
 def get_wiki_langs():
-    """
-    Provides the list of language to find Creative Commons usage data on.
+    """Provides the list of language to find Creative Commons usage data on.
 
     The codes represent the language codes defined by ISO 639-1 and ISO 639-3,
     and the decision of which language code to use is usually determined by the
@@ -37,23 +36,24 @@ def get_wiki_langs():
     (https://en.wikipedia.org/wiki/List_of_Wikipedias#Wikipedia_edition_codes)
 
     Returns:
-    - pd.DataFrame: A Dataframe containing information of each Wikipedia
-    language and its respective encoding on web address.
+        pd.DataFrame: A Dataframe containing information of each Wikipedia
+        language and its respective encoding on web address.
     """
     return pd.read_csv(f"{PATH_WORK_DIR}/language-codes_csv.csv")
 
 
 def get_request_url(lang="en"):
-    """
-    Provides the API Endpoint URL for specified parameter combinations.
+    """Provides the API Endpoint URL for specified parameter combinations.
 
     Args:
-    - lang: A string representing the language that the search results are
-    presented in. Alternatively, the default value is by Wikipedia customs "en"
+        lang:
+            A string representing the language that the search results are
+            presented in. Alternatively, the default value is by Wikipedia
+            customs "en".
 
     Returns:
-    - string: A string representing the API Endpoint URL for the query
-    specified by this function's parameters.
+        string: A string representing the API Endpoint URL for the query
+        specified by this function's parameters.
     """
     base_url = (
         r"wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=statistics"
@@ -85,6 +85,7 @@ def get_response_elems(language="en"):
         )
         session = requests.Session()
         session.mount("https://", HTTPAdapter(max_retries=max_retries))
+
         with session.get(request_url) as response:
             response.raise_for_status()
             search_data = response.json()
@@ -123,8 +124,10 @@ def record_lang_data(lang="en"):
     """Writes the row for LICENSE_TYPE to file to contain Google Query data.
 
     Args:
-    - lang: A string representing the language that the search results are
-    presented in. Alternatively, the default value is by Wikipedia customs "en"
+        lang:
+            A string representing the language that the search results are
+            presented in. Alternatively, the default value is by Wikipedia
+            customs "en".
     """
     response = get_response_elems(lang)
     if response != {}:
@@ -148,8 +151,8 @@ def get_current_data():
     Wikipedia texts are licensed under CC-BY-SA 3.0
 
     Returns:
-    - pd.DataFrame: A DataFrame recording the number of CC-licensed documents
-    per search query of assumption.
+        pd.DataFrame: A DataFrame recording the number of CC-licensed documents
+        per search query of assumption.
     """
     return pd.read_csv(DATA_WRITE_FILE).set_index("language")
 
