@@ -87,25 +87,29 @@ def get_response_elems(language="en"):
         session.mount("https://", HTTPAdapter(max_retries=max_retries))
         with session.get(request_url) as response:
             response.raise_for_status()
-            search_data = requests.get(request_url).json()
-            search_data_dict = search_data["query"]["statistics"]
-            search_data_dict["language"] = language
-        return search_data_dict
-    except Exception as e:
+            search_data = response.json()
+
         if search_data is None:
             LOGGER.error(
                 f"Received Result is None due to Language {language} absent as"
                 "an available Wikipedia client. Will therefore return an empty"
                 "dictionary for result, but will continue querying."
             )
-
             return {}
-        elif "query" not in search_data:
-            LOGGER.error(f"Search data is: \n{search_data}")
-            sys.exit(1)
-        else:
-            LOGGER.error(f"Error occurred during request: {e}")
-            raise e
+
+        search_data_dict = search_data["query"]["statistics"]
+        search_data_dict["language"] = language
+        return search_data_dict
+    
+    except requests.HTTPError as e:
+        LOGGER.error(f"HTTP Error: {e}")
+        raise
+    except requests.RequestException as e:
+        LOGGER.error(f"Request Exception: {e}")
+        raise
+    except KeyError as e:
+        LOGGER.error(f"KeyError: {e}. Search data is: {search_data}")
+        raise
 
 
 def set_up_data_file():
