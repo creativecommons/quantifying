@@ -3,7 +3,6 @@
 This file is dedicated to obtain a .csv record report for DeviantArt
 data.
 """
-
 # Standard library
 import os
 import sys
