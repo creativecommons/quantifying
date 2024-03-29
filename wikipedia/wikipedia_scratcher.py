@@ -41,6 +41,7 @@ def get_wiki_langs():
     """
     return pd.read_csv(f"{PATH_WORK_DIR}/language-codes_csv.csv")
 
+
 def get_request_url(lang="en"):
     """Provides the API Endpoint URL for specified parameter combinations.
 
