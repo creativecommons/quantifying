@@ -16,7 +16,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 sys.path.append(".")
-# Third-party
+# First-party/Local
 import quantify  # noqa: E402
 
 PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
@@ -65,6 +65,7 @@ def get_wiki_langs():
         "Providing the list of languages "
         "to find Creative Commons usage data on."
     )
+  
     return pd.read_csv(os.path.join(PATH_WORK_DIR, "language-codes_csv.csv"))
 
 

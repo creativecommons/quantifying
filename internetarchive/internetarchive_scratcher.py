@@ -19,7 +19,7 @@ from internetarchive.search import Search
 from internetarchive.session import ArchiveSession
 
 sys.path.append(".")
-# Third-party
+# First-party/Local
 import quantify  # noqa: E402
 
 PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(

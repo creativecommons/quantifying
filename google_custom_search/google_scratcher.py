@@ -18,7 +18,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 sys.path.append(".")
-# Third-party
+# First-party/Local
 import quantify  # noqa: E402
 
 PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
@@ -80,7 +80,7 @@ def get_license_list():
     cc_license_data = pd.read_csv(
         os.path.join(PATH_WORK_DIR, "legal-tool-paths.txt"), header=None
     )
-
+    
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
         cc_license_data[0]

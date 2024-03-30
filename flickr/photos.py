@@ -15,11 +15,14 @@ import traceback
 import flickrapi
 from dotenv import load_dotenv
 
-# Get the current working directory
-CWD = os.path.dirname(os.path.abspath(__file__))
-# Load environment variables
-dotenv_path = os.path.join(os.path.dirname(CWD), ".env")
-load_dotenv(dotenv_path)
+sys.path.append(".")
+# First-party/Local
+import quantify  # noqa: E402
+
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
+    __file__
+)
+load_dotenv(PATH_DOTENV)
 
 # Set up the logger
 LOG = logging.getLogger(__name__)
@@ -57,7 +60,7 @@ def main():
         photosJson = flickr.photos.search(license=i, per_page=500)
         dic[i] = [json.loads(photosJson.decode("utf-8"))]
     # Save the dictionary containing photo data to a JSON file
-    with open(os.path.join(CWD, "photos.json"), "w") as json_file:
+    with open(os.path.join(PATH_WORK_DIR, "photos.json"), "w") as json_file:
         json.dump(dic, json_file)
 
 
