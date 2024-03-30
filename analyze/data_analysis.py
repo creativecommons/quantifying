@@ -3,11 +3,12 @@ This file is the script of data analysis and visualization
 """
 
 # Standard library
+import logging
 import os.path
 import re
 import sys
+import traceback
 import warnings
-import logging
 
 # Third-party
 import matplotlib.pyplot as plt
@@ -33,7 +34,9 @@ LOG.setLevel(logging.INFO)
 
 # Define both the handler and the formatter
 handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
 
 # Add formatter to the handler
 handler.setFormatter(formatter)
@@ -57,7 +60,7 @@ def tags_frequency(csv_path, column_names):
 
     """
     LOG.info("Generating word cloud based on tags.")
-    
+
     df = pd.read_csv(csv_path)
     # Process each column containing tags
     for column_name in column_names:
@@ -166,7 +169,7 @@ def time_trend_helper(df):
     - DataFrame: DataFrame with counts of entries per year.
     """
     LOG.info("Extracting year-wise count of entries.")
-    
+
     year_list = []
     for date_row in df["dates"][0:]:
         date_list = str(date_row).split()
@@ -194,7 +197,7 @@ def time_trend(csv_path):
     - csv_path (str): Path to the CSV file.
     """
     LOG.info("Generating time trend line graph.")
-    
+
     df = pd.read_csv(csv_path)
     count_df = time_trend_helper(df)
 
@@ -237,7 +240,7 @@ def time_trend_compile_helper(yearly_count):
     - DataFrame: Filtered yearly count data.
     """
     LOG.info("Filtering yearly trend data.")
-    
+
     Years = np.arange(2018, 2023)
     yearly_count["year"] = list(yearly_count.index)
     counts = []
@@ -258,7 +261,7 @@ def time_trend_compile():
     Compile yearly trends for different licenses and plot them.
     """
     LOG.info("Compiling yearly trends for different licenses.")
-    
+
     license1 = pd.read_csv("../flickr/dataset/cleaned_license1.csv")
     license2 = pd.read_csv("../flickr/dataset/cleaned_license2.csv")
     license3 = pd.read_csv("../flickr/dataset/cleaned_license3.csv")
@@ -406,7 +409,7 @@ def view_compare_helper(df):
     - int: Maximum views.
     """
     LOG.info("Calculating maximum views of pictures under a license.")
-    
+
     highest_view = int(max(df["views"]))
     df = df.sort_values("views", ascending=False)
     LOG.info(f"DataFrame sorted by views in descending order: {df}")
@@ -419,7 +422,7 @@ def view_compare():
     Compare maximum views of pictures under different licenses.
     """
     LOG.info("Comparing maximum views of pictures under different licenses.")
-    
+
     license1 = pd.read_csv(
         os.path.join(CWD, "../flickr/dataset/cleaned_license1.csv")
     )
@@ -515,7 +518,7 @@ def total_usage():
     Generate a bar plot showing the total usage of different licenses.
     """
     LOG.info("Generating bar plot showing total usage of different licenses.")
-    
+
     # Reads the license total file as the input dataset
     df = pd.read_csv(os.path.join(CWD, "../flickr/dataset/license_total.csv"))
     df["License"] = [str(x) for x in list(df["License"])]

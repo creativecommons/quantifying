@@ -5,10 +5,11 @@ each Creative Commons license and saving the data into a JSON file
 
 # Standard library
 import json
+import logging
 import os
 import os.path
 import sys
-import logging
+import traceback
 
 # Third-party
 import flickrapi
@@ -26,7 +27,9 @@ LOG.setLevel(logging.INFO)
 
 # Define both the handler and the formatter
 handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
 
 # Add formatter to the handler
 handler.setFormatter(formatter)
@@ -36,6 +39,7 @@ LOG.addHandler(handler)
 
 # Log the start of the script execution
 LOG.info("Script execution started.")
+
 
 def main():
     # Initialize Flickr API instance

@@ -13,8 +13,9 @@ content_categories will be got from basic NLP on the tags column
 """
 
 # Standard library
-import sys
 import logging
+import sys
+import traceback
 
 # Third-party
 import pandas as pd
@@ -25,7 +26,9 @@ LOG.setLevel(logging.INFO)
 
 # Define both the handler and the formatter
 handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
 
 # Add formatter to the handler
 handler.setFormatter(formatter)
@@ -36,6 +39,7 @@ LOG.addHandler(handler)
 # Log the start of the script execution
 LOG.info("Script execution started.")
 
+
 def drop_empty_column(csv_path, new_csv_path):
     """
     Drops columns with 'Unnamed' in the name from the CSV file.
@@ -44,7 +48,7 @@ def drop_empty_column(csv_path, new_csv_path):
     - new_csv_path (str): Path to save the cleaned CSV file.
     """
     LOG.info("Dropping 'Unnamed' columns from the CSV file.")
-    
+
     df = pd.read_csv(csv_path)
     for col in df.columns:
         if "Unnamed" in col:
@@ -62,8 +66,10 @@ def drop_duplicate_id(csv_path, new_csv_path):
     - csv_path (str): Path to the original CSV file.
     - new_csv_path (str): Path to save the cleaned CSV file.
     """
-    LOG.info("Dropping duplicate rows based on the 'id' column from the CSV file.")
-    
+    LOG.info(
+        "Dropping duplicate rows based on the 'id' column from the CSV file."
+    )
+
     df = pd.read_csv(csv_path)
     data = df.drop_duplicates(subset=["id"])
     data.to_csv(new_csv_path)
@@ -81,7 +87,7 @@ def save_new_data(csv_path, column_name_list, new_csv_path):
     - new_csv_path (str): Path to save the new CSV file.
     """
     LOG.info("Saving columns from the original CSV to a new CSV.")
-    
+
     df = pd.read_csv(csv_path)
     new_df = pd.DataFrame()
     for col in column_name_list:

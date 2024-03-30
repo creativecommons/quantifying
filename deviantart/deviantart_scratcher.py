@@ -6,10 +6,10 @@ data.
 
 # Standard library
 import datetime as dt
+import logging
 import os
 import sys
-# import traceback - no longer in use after logging
-import logging
+import traceback
 
 # Third-party
 import pandas as pd
@@ -42,7 +42,9 @@ LOG.setLevel(logging.INFO)
 
 # Define both the handler and the formatter
 handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
 
 # Add formatter to the handler
 handler.setFormatter(formatter)
@@ -52,6 +54,7 @@ LOG.addHandler(handler)
 
 # Log the start of the script execution
 LOG.info("Script execution started.")
+
 
 def get_license_list():
     """
@@ -87,7 +90,7 @@ def get_request_url(license):
     - str: The API Endpoint URL for the query specified by parameters.
     """
     LOG.info(f"Generating API Endpoint URL for specified license: {license}")
-    
+
     try:
         api_key = API_KEYS[API_KEYS_IND]
         return (
@@ -116,7 +119,7 @@ def get_response_elems(license):
     query.
     """
     LOG.info("Making a request to the API and handling potential retries.")
-    
+
     try:
         # Make a request to the API and handle potential retries
         request_url = get_request_url(license)
@@ -149,7 +152,7 @@ def get_response_elems(license):
 def set_up_data_file():
     """Writes the header row to the file to contain DeviantArt data."""
     LOG.info("Setting up data file by writing the header row.")
-    
+
     header_title = "LICENSE TYPE,Document Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
@@ -162,8 +165,11 @@ def record_license_data(license_type):
     It's a segment of the URL towards the license description. If not provided,
     it defaults to None, indicating no assumption about the license type.
     """
-    LOG.info("Writing the row for license type %s to contain DeviantArt data", license_type)
-    
+    LOG.info(
+        "Writing the row for license type %s to contain DeviantArt data",
+        license_type,
+    )
+
     data_log = (
         f"{license_type},"
         f"{get_response_elems(license_type)['totalResults']}"
@@ -179,7 +185,7 @@ def record_all_licenses():
     constant.
     """
     LOG.info("Recording data for all available license types.")
-    
+
     # Get the list of license types
     license_list = get_license_list()
     # Record data for each license types
