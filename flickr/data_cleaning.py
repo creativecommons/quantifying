@@ -34,15 +34,15 @@ def drop_empty_column(csv_path, new_csv_path):
     - csv_path (str): Path to the original CSV file.
     - new_csv_path (str): Path to save the cleaned CSV file.
     """
-    LOG.info("Dropping 'Unnamed' columns from the CSV file.")
+    LOGGER.info("Dropping 'Unnamed' columns from the CSV file.")
 
     df = pd.read_csv(csv_path)
     for col in df.columns:
         if "Unnamed" in col:
             data = df.drop(col, axis=1)
-            LOG.info(f"Dropping column {col}")
+            LOGGER.info(f"Dropping column {col}")
     data.to_csv(new_csv_path)
-    LOG.info("Dropping empty columns completed.")
+    LOGGER.info("Dropping empty columns completed.")
 
 
 def drop_duplicate_id(csv_path, new_csv_path):
@@ -53,14 +53,14 @@ def drop_duplicate_id(csv_path, new_csv_path):
     - csv_path (str): Path to the original CSV file.
     - new_csv_path (str): Path to save the cleaned CSV file.
     """
-    LOG.info(
+    LOGGER.info(
         "Dropping duplicate rows based on the 'id' column from the CSV file."
     )
 
     df = pd.read_csv(csv_path)
     data = df.drop_duplicates(subset=["id"])
     data.to_csv(new_csv_path)
-    LOG.info("Dropping duplicates completed.")
+    LOGGER.info("Dropping duplicates completed.")
 
 
 def save_new_data(csv_path, column_name_list, new_csv_path):
@@ -73,15 +73,15 @@ def save_new_data(csv_path, column_name_list, new_csv_path):
     (belongs to the existing column names from original csv)
     - new_csv_path (str): Path to save the new CSV file.
     """
-    LOG.info("Saving columns from the original CSV to a new CSV.")
+    LOGGER.info("Saving columns from the original CSV to a new CSV.")
 
     df = pd.read_csv(csv_path)
     new_df = pd.DataFrame()
     for col in column_name_list:
         new_df[col] = list(df[col])
-        LOG.info(f"Saving column {col}")
+        LOGGER.info(f"Saving column {col}")
     new_df.to_csv(new_csv_path)
-    LOG.info("Saving new data to new csv")
+    LOGGER.info("Saving new data to new csv")
 
 
 def main():
