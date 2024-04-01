@@ -98,7 +98,7 @@ to be run manually or with every commit:
        ```
    - Run manually before commit:
        ```shell
-       pipenv run pre-commit -a
+       pipenv run pre-commit run -a
        ```
 3. _(Optional)_ review the configuration file:
    [`.pre-commit-config.yaml`](`.pre-commit-config.yaml`)
