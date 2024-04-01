@@ -4,6 +4,7 @@ This file is dedicated to obtain a .csv record report for DeviantArt
 data.
 """
 # Standard library
+import logging
 import os
 import sys
 
@@ -41,6 +42,25 @@ DATA_WRITE_FILE = (
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
+
 
 def get_license_list():
     """
@@ -51,6 +71,8 @@ def get_license_list():
             An np array containing all license types that should be searched
             via Programmable Search Engine (PSE).
     """
+    LOG.info("Retrieving list of license from Creative Commons' record.")
+
     # Read license data from file
     cc_license_data = pd.read_csv(
         f"{PATH_REPO_ROOT}/legal-tool-paths.txt", header=None
@@ -76,6 +98,8 @@ def get_request_url(license):
     Returns:
     - str: The API Endpoint URL for the query specified by parameters.
     """
+    LOG.info(f"Generating API Endpoint URL for specified license: {license}")
+
     try:
         api_key = API_KEYS[API_KEYS_IND]
         return (
@@ -103,6 +127,8 @@ def get_response_elems(license):
     - dict: A dictionary mapping metadata to its value provided from the API
     query.
     """
+    LOG.info("Making a request to the API and handling potential retries.")
+
     try:
         # Make a request to the API and handle potential retries
         request_url = get_request_url(license)
@@ -148,6 +174,11 @@ def record_license_data(license_type):
             default None value stands for having no assumption about license
             type.
     """
+    LOG.info(
+        "Writing the row for license type %s to contain DeviantArt data",
+        license_type,
+    )
+
     data_log = (
         f"{license_type},"
         f"{get_response_elems(license_type)['totalResults']}"
@@ -174,6 +205,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:

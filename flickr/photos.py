@@ -5,6 +5,7 @@ each Creative Commons license and saving the data into a JSON file
 
 # Standard library
 import json
+import logging
 import os
 import sys
 
@@ -21,6 +22,25 @@ _, PATH_WORK_DIR, PATH_DOTENV, _, LOGGER = quantify.setup(__file__)
 
 # Load environment variables
 load_dotenv(PATH_DOTENV)
+
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
 
 
 def main():
@@ -44,6 +64,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:

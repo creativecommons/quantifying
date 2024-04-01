@@ -5,6 +5,7 @@ Google Custom Search Data.
 """
 
 # Standard library
+import logging
 import os
 import sys
 
@@ -53,6 +54,25 @@ DATA_WRITE_FILE_COUNTRY = (
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
+
 
 def get_license_list():
     """
@@ -87,6 +107,11 @@ def get_lang_list():
                 A Dataframe whose index is language name and has a column for
                 the corresponding language code.
     """
+    LOG.info(
+        "Providing the list of languages "
+        "to find Creative Commons usage data on."
+    )
+
     languages = pd.read_csv(
         f"{PATH_WORK_DIR}/google_lang.txt",
         sep=": ",
@@ -177,6 +202,10 @@ def get_request_url(license=None, country=None, language=None, time=False):
             A string representing the API Endpoint URL for the query specified
             by this function's parameters.
     """
+    LOG.info(
+        "Providing the API Endpoint URL for specified parameter combinations."
+    )
+
     try:
         api_key = API_KEYS[API_KEYS_IND]
         base_url = (
@@ -231,6 +260,8 @@ def get_response_elems(license=None, country=None, language=None, time=False):
             A dictionary mapping metadata to its value provided from the API
             query of specified parameters.
     """
+    LOG.info("Providing the metadata for a query of specified parameters.")
+
     try:
         # Make a request to the API and handle potential retries
         request_url = get_request_url(license, country, language, time)
@@ -302,6 +333,11 @@ def record_license_data(license_type=None, time=False, country=False):
             A boolean indicating whether this query is related to country
             occurrence.
     """
+    LOG.info(
+        "Writing the row for LICENSE_TYPE "
+        "to file to contain Google Query data."
+    )
+
     if license_type is None:
         data_log = "all"
     else:
@@ -369,6 +405,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:

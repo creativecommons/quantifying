@@ -5,6 +5,7 @@ data.
 """
 
 # Standard library
+import logging
 import os
 import sys
 
@@ -27,6 +28,25 @@ DATA_WRITE_FILE = (
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
+
 
 def get_request_url():
     """Provides the API Endpoint URL for specified parameter combinations.
@@ -34,6 +54,10 @@ def get_request_url():
         string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
+    LOG.info(
+        "Providing the API Endpoint URL for specified parameter combinations."
+    )
+
     return "https://collectionapi.metmuseum.org/public/collection/v1/objects"
 
 
@@ -44,6 +68,8 @@ def get_response_elems():
         dict: A dictionary mapping metadata to its value provided from the API
         query of specified parameters.
     """
+    LOG.info("Providing the metadata for query of specified parameters.")
+
     try:
         request_url = get_request_url()
         max_retries = Retry(
@@ -68,6 +94,8 @@ def get_response_elems():
 
 def set_up_data_file():
     """Writes the header row to file to contain metmuseum data."""
+    LOG.info("Writing the header row to file to contain metmuseum data.")
+
     header_title = "LICENSE TYPE,Document Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
@@ -77,6 +105,12 @@ def record_all_licenses():
     """Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
+    LOG.info(
+        "Recording the data of all license types "
+        "in the license list and "
+        "recording them into DATA_WRITE_FILE"
+    )
+
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(f"publicdomain/zero/1.0,{get_response_elems()['total']}\n")
 
@@ -87,6 +121,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:

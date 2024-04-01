@@ -4,6 +4,7 @@ data.
 """
 
 # Standard library
+import logging
 import os
 import sys
 
@@ -28,6 +29,25 @@ DATA_WRITE_FILE = (
     f"/data_internetarchive_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
 )
+
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
 
 
 def get_license_list():
@@ -70,6 +90,8 @@ def get_response_elems(license):
             A dictionary mapping metadata to its value provided from the API
             query of specified parameters.
     """
+    LOG.info("Providing the metadata for query of specified parameters.")
+
     try:
         max_retries = Retry(
             total=5,
@@ -109,6 +131,10 @@ def record_license_data(license_type):
             default None value stands for having no assumption about license
             type.
     """
+    LOG.info(
+        "Writing the row for LICENSE_TYPE to file to contain IA Query data."
+    )
+
     data_log = (
         f"{license_type},"
         f"{get_response_elems(license_type)['totalResults']}"
@@ -134,6 +160,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:

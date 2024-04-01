@@ -79,36 +79,33 @@ follow these steps:
 
 ### Static analysis
 
+Static analysis tools ensure the codebase adheres to consistent formatting and
+style guidelines, enhancing readability and maintainability. Also see GitHub
+Actions, below.
+
+
 #### Using [`pre-commit`][pre-commit]
-1. Install pre-commit
 
-      - Using pip:
-        ```shell
-        pip install pre-commit
-        ```
-      - Using homebrew:
-        ```shell
-        brew install pre-commit
-        ```
+Pre-commit allows for static analysis tools (`black`, `flake8`, `isort`, etc.)
+to be run manually or with every commit:
 
-2. Install the git hook scripts
-   ```shell
-   pre-commit install
-   ```
+1. (Pre-commit is installed by completing Create the Python virtual environment
+   and install prerequisites, above)
+2. Install or run manually
+   - Install the git hook scripts to enable automatic execution on every commit
+       ```shell
+       pipenv run pre-commit install
+       ```
+   - Run manually before commit:
+       ```shell
+       pipenv run pre-commit run -a
+       ```
+3. _(Optional)_ review the configuration file:
+   [`.pre-commit-config.yaml`](`.pre-commit-config.yaml`)
 
-It will run on every commit automatically.
-
-### pre-commit Configuration
-
-A `.pre-commit-config.yaml` file has been added to the repository. This configuration file defines hooks to maintain code quality and formatting standards. These hooks are automatically executed before each commit to ensure consistency across the codebase. They include:
-
-- **Black**: A code formatter for Python.
-- **Flake8**: A tool that checks Python code for style and quality.
-- **isort**: A utility for sorting and formatting Python imports.
-
-The configuration ensures that the codebase adheres to consistent formatting and style guidelines, enhancing readability and maintainability.
 
 #### Using [`dev/tools.sh`][tools-sh] helper script
+
 The [`dev/tools.sh`][tools-sh] helper script runs the static analysis tools
 (`black`, `flake8`, and `isort`):
 ```shell
