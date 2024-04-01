@@ -101,7 +101,7 @@ to be run manually or with every commit:
        pipenv run pre-commit run -a
        ```
 3. _(Optional)_ review the configuration file:
-   [`.pre-commit-config.yaml`](`.pre-commit-config.yaml`)
+   [`.pre-commit-config.yaml`](.pre-commit-config.yaml)
 
 
 #### Using [`dev/tools.sh`][tools-sh] helper script
