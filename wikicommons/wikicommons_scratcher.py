@@ -5,7 +5,6 @@ Data.
 """
 
 # Standard library
-import datetime as dt
 import logging
 import os
 import sys
