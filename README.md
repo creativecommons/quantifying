@@ -89,18 +89,12 @@ Actions, below.
 Pre-commit allows for static analysis tools (`black`, `flake8`, `isort`, etc.)
 to be run manually or with every commit:
 
-1. Install pre-commit
-   - Using pipenv:
-     _(already completed by Create the Python virtual environment and
-     install prerequisites, above)_
-   - Using homebrew:
-        ```shell
-        brew install pre-commit
-        ```
+1. (Pre-commit is installed by completing Create the Python virtual environment
+   and install prerequisites, above)
 2. Install or run manually
    - Install the git hook scripts to enable automatic execution on every commit
        ```shell
-       pre-commit install
+       pipenv run pre-commit install
        ```
    - Run manually before commit:
        ```shell
