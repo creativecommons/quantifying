@@ -8,7 +8,6 @@ cannot be mounted with exponential backoff adapter.
 """
 
 # Standard library
-import datetime as dt
 import logging
 import os
 import sys
