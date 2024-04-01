@@ -4,7 +4,6 @@ This file is dedicated to obtain a .csv record report for DeviantArt
 data.
 """
 # Standard library
-import datetime as dt
 import logging
 import os
 import sys
