@@ -3,6 +3,7 @@ This file is the script of data analysis and visualization
 """
 
 # Standard library
+import logging
 import os.path
 import re
 import sys
@@ -24,6 +25,28 @@ from wordcloud import STOPWORDS, WordCloud  # noqa: E402
 # Set the current working directory
 PATH_WORK_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Set the current working directory
+CWD = os.path.dirname(os.path.abspath(__file__))
+
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
+
 
 def tags_frequency(csv_path, column_names):
     """
@@ -36,6 +59,8 @@ def tags_frequency(csv_path, column_names):
                            Example: ["tags", "description"]
 
     """
+    LOG.info("Generating word cloud based on tags.")
+
     df = pd.read_csv(csv_path)
     # Process each column containing tags
     for column_name in column_names:
@@ -54,7 +79,7 @@ def tags_frequency(csv_path, column_names):
                     and str(row) != ""
                     and str(row) != "nan"
                 ):
-                    print(str(row))
+                    LOG.debug(f"Processing row: {row}")
                     if "ChineseinUS.org" in str(row):
                         row = "ChineseinUS"
                     list2 += re.split(r"\s|(?<!\d)[,.](?!\d)", str(row))
@@ -143,6 +168,8 @@ def time_trend_helper(df):
     Returns:
     - DataFrame: DataFrame with counts of entries per year.
     """
+    LOG.info("Extracting year-wise count of entries.")
+
     year_list = []
     for date_row in df["dates"][0:]:
         date_list = str(date_row).split()
@@ -169,6 +196,8 @@ def time_trend(csv_path):
     Args:
     - csv_path (str): Path to the CSV file.
     """
+    LOG.info("Generating time trend line graph.")
+
     df = pd.read_csv(csv_path)
     count_df = time_trend_helper(df)
 
@@ -210,6 +239,8 @@ def time_trend_compile_helper(yearly_count):
     Returns:
     - DataFrame: Filtered yearly count data.
     """
+    LOG.info("Filtering yearly trend data.")
+
     Years = np.arange(2018, 2023)
     yearly_count["year"] = list(yearly_count.index)
     counts = []
@@ -218,7 +249,7 @@ def time_trend_compile_helper(yearly_count):
             int(yearly_count["year"][num]) >= 2018
         ):
             counts.append(yearly_count["Counts"][num])
-    print(counts)
+    LOG.info(f"{counts}")
     final_yearly_count = pd.DataFrame(
         list(zip(Years, counts)), columns=["Years", "Yearly_counts"]
     )
@@ -229,6 +260,8 @@ def time_trend_compile():
     """
     Compile yearly trends for different licenses and plot them.
     """
+    LOG.info("Compiling yearly trends for different licenses.")
+
     license1 = pd.read_csv("../flickr/dataset/cleaned_license1.csv")
     license2 = pd.read_csv("../flickr/dataset/cleaned_license2.csv")
     license3 = pd.read_csv("../flickr/dataset/cleaned_license3.csv")
@@ -286,7 +319,7 @@ def time_trend_compile():
     yearly_count6 = time_trend_compile_helper(yearly_count6)
     yearly_count9 = time_trend_compile_helper(yearly_count9)
     yearly_count10 = time_trend_compile_helper(yearly_count10)
-    print(yearly_count1)
+    LOG.info(f"{yearly_count1}")
 
     # Plot yearly trend for all licenses
     plt.plot(
@@ -375,17 +408,21 @@ def view_compare_helper(df):
     Returns:
     - int: Maximum views.
     """
+    LOG.info("Calculating maximum views of pictures under a license.")
+
     highest_view = int(max(df["views"]))
     df = df.sort_values("views", ascending=False)
+    LOG.info(f"DataFrame sorted by views in descending order: {df}")
+    LOG.info(f"Maximum views found: {highest_view}")
     return highest_view
-    print(df)
-    print(highest_view)
 
 
 def view_compare():
     """
     Compare maximum views of pictures under different licenses.
     """
+    LOG.info("Comparing maximum views of pictures under different licenses.")
+
     license1 = pd.read_csv(
         os.path.join(PATH_WORK_DIR, "../flickr/dataset/cleaned_license1.csv")
     )
@@ -424,7 +461,7 @@ def view_compare():
     maxs = []
     for lic in licenses:
         maxs.append(view_compare_helper(lic))
-    print(maxs)
+    LOG.info(f"{maxs}")
     # Create DataFrame to store license and their maximum views
     temp_data = pd.DataFrame()
     temp_data["Licenses"] = [
@@ -480,6 +517,8 @@ def total_usage():
     """
     Generate a bar plot showing the total usage of different licenses.
     """
+    LOG.info("Generating bar plot showing total usage of different licenses.")
+
     # Reads the license total file as the input dataset
     df = pd.read_csv(
         os.path.join(PATH_WORK_DIR, "../flickr/dataset/license_total.csv")
@@ -499,15 +538,15 @@ def main():
 
 
 if __name__ == "__main__":
-    # Exception handling
+    # Exception Handling
     try:
         main()
     except SystemExit as e:
+        LOG.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOG.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
-    sys.exit(1)
+        LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
+        sys.exit(1)

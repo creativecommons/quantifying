@@ -8,6 +8,7 @@ cannot be mounted with exponential backoff adapter.
 """
 
 # Standard library
+import logging
 import os
 import sys
 import traceback
@@ -35,6 +36,25 @@ DATA_WRITE_FILE = os.path.join(
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
+
 
 def get_license_list():
     """Provides the list of license from a Creative Commons searched licenses.
@@ -42,6 +62,12 @@ def get_license_list():
         List: A list containing all license types that should be searched in
         all possible license filters of Vimeo API.
     """
+
+    LOG.info(
+        "Providing the list of licenses "
+        "from a Creative Commons searched license."
+    )
+
     return [
         "CC",
         "CC-BY",
@@ -68,6 +94,10 @@ def get_request_url(license="CC"):
         string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
+    LOG.info(
+        "Providing the API Endpoint URL for specified parameter combinations."
+    )
+
     return (
         f"https://api.vimeo.com/videos?filter={license}"
         f"&client_id={CLIENT_ID}&access_token={ACCESS_TOKEN}"
@@ -86,6 +116,8 @@ def get_response_elems(license):
         dict: A dictionary mapping metadata to its value provided from the API
         query of specified parameters.
     """
+    LOG.info("Providing the metadata for query of specified parameters.")
+
     try:
         request_url = get_request_url(license=license)
         max_retries = Retry(
@@ -105,6 +137,8 @@ def get_response_elems(license):
 
 def set_up_data_file():
     """Writes the header row to file to contain Vimeo data."""
+    LOG.info("Writing the header row to file to contain Vimeo data.")
+
     header_title = "LICENSE TYPE,Document Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
@@ -119,6 +153,8 @@ def record_license_data(license_type):
             default None value stands for having no assumption about license
             type.
     """
+    LOG.info("Writing the header row to file to contain Vimeo Query data.")
+
     data_log = (
         f"{license_type},"
         f"{get_response_elems(license_type)['totalResults']}"
@@ -131,6 +167,12 @@ def record_all_licenses():
     """Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
+    LOG.info(
+        "Recording the data of all license types "
+        "in the license list and recording them "
+        "into DATA_WRITE_FILE"
+    )
+
     license_list = get_license_list()
     for license_type in license_list:
         record_license_data(license_type)
@@ -142,14 +184,15 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:
+        LOG.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOG.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)

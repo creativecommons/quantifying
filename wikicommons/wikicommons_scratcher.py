@@ -5,6 +5,7 @@ Data.
 """
 
 # Standard library
+import logging
 import os
 import sys
 import traceback
@@ -28,6 +29,25 @@ DATA_WRITE_FILE = os.path.join(
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
+# Set up the logger
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+# Define both the handler and the formatter
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
+
+# Add formatter to the handler
+handler.setFormatter(formatter)
+
+# Add handler to the logger
+LOG.addHandler(handler)
+
+# Log the start of the script execution
+LOG.info("Script execution started.")
+
 
 def get_content_request_url(license):
     """Provides the API Endpoint URL for specified parameters' WikiCommons
@@ -44,6 +64,10 @@ def get_content_request_url(license):
         string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
+    LOG.info(
+        "Providing the API Endpoint URL for specified parameters' WikiCommons."
+    )
+
     return (
         r"https://commons.wikimedia.org/w/api.php?"
         r"action=query&prop=categoryinfo&titles="
@@ -66,6 +90,12 @@ def get_subcat_request_url(license):
         string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
+    LOG.info(
+        "Providing the API Endpoint URL "
+        "for specified parameters' WikiCommons "
+        "subcategories for recursive searching."
+    )
+
     base_url = (
         r"https://commons.wikimedia.org/w/api.php?"
         r"action=query&cmtitle="
@@ -94,6 +124,12 @@ def get_subcategories(license, session):
         in WikiCommons dataset from a provided API Endpoint URL for the query
         specified by this function's parameters.
     """
+    LOG.info(
+        "Obtaining the subcategories of "
+        "LICENSE in WikiCommons Database "
+        "for recursive searching."
+    )
+
     try:
         request_url = get_subcat_request_url(license)
         with session.get(request_url) as response:
@@ -107,12 +143,9 @@ def get_subcategories(license, session):
         return category_list
     except Exception as e:
         if "queries" not in search_data:
-            print(
-                (
-                    f"search data is: \n{search_data} for license {license}"
-                    f"This query will not be processed due to empty result."
-                ),
-                file=sys.stderr,
+            LOG.exception(
+                f"search data is: \n{search_data} "
+                f"for license {license} - empty result"
             )
             sys.exit(1)
         else:
@@ -136,6 +169,8 @@ def get_license_contents(license, session):
         dict: A dictionary mapping metadata to its value provided from the API
         query of specified parameters.
     """
+    LOG.info("Providing the metadata for query of specified parameters.")
+
     try:
         request_url = get_content_request_url(license)
         with session.get(request_url) as response:
@@ -154,12 +189,9 @@ def get_license_contents(license, session):
         return search_data_dict
     except Exception as e:
         if "queries" not in search_data:
-            print(
-                (
-                    f"search data is: \n{search_data} for license {license}"
-                    f"This query will not be processed due to empty result."
-                ),
-                file=sys.stderr,
+            LOG.exception(
+                f"search data is: \n{search_data} for license {license}"
+                f"This query will not be processed due to empty result."
             )
             sys.exit(1)
         else:
@@ -168,6 +200,10 @@ def get_license_contents(license, session):
 
 def set_up_data_file():
     """Writes the header row to file to contain WikiCommons Query data."""
+    LOG.info(
+        "Writing the header row to file to contain WikiCommons Query data."
+    )
+
     header_title = "LICENSE TYPE,File Count,Page Count\n"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(header_title)
@@ -190,6 +226,10 @@ def record_license_data(license_type, license_alias, session):
             A requests.Session object for accessing API endpoints and
             retrieving API endpoint responses.
     """
+    LOG.info(
+        "Writing the row for LICENSE_TYPE to file to contain WikiCommon Query."
+    )
+
     search_result = get_license_contents(license_type, session)
     cleaned_alias = license_alias.replace(",", "|")
     data_log = (
@@ -216,6 +256,12 @@ def recur_record_all_licenses(license_alias="Free_Creative_Commons_licenses"):
             eventual efforts of aggregating data. Defaults to
             "Free_Creative_Commons_licenses".
     """
+    LOG.info(
+        "Recursively recording the data of all "
+        "license types findable in the license "
+        "lists and recording into DATA_WRITE_FILE"
+    )
+
     license_cache = {}
     session = requests.Session()
     max_retries = Retry(
@@ -244,14 +290,15 @@ def main():
 
 
 if __name__ == "__main__":
+    # Exception Handling
     try:
         main()
     except SystemExit as e:
+        LOG.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOG.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)
