@@ -80,7 +80,6 @@ def get_license_list():
     cc_license_data = pd.read_csv(
         os.path.join(PATH_WORK_DIR, "legal-tool-paths.txt"), header=None
     )
-    
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
     license_list = (
         cc_license_data[0]

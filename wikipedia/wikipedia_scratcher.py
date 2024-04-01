@@ -65,7 +65,6 @@ def get_wiki_langs():
         "Providing the list of languages "
         "to find Creative Commons usage data on."
     )
-  
     return pd.read_csv(os.path.join(PATH_WORK_DIR, "language-codes_csv.csv"))
 
 
