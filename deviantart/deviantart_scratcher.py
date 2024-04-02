@@ -4,7 +4,6 @@ This file is dedicated to obtain a .csv record report for DeviantArt
 data.
 """
 # Standard library
-import logging
 import os
 import sys
 import traceback
@@ -20,41 +19,31 @@ sys.path.append(".")
 # First-party/Local
 import quantify  # noqa: E402
 
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
-    __file__
+# Setup paths, Date and LOGGER using quantify.setup()
+PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
+    quantify.setup(__file__)
 )
+
+# Load environment variables
 load_dotenv(PATH_DOTENV)
 
-# Retrieve API keys
-API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
+
+# Global Variable for API_KEYS indexing
 API_KEYS_IND = 0
+
+# Gets API_KEYS and PSE_KEY from .env file
+API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
+PSE_KEY = os.getenv("PSE_KEY")
+
 # Set up file path for CSV report
 DATA_WRITE_FILE = os.path.join(
     PATH_WORK_DIR,
-    f"data_deviantart_"
+    f"/data_deviantart_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
-# Retrieve Programmable Search Engine key from environment variables
-PSE_KEY = os.getenv("PSE_KEY")
-
-# Set up the logger
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
-
-# Define both the handler and the formatter
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
-
-# Add formatter to the handler
-handler.setFormatter(formatter)
-
-# Add handler to the logger
-LOG.addHandler(handler)
 
 # Log the start of the script execution
-LOG.info("Script execution started.")
+LOGGER.info("Script execution started.")
 
 
 def get_license_list():
@@ -62,14 +51,15 @@ def get_license_list():
     Provides the list of license from 2018's record of Creative Commons.
 
     Returns:
-    - np.array: An array containing all license types that should be
-    searched via Programmable Search Engine.
+    - np.array:
+            An np array containing all license types that should be searched
+            via Programmable Search Engine (PSE).
     """
-    LOG.info("Retrieving list of license from Creative Commons' record.")
+    LOGGER.info("Retrieving list of license from Creative Commons' record.")
 
     # Read license data from file
     cc_license_data = pd.read_csv(
-        os.path.join(PATH_WORK_DIR, "legal-tool-paths.txt"), header=None
+        f"{PATH_REPO_ROOT}/legal-tool-paths.txt", header=None
     )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
@@ -92,7 +82,9 @@ def get_request_url(license):
     Returns:
     - str: The API Endpoint URL for the query specified by parameters.
     """
-    LOG.info(f"Generating API Endpoint URL for specified license: {license}")
+    LOGGER.info(
+        f"Generating API Endpoint URL for specified license: {license}"
+    )
 
     try:
         api_key = API_KEYS[API_KEYS_IND]
@@ -104,7 +96,7 @@ def get_request_url(license):
         )
     except Exception as e:
         if isinstance(e, IndexError):
-            LOG.exception("Depleted all API Keys provided")
+            LOGGER.error("Depleted all API Keys provided")
         else:
             raise e
 
@@ -121,7 +113,7 @@ def get_response_elems(license):
     - dict: A dictionary mapping metadata to its value provided from the API
     query.
     """
-    LOG.info("Making a request to the API and handling potential retries.")
+    LOGGER.info("Making a request to the API and handling potential retries.")
 
     try:
         # Make a request to the API and handle potential retries
@@ -146,16 +138,14 @@ def get_response_elems(license):
             # If quota limit exceeded, switch to the next API key
             global API_KEYS_IND
             API_KEYS_IND += 1
-            LOG.exception("Changing API KEYS due to depletion of quota")
+            LOGGER.error("Changing API KEYS due to depletion of quota")
             return get_response_elems(license)
         else:
             raise e
 
 
 def set_up_data_file():
-    """Writes the header row to the file to contain DeviantArt data."""
-    LOG.info("Setting up data file by writing the header row.")
-
+    # Writes the header row to the file to contain DeviantArt data.
     header_title = "LICENSE TYPE,Document Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
@@ -164,11 +154,13 @@ def set_up_data_file():
 def record_license_data(license_type):
     """Writes the row for LICENSE_TYPE to the file to contain DeviantArt data.
     Args:
-    - license_type(str): A string representing the type of license.
-    It's a segment of the URL towards the license description. If not provided,
-    it defaults to None, indicating no assumption about the license type.
+    - license_type:
+            A string representing the type of license, and should be a segment
+            of its URL towards the license description. Alternatively, the
+            default None value stands for having no assumption about license
+            type.
     """
-    LOG.info(
+    LOGGER.info(
         "Writing the row for license type %s to contain DeviantArt data",
         license_type,
     )
@@ -187,11 +179,8 @@ def record_all_licenses():
     list and writes this data into the DATA_WRITE_FILE, as specified by the
     constant.
     """
-    LOG.info("Recording data for all available license types.")
-
-    # Get the list of license types
+    # Gets the list of license types and record data for each license type
     license_list = get_license_list()
-    # Record data for each license types
     for license_type in license_list:
         record_license_data(license_type)
 
@@ -202,15 +191,14 @@ def main():
 
 
 if __name__ == "__main__":
-    # Exception Handling
     try:
         main()
     except SystemExit as e:
-        LOG.error(f"System exit with code: {e.code}")
+        LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        LOG.info("(130) Halted via KeyboardInterrupt.")
+        LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOG.error(f"(1) Unhandled exception: {traceback.format_exc()}")
+        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)
