@@ -36,7 +36,7 @@ CLIENT_ID = os.getenv("VIMEO_CLIENT_ID")
 # Set up file path for CSV report
 DATA_WRITE_FILE = os.path.join(
     PATH_WORK_DIR,
-    f"/data_vimeo_"
+    "data_vimeo_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 

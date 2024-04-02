@@ -33,12 +33,12 @@ API_KEY = os.getenv("YOUTUBE_API_KEY")
 # Set up file path for CSV report
 DATA_WRITE_FILE = os.path.join(
     PATH_WORK_DIR,
-    f"/data_youtube_"
+    "data_youtube_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 DATA_WRITE_FILE_TIME = os.path.join(
     PATH_WORK_DIR,
-    f"/data_youtube_time_"
+    "data_youtube_time_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 

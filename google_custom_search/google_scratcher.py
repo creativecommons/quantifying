@@ -40,17 +40,17 @@ SEARCH_HALFYEAR_SPAN = 20
 # Set up file path for CSV report
 DATA_WRITE_FILE = os.path.join(
     PATH_WORK_DIR,
-    f"/data_google_custom_search_"
+    "data_google_custom_search_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 DATA_WRITE_FILE_TIME = os.path.join(
     PATH_WORK_DIR,
-    f"/data_google_custom_search_time_"
+    "data_google_custom_search_time_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 DATA_WRITE_FILE_COUNTRY = os.path.join(
     PATH_WORK_DIR,
-    f"/data_google_custom_search_country_"
+    "data_google_custom_search_country_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
@@ -69,7 +69,7 @@ def get_license_list():
     """
     # Read license data from file
     cc_license_data = pd.read_csv(
-        f"{PATH_REPO_ROOT}/legal-tool-paths.txt", header=None
+        os.path.join(PATH_REPO_ROOT, "legal-tool-paths.txt"), header=None
     )
     # Define regex pattern to extract license types
     license_pattern = r"((?:[^/]+/){2}(?:[^/]+)).*"
@@ -97,7 +97,7 @@ def get_lang_list():
     )
 
     languages = pd.read_csv(
-        f"{PATH_WORK_DIR}/google_lang.txt",
+        os.path.join(PATH_WORK_DIR, "google_lang.txt"),
         sep=": ",
         header=None,
         engine="python",

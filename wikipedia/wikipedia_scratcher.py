@@ -23,7 +23,7 @@ _, PATH_WORK_DIR, _, DATETIME_TODAY, LOGGER = quantify.setup(__file__)
 # Set up file path for CSV report
 DATA_WRITE_FILE = os.path.join(
     PATH_WORK_DIR,
-    f"/data_wikipedia_"
+    "data_wikipedia_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
