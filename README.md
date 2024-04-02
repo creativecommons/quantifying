@@ -133,7 +133,7 @@ directories to check:
 - [ppypa/pipenv][pipenv]: _Python Development Workflow for Humans._
 - [pre-commit][pre-commit]: _A framework for managing and maintaining
   multi-language pre-commit hooks._
-  [Logging][logging]: _Utilize the built-in Python logging module to implement a flexible logging system from a shared module._
+- [Logging][logging]: _Utilize the built-in Python logging module to implement a flexible logging system from a shared module._
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black

@@ -5,46 +5,30 @@ Data.
 """
 
 # Standard library
-import logging
 import os
 import sys
+import traceback
 
 # Third-party
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+sys.path.append(".")
 # First-party/Local
-import quantify
+import quantify  # noqa: E402
 
 # Setup PATH_WORK_DIR, Date and LOGGER using quantify.setup()
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 _, PATH_WORK_DIR, _, DATETIME_TODAY, LOGGER = quantify.setup(__file__)
 # Set up file path for CSV report
-DATA_WRITE_FILE = (
-    f"{PATH_WORK_DIR}"
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
     f"/data_wikicommons_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
-
-# Set up the logger
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
-
-# Define both the handler and the formatter
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
-
-# Add formatter to the handler
-handler.setFormatter(formatter)
-
-# Add handler to the logger
-LOG.addHandler(handler)
 
 # Log the start of the script execution
-LOG.info("Script execution started.")
+LOGGER.info("Script execution started.")
 
 
 def get_content_request_url(license):
@@ -62,7 +46,7 @@ def get_content_request_url(license):
     -   string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
-    LOG.info(
+    LOGGER.info(
         "Providing the API Endpoint URL for specified parameters' WikiCommons."
     )
 
@@ -88,7 +72,7 @@ def get_subcat_request_url(license):
     -   string: A string representing the API Endpoint URL for the query
         specified by this function's parameters.
     """
-    LOG.info(
+    LOGGER.info(
         "Providing the API Endpoint URL "
         "for specified parameters' WikiCommons "
         "subcategories for recursive searching."
@@ -122,7 +106,7 @@ def get_subcategories(license, session):
         in WikiCommons dataset from a provided API Endpoint URL for the query
         specified by this function's parameters.
     """
-    LOG.info(
+    LOGGER.info(
         "Obtaining the subcategories of "
         "LICENSE in WikiCommons Database "
         "for recursive searching."
@@ -171,7 +155,7 @@ def get_license_contents(license, session):
     -   dict: A dictionary mapping metadata to its value provided from the API
         query of specified parameters.
     """
-    LOG.info("Providing the metadata for query of specified parameters.")
+    LOGGER.info("Providing the metadata for query of specified parameters.")
 
     try:
         request_url = get_content_request_url(license)
@@ -206,7 +190,7 @@ def get_license_contents(license, session):
 
 def set_up_data_file():
     """Writes the header row to file to contain WikiCommons Query data."""
-    LOG.info(
+    LOGGER.info(
         "Writing the header row to file to contain WikiCommons Query data."
     )
 
@@ -232,7 +216,7 @@ def record_license_data(license_type, license_alias, session):
             A requests.Session object for accessing API endpoints and
             retrieving API endpoint responses.
     """
-    LOG.info(
+    LOGGER.info(
         "Writing the row for LICENSE_TYPE to file to contain WikiCommon Query."
     )
 
@@ -262,7 +246,7 @@ def recur_record_all_licenses(license_alias="Free_Creative_Commons_licenses"):
             eventual efforts of aggregating data. Defaults to
             "Free_Creative_Commons_licenses".
     """
-    LOG.info(
+    LOGGER.info(
         "Recursively recording the data of all "
         "license types findable in the license "
         "lists and recording into DATA_WRITE_FILE"
@@ -296,15 +280,14 @@ def main():
 
 
 if __name__ == "__main__":
-    # Exception Handling
     try:
         main()
     except SystemExit as e:
-        LOGGER.error("System exit with code: %d", e.code)
+        LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        LOGGER.info("Halted via KeyboardInterrupt.")
+        LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception("Unhandled exception:")
+        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)

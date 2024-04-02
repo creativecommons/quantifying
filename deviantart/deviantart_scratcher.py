@@ -4,9 +4,9 @@ This file is dedicated to obtain a .csv record report for DeviantArt
 data.
 """
 # Standard library
-import logging
 import os
 import sys
+import traceback
 
 # Third-party
 import pandas as pd
@@ -15,11 +15,11 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+sys.path.append(".")
 # First-party/Local
-import quantify
+import quantify  # noqa: E402
 
 # Setup paths, Date and LOGGER using quantify.setup()
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
     quantify.setup(__file__)
 )
@@ -36,30 +36,14 @@ API_KEYS = os.getenv("GOOGLE_API_KEYS").split(",")
 PSE_KEY = os.getenv("PSE_KEY")
 
 # Set up file path for CSV report
-DATA_WRITE_FILE = (
-    f"{PATH_WORK_DIR}"
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
     f"/data_deviantart_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
-
-# Set up the logger
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
-
-# Define both the handler and the formatter
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
-
-# Add formatter to the handler
-handler.setFormatter(formatter)
-
-# Add handler to the logger
-LOG.addHandler(handler)
 
 # Log the start of the script execution
-LOG.info("Script execution started.")
+LOGGER.info("Script execution started.")
 
 
 def get_license_list():
@@ -71,7 +55,7 @@ def get_license_list():
             An np array containing all license types that should be searched
             via Programmable Search Engine (PSE).
     """
-    LOG.info("Retrieving list of license from Creative Commons' record.")
+    LOGGER.info("Retrieving list of license from Creative Commons' record.")
 
     # Read license data from file
     cc_license_data = pd.read_csv(
@@ -98,7 +82,9 @@ def get_request_url(license):
     Returns:
     - str: The API Endpoint URL for the query specified by parameters.
     """
-    LOG.info(f"Generating API Endpoint URL for specified license: {license}")
+    LOGGER.info(
+        f"Generating API Endpoint URL for specified license: {license}"
+    )
 
     try:
         api_key = API_KEYS[API_KEYS_IND]
@@ -127,7 +113,7 @@ def get_response_elems(license):
     - dict: A dictionary mapping metadata to its value provided from the API
     query.
     """
-    LOG.info("Making a request to the API and handling potential retries.")
+    LOGGER.info("Making a request to the API and handling potential retries.")
 
     try:
         # Make a request to the API and handle potential retries
@@ -174,7 +160,7 @@ def record_license_data(license_type):
             default None value stands for having no assumption about license
             type.
     """
-    LOG.info(
+    LOGGER.info(
         "Writing the row for license type %s to contain DeviantArt data",
         license_type,
     )
@@ -205,15 +191,14 @@ def main():
 
 
 if __name__ == "__main__":
-    # Exception Handling
     try:
         main()
     except SystemExit as e:
-        LOGGER.error("System exit with code: %d", e.code)
+        LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        LOGGER.info("Halted via KeyboardInterrupt.")
+        LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception("Unhandled exception:")
+        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)

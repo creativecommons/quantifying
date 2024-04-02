@@ -9,21 +9,21 @@ step3: saving lists of data to DataFrame
 
 # Standard library
 import json
-import logging
 import os
 import sys
 import time
+import traceback
 
 # Third-party
 import flickrapi
 import pandas as pd
 from dotenv import load_dotenv
 
+sys.path.append(".")
 # First-party/Local
-import quantify
+import quantify  # noqa: E402
 
 # Setup paths, and LOGGER using quantify.setup()
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 _, PATH_WORK_DIR, PATH_DOTENV, _, LOGGER = quantify.setup(__file__)
 
 # Load environment variables
@@ -32,24 +32,9 @@ load_dotenv(PATH_DOTENV)
 # Global variable: Number of retries for error handling
 RETRIES = 0
 
-# Set up the logger
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
 
-# Define both the handler and the formatter
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
-
-# Add formatter to the handler
-handler.setFormatter(formatter)
-
-# Add handler to the logger
-LOG.addHandler(handler)
-
-# Log the start of the script execution
-LOG.info("Script execution started.")
+# LOG the start of the script execution
+LOGGER.info("Script execution started.")
 
 
 def to_df(datalist, namelist):
@@ -63,7 +48,7 @@ def to_df(datalist, namelist):
     Returns:
     - df (DataFrame): DataFrame constructed from the data.
     """
-    LOG.info("Transforming data into a DataFrame.")
+    LOGGER.info("Transforming data into a DataFrame.")
 
     df = [pd.DataFrame() for ind in range(len(datalist))]
     df = pd.DataFrame(datalist).transpose()
@@ -82,7 +67,7 @@ def df_to_csv(temp_list, name_list, temp_csv, final_csv):
     - temp_csv (str): Temporary CSV file path.
     - final_csv (str): Final CSV file path.
     """
-    LOG.info("Saving data to temporary CSV and merging with final CSV.")
+    LOGGER.info("Saving data to temporary CSV and merging with final CSV.")
 
     df = to_df(temp_list, name_list)
     df.to_csv(temp_csv)
@@ -102,7 +87,7 @@ def creat_lisoflis(size):
     Returns:
     - temp_list (list): List of empty lists.
     """
-    LOG.info("Saving all the columns with each column as a list")
+    LOGGER.info("Saving all the columns with each column as a list")
 
     temp_list = [[] for i in range(size)]
     return temp_list
@@ -116,7 +101,7 @@ def clean_saveas_csv(old_csv_str, new_csv_str):
     - old_csv_str (str): Path to the old CSV file.
     - new_csv_str (str): Path to the new CSV file.
     """
-    LOG.info("Cleaning empty columns and save CSV to a new file.")
+    LOGGER.info("Cleaning empty columns and save CSV to a new file.")
 
     data = pd.read_csv(old_csv_str, low_memory=False)
     for col in list(data.columns):
@@ -169,7 +154,7 @@ def query_data(raw_data, name_list, data_list):
     - data_list (list): List of lists to store data.
     """
 
-    LOG.info(
+    LOGGER.info(
         "Querying useful data from raw pulled data and storing it in lists."
     )
 
@@ -215,7 +200,7 @@ def page1_reset(final_csv, raw_data):
     Returns:
     - int: Total number of pages.
     """
-    LOG.info("Reset page count and update total picture count.")
+    LOGGER.info("Reset page count and update total picture count.")
 
     data = pd.read_csv(final_csv, low_memory=False)
     for col in list(data.columns):
@@ -287,7 +272,7 @@ def main():
                 )
                 time.sleep(1)
                 photos_detail = json.loads(detailJson.decode("utf-8"))
-                LOG.info(
+                LOGGER.info(
                     f"{index} id out of {len(id)} in license {i}, "
                     f"page {j} out of {total}"
                 )
@@ -296,7 +281,7 @@ def main():
                 query_data(photos_detail, name_list, temp_list)
 
             j += 1
-            LOG.info(
+            LOGGER.info(
                 f"Page {j} out of {total} in license {i}"
                 f"with retry number {RETRIES}"
             )
@@ -334,14 +319,16 @@ if __name__ == "__main__":
         try:
             main()
         except SystemExit as e:
-            LOGGER.error("System exit with code: %d", e.code)
+            LOGGER.error(f"System exit with code: {e.code}")
             sys.exit(e.code)
         except KeyboardInterrupt:
-            LOGGER.info("Halted via KeyboardInterrupt.")
+            LOGGER.info("(130) Halted via KeyboardInterrupt.")
             sys.exit(130)
         except Exception:
             RETRIES += 1
-            LOGGER.exception("Unhandled exception:")
+            LOGGER.exception(
+                f"(1) Unhandled exception: {traceback.format_exc()}"
+            )
             if RETRIES <= 20:
                 continue
             else:

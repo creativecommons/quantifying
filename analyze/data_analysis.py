@@ -6,6 +6,7 @@ This file is the script of data analysis and visualization
 import os
 import re
 import sys
+import traceback
 import warnings
 
 # Third-party
@@ -16,18 +17,15 @@ import plotly.express as px
 import seaborn as sns
 from wordcloud import STOPWORDS, WordCloud  # noqa: E402
 
+sys.path.append(".")
 # First-party/Local
-import quantify
+import quantify  # noqa: E402
 
 # Warning suppression /!\ Caution /!\
 warnings.filterwarnings("ignore")
 
 # Setup PATH_WORK_DIR, and LOGGER using quantify.setup()
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 _, PATH_WORK_DIR, _, _, LOGGER = quantify.setup(__file__)
-
-# Set the current working directory
-CWD = os.path.dirname(os.path.abspath(__file__))
 
 
 def tags_frequency(csv_path, column_names):
@@ -527,11 +525,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
-        LOGGER.error("System exit with code: %d", e.code)
+        LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        LOGGER.info("Halted via KeyboardInterrupt.")
+        LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception("Unhandled exception:")
+        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)

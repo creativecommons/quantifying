@@ -13,17 +13,17 @@ content_categories will be got from basic NLP on the tags column
 """
 
 # Standard library
-import os
 import sys
+import traceback
 
 # Third-party
 import pandas as pd
 
+sys.path.append(".")
 # First-party/Local
-import quantify
+import quantify  # noqa: E402
 
 # Setup only LOGGER using quantify.setup()
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 _, _, _, _, LOGGER = quantify.setup(__file__)
 
 
@@ -105,15 +105,14 @@ def main():
 
 
 if __name__ == "__main__":
-    # Exception Handling
     try:
         main()
     except SystemExit as e:
-        LOGGER.error("System exit with code: %d", e.code)
+        LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        LOGGER.info("Halted via KeyboardInterrupt.")
+        LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception("Unhandled exception:")
+        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)

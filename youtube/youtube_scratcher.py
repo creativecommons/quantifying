@@ -5,9 +5,9 @@ Data.
 """
 
 # Standard library
-import logging
 import os
 import sys
+import traceback
 
 # Third-party
 import requests
@@ -15,11 +15,11 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+sys.path.append(".")
 # First-party/Local
-import quantify
+import quantify  # noqa: E402
 
 # Setup paths, Date and LOGGER using quantify.setup()
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 _, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = quantify.setup(
     __file__
 )
@@ -31,35 +31,19 @@ load_dotenv(PATH_DOTENV)
 API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 # Set up file path for CSV report
-DATA_WRITE_FILE = (
-    f"{PATH_WORK_DIR}"
+DATA_WRITE_FILE = os.path.join(
+    PATH_WORK_DIR,
     f"/data_youtube_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
-DATA_WRITE_FILE_TIME = (
-    f"{PATH_WORK_DIR}"
+DATA_WRITE_FILE_TIME = os.path.join(
+    PATH_WORK_DIR,
     f"/data_youtube_time_"
-    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv"
+    f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
-
-# Set up the logger
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
-
-# Define both the handler and the formatter
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
-
-# Add formatter to the handler
-handler.setFormatter(formatter)
-
-# Add handler to the logger
-LOG.addHandler(handler)
 
 # Log the start of the script execution
-LOG.info("Script execution started.")
+LOGGER.info("Script execution started.")
 
 
 def get_next_time_search_interval():
@@ -72,7 +56,7 @@ def get_next_time_search_interval():
     via 2 RFC 3339 formatted date-time values (by YouTube API Standards),
     and the current starting year and month of the interval.
     """
-    LOG.info(
+    LOGGER.info(
         "Providing the next searching interval "
         "of time for Creative Commons licensed video."
     )
@@ -120,7 +104,7 @@ def get_request_url(time=None):
     - string: A string representing the API Endpoint URL for the query
     specified by this function's parameters.
     """
-    LOG.info(
+    LOGGER.info(
         "Providing the API Endpoint URL for specified parameter combinations."
     )
 
@@ -151,7 +135,7 @@ def get_response_elems(time=None):
     - dict: A dictionary mapping metadata to its value provided from the API
     query of specified parameters.
     """
-    LOG.info("Provides the metadata for query of specified parameters.")
+    LOGGER.info("Provides the metadata for query of specified parameters.")
 
     search_data = None
     try:
@@ -179,7 +163,7 @@ def get_response_elems(time=None):
 
 def set_up_data_file():
     """Writes the header row to file to contain YouTube data."""
-    LOG.info("Writing the header row to file to contain YouTube data.")
+    LOGGER.info("Writing the header row to file to contain YouTube data.")
 
     with open(DATA_WRITE_FILE, "w") as f:
         f.write("LICENSE TYPE,Document Count\n")
@@ -191,7 +175,7 @@ def record_all_licenses():
     """Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
-    LOG.info(
+    LOGGER.info(
         "Recording the data of all license types "
         "findable in the license list "
         "and records into DATA_WRITE_FILE"
@@ -208,7 +192,7 @@ def record_all_licenses_time():
     """Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
-    LOG.info(
+    LOGGER.info(
         "Recording the data of all license types "
         "findable in the license list and records "
         "into DATA_WRITE_FILE, incorporating time"
@@ -231,15 +215,14 @@ def main():
 
 
 if __name__ == "__main__":
-    # Exception Handling
     try:
         main()
     except SystemExit as e:
-        LOGGER.error("System exit with code: %d", e.code)
+        LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        LOGGER.info("Halted via KeyboardInterrupt.")
+        LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception("Unhandled exception:")
+        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)
