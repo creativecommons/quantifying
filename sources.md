@@ -138,3 +138,15 @@ adjust video parameters, and obtain search results.
   - API key required
   - Query limit: depends on the type and number of requests
   - Data available through JSON format
+
+## GitHub API
+
+**Description:** GitHub API allows users to query GitHub repositories based on license type.
+
+**API documentation link:**
+- [GitHub REST API v3](https://docs.github.com/en/rest)
+
+**API information:**
+  - No API key required
+  - Query limits: Rate limited based on GitHub's rate limit policies
+  - Data available through JSON format
