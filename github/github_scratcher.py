@@ -18,9 +18,7 @@ sys.path.append(".")
 import quantify  # noqa: E402
 
 # Setup paths, Date and LOGGER using quantify.setup()
-PATH_REPO_ROOT, PATH_WORK_DIR, _, DATETIME_TODAY, LOGGER = quantify.setup(
-    __file__
-)
+PATH_REPO_ROOT, PATH_WORK_DIR, _, DATETIME_TODAY, LOGGER = quantify.setup(__file__)
 
 # Set up file path for CSV report
 DATA_WRITE_FILE = os.path.join(
@@ -38,7 +36,6 @@ def set_up_data_file():
     header_title = "LICENSE_TYPE,Repository Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(f"{header_title}\n")
-
 
 def get_response_elems(license):
     """Provides the metadata for query of specified parameters
@@ -77,8 +74,7 @@ def get_response_elems(license):
     except KeyError as e:
         LOGGER.error(f"KeyError: {e}. Search data is: {search_data}")
         raise
-
-
+    
 def record_license_data(license_type):
     """Writes the row for LICENSE_TYPE to file to contain Github Query data.
     Args:
@@ -89,20 +85,20 @@ def record_license_data(license_type):
             type.
     """
     license_count = get_response_elems(license_type)
-    data_log = f"{license_type},{license_count}"
+    data_log = (
+        f"{license_type},{license_count}"
+    )
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(f"{data_log}\n")
-
 
 def record_all_licenses():
     """Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
     # Gets the list of license types and record data for each license type
-    license_list = ["CC", "CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0"]
+    license_list = ['CC', 'CC0-1.0', 'CC-BY-4.0', 'CC-BY-SA-4.0']
     for license_type in license_list:
         record_license_data(license_type)
-
 
 def main():
     set_up_data_file()
