@@ -3,18 +3,6 @@
 default_language_version:
   python: python3.11
 
-ci:
-    autofix_commit_msg: |
-        [pre-commit.ci] auto fixes from pre-commit.com hooks
-
-        for more information, see https://pre-commit.ci
-    autofix_prs: true
-    autoupdate_branch: ''
-    autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
-    autoupdate_schedule: weekly
-    skip: []
-    submodules: false
-
 repos:
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -35,23 +23,22 @@ repos:
         args:
         - --fix=auto #replaces automatically the most frequent line ending.
       - id: trailing-whitespace
-
-  - repo: local
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
     hooks:
       - id: black
-        name: "Black"
-        entry: black
-        language: system
-        types: ["file", "python", "text"]
-
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.1.0
+    hooks:
       - id: flake8
-        name: "Flake8"
-        entry: flake8
-        language: system
-        types: ["file", "python", "text"]
-
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
       - id: isort
-        name: "isort"
-        entry: isort --filter-files
-        language: system
-        types: ["file", "python", "text"]
+        name: isort (python)
+      - id: isort
+        name: isort (cython)
+        types: [cython]
+      - id: isort
+        name: isort (pyi)
+        types: [pyi]
