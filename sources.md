@@ -36,6 +36,19 @@ The Flickr Developer Guide](https://www.flickr.com/services/developer/))
 - Query limit: 3600 requests per hour
 - Data available through CSV format
 
+## GitHub
+
+**Description:** A development platform for hosting and managing code.
+
+**API documentation link:**
+- [GitHub REST API v3](https://docs.github.com/en/rest)
+
+**API information:**
+- API key not required but recommended by GitHub
+- Query limit: 60 requests per hour if unauthenticated,
+  5000 requests per hour if authenticated
+- Data available through JSON format
+
 
 ## Google Custom Search JSON API
 
