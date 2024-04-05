@@ -29,7 +29,7 @@ def set_up_data_file():
     """Writes the header row of the data file."""
     header_title = "LICENSE_TYPE,Repository Count"
     with open(DATA_WRITE_FILE, "w") as f:
-        f.write(header_title + "\n")
+        f.write(f"{header_title}\n")
 
 
 def get_response_elems(license):
@@ -83,7 +83,9 @@ def record_all_licenses():
     """Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
-    record_license_data("CC")
+    licenses = ["CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0"]
+    for license in licenses:
+        record_license_data(license)
 
 
 def main():
