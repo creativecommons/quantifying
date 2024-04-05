@@ -1,6 +1,10 @@
+#!/usr/bin/env python
+"""
+This file is dedicated to obtain a .csv record report for Github Data.
+"""
+
 # Standard library
 import os
-import os.path
 import sys
 import traceback
 
@@ -13,15 +17,20 @@ sys.path.append(".")
 # First-party/Local
 import quantify  # noqa: E402
 
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
+# Setup paths, Date and LOGGER using quantify.setup()
+PATH_REPO_ROOT, PATH_WORK_DIR, _, DATETIME_TODAY, LOGGER = quantify.setup(
     __file__
 )
 
+# Set up file path for CSV report
 DATA_WRITE_FILE = os.path.join(
     PATH_WORK_DIR,
-    f"data_github_"
+    "data_github_"
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
+
+# Log the start of the script execution
+LOGGER.info("Script execution started.")
 
 
 def set_up_data_file():
@@ -43,6 +52,7 @@ def get_response_elems(license):
         dict: A dictionary mapping metadata to its value provided from the API
         query of specified parameters.
     """
+    LOGGER.info("Providing the metadata for query of specified License")
     try:
         base_url = "https://api.github.com/search/repositories?q=license:"
         request_url = f"{base_url}{license}"
@@ -57,8 +67,15 @@ def get_response_elems(license):
             response.raise_for_status()
             search_data = response.json()
         return {"totalResults": search_data["total_count"]}
-    except Exception as e:
-        raise e
+    except requests.HTTPError as e:
+        LOGGER.error(f"HTTP Error: {e}")
+        raise
+    except requests.RequestException as e:
+        LOGGER.error(f"Request Exception: {e}")
+        raise
+    except KeyError as e:
+        LOGGER.error(f"KeyError: {e}. Search data is: {search_data}")
+        raise
 
 
 def record_license_data(license_type):
@@ -96,11 +113,11 @@ if __name__ == "__main__":
     try:
         main()
     except SystemExit as e:
+        LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
-        print("INFO (130) Halted via KeyboardInterrupt.", file=sys.stderr)
+        LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        print("ERROR (1) Unhandled exception:", file=sys.stderr)
-        print(traceback.print_exc(), file=sys.stderr)
+        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)
