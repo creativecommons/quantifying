@@ -1,17 +1,18 @@
-import json
+# Standard library
 import os
 import os.path
 import sys
 import traceback
-from urllib import request
 
 sys.path.append(".")
 
+# Third-party
 import requests
-import quantify
-import pandas as pd
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
+# First-party/Local
+import quantify
 
 PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY = quantify.setup(
     __file__
@@ -23,23 +24,13 @@ DATA_WRITE_FILE = os.path.join(
     f"{DATETIME_TODAY.year}_{DATETIME_TODAY.month}_{DATETIME_TODAY.day}.csv",
 )
 
+
 def set_up_data_file():
     """Writes the header row of the data file."""
     header_title = "LICENSE_TYPE,Repository Count"
     with open(DATA_WRITE_FILE, "w") as f:
         f.write(header_title + "\n")
 
-# def get_license_list():
-#     """Provides the list of license from a Creative Commons provided tool list.
-#     Returns:
-#         np.array: An np array containing all license types that should be
-#         searched via Programmable Search Engine.
-#     """
-#     cc_license_data = pd.read_csv(
-#         os.path.join(PATH_WORK_DIR, "legal-tool-paths.txt"), header=None
-#     )
-#     license_list = cc_license_data[0].unique()
-#     return license_list
 
 def get_response_elems(license):
     """Provides the metadata for query of specified parameters
@@ -69,7 +60,8 @@ def get_response_elems(license):
         return {"totalResults": search_data["total_count"]}
     except Exception as e:
         raise e
-    
+
+
 def record_license_data(license_type):
     """Writes the row for LICENSE_TYPE to file to contain Github Query data.
     Args:
@@ -86,11 +78,13 @@ def record_license_data(license_type):
     with open(DATA_WRITE_FILE, "a") as f:
         f.write(f"{data_log}\n")
 
+
 def record_all_licenses():
     """Records the data of all license types findable in the license list and
     records these data into the DATA_WRITE_FILE as specified in that constant.
     """
     record_license_data("CC")
+
 
 def main():
     set_up_data_file()
