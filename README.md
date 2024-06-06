@@ -9,6 +9,15 @@ This project seeks to quantify the size and diversity of the commons--the
 collection of works that are openly licensed or in the public domain.
 
 
+### 2024 Status
+
+This project is currently being worked on as a Google Summer of Code (GSoC)
+project. The goal is to add automation of data gathering and report generation
+so that our reports quantifying the commons are never more than 3 months out of
+date. To prepare for this refactor, previous work was moved to
+[`pre-automation/`](pre-automation/).
+
+
 ## Code of conduct
 
 [`CODE_OF_CONDUCT.md`][org-coc]:
