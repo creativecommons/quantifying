@@ -4,17 +4,18 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-python-dotenv = "*"
 flickrapi = "*"
 internetarchive = "*"
-jupyterlab = "*"
+jupyterlab = ">=3.6.7"
 matplotlib = "*"
 numpy = "*"
 pandas = "*"
 plotly = "*"
-requests = "*"
+Pyarrow = "*"
+python-dotenv = "*"
+requests = ">=2.31.0"
 seaborn = "*"
-urllib3 = "*"
+urllib3 = ">=1.26.18"
 wordcloud = "*"
 
 [dev-packages]
@@ -22,6 +23,7 @@ black = "*"
 "black[jupyter]" = "*"
 flake8 = "*"
 isort = "*"
+pre-commit = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.11"

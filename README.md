@@ -9,22 +9,34 @@ This project seeks to quantify the size and diversity of the commons--the
 collection of works that are openly licensed or in the public domain.
 
 
+### 2024 Status
+
+This project is currently being worked on as a Google Summer of Code (GSoC)
+project. The goal is to add automation of data gathering and report generation
+so that our reports quantifying the commons are never more than 3 months out of
+date. To prepare for this refactor, previous work was moved to
+[`pre-automation/`](pre-automation/).
+
+
 ## Code of conduct
 
-[`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md):
+[`CODE_OF_CONDUCT.md`][org-coc]:
 > The Creative Commons team is committed to fostering a welcoming community.
 > This project and all other Creative Commons open source projects are governed
 > by our [Code of Conduct][code_of_conduct]. Please report unacceptable
 > behavior to [conduct@creativecommons.org](mailto:conduct@creativecommons.org)
 > per our [reporting guidelines][reporting_guide].
 
+[org-coc]: https://github.com/creativecommons/.github/blob/main/CODE_OF_CONDUCT.md
 [code_of_conduct]: https://opensource.creativecommons.org/community/code-of-conduct/
 [reporting_guide]: https://opensource.creativecommons.org/community/code-of-conduct/enforcement/
 
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+See [`CONTRIBUTING.md`][org-contrib].
+
+[org-contrib]: https://github.com/creativecommons/.github/blob/main/CONTRIBUTING.md
 
 
 ## Development
@@ -54,7 +66,7 @@ modules:
 [homebrew]: https://brew.sh/
 
 
-### Running scripts that require client cedentials
+### Running scripts that require client credentials
 
 To successfully run scripts that require client credentials, you will need to
 follow these steps:
@@ -76,6 +88,33 @@ follow these steps:
 
 ### Static analysis
 
+Static analysis tools ensure the codebase adheres to consistent formatting and
+style guidelines, enhancing readability and maintainability. Also see GitHub
+Actions, below.
+
+
+#### Using [`pre-commit`][pre-commit]
+
+Pre-commit allows for static analysis tools (`black`, `flake8`, `isort`, etc.)
+to be run manually or with every commit:
+
+1. (Pre-commit is installed by completing Create the Python virtual environment
+   and install prerequisites, above)
+2. Install or run manually
+   - Install the git hook scripts to enable automatic execution on every commit
+       ```shell
+       pipenv run pre-commit install
+       ```
+   - Run manually before commit:
+       ```shell
+       pipenv run pre-commit run -a
+       ```
+3. _(Optional)_ review the configuration file:
+   [`.pre-commit-config.yaml`](.pre-commit-config.yaml)
+
+
+#### Using [`dev/tools.sh`][tools-sh] helper script
+
 The [`dev/tools.sh`][tools-sh] helper script runs the static analysis tools
 (`black`, `flake8`, and `isort`):
 ```shell
@@ -89,6 +128,7 @@ directories to check:
 ```
 
 [tools-sh]: /dev/tools.sh
+[pre-commit]: https://pre-commit.com/
 
 
 ### Resources
@@ -100,12 +140,17 @@ directories to check:
 - [isort][isort]: _A Python utility / library to sort imports_
   - (It doesn't import any libraries, it only sorts and formats them.)
 - [ppypa/pipenv][pipenv]: _Python Development Workflow for Humans._
+- [pre-commit][pre-commit]: _A framework for managing and maintaining
+  multi-language pre-commit hooks._
+- [Logging][logging]: _Utilize the built-in Python logging module to implement a flexible logging system from a shared module._
 
 [ccospyguide]: https://opensource.creativecommons.org/contributing-code/python-guidelines/
 [black]: https://github.com/psf/black
-[flake8]: https://gitlab.com/pycqa/flake8
+[flake8]: https://github.com/PyCQA/flake8
 [isort]: https://pycqa.github.io/isort/
 [pipenv]: https://github.com/pypa/pipenv
+[pre-commit]: https://pre-commit.com/
+[logging]: https://docs.python.org/3/library/logging.html
 
 
 ### GitHub Actions
@@ -115,7 +160,7 @@ GitHub Actions workflow performs static analysis (`black`, `flake8`, and
 `isort`) on committed changes. The workflow is triggered automatically when you
 push changes to the main branch or open a pull request.
 
-[workflow-static-analysis]: .github/workflows/python_static_analysis.yml
+[workflow-static-analysis]: .github/workflows/static_analysis.yml
 
 
 ## Data sources
@@ -149,7 +194,6 @@ The data within this repository is dedicated to the public domain under the
 
 [cc-zero-png]: https://licensebuttons.net/l/zero/1.0/88x31.png "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication button"
 [cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/
-
 
 ### Documentation
 

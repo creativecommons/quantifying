@@ -1,0 +1,45 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+default_language_version:
+  python: python3.11
+
+repos:
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: destroyed-symlinks
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args:
+        - --fix=auto #replaces automatically the most frequent line ending.
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: black
+        name: "Black"
+        entry: black
+        language: system
+        types: ["file", "python", "text"]
+
+      - id: flake8
+        name: "Flake8"
+        entry: flake8
+        language: system
+        types: ["file", "python", "text"]
+
+      - id: isort
+        name: "isort"
+        entry: isort --filter-files
+        language: system
+        types: ["file", "python", "text"]
