@@ -1,5 +1,10 @@
+#!/usr/bin/env python
+"""
+This file is dedicated to querying data from the Google Custom Search API.
+"""
 # Standard library
 import argparse
+import json
 import os
 import sys
 import time
@@ -12,21 +17,33 @@ import pandas as pd
 from dotenv import load_dotenv
 from googleapiclient.errors import HttpError
 
-# Constants
-API_KEY = os.getenv("GOOGLE_API_KEY")
-CX = os.getenv("CUSTOM_SEARCH_ENGINE_ID")
-BASE_URL = "https://www.googleapis.com/customsearch/v1"
-
-
 # Setup paths and LOGGER using shared library
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(".")
-# First-party/Local
-import quantify  # noqa: E402
 
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, LOGGER = quantify.setup(__file__)
+# Third-party
+import shared  # noqa: E402
+
+(
+    PATH_REPO_ROOT,
+    PATH_WORK_DIR,
+    PATH_DOTENV,
+    DATETIME_TODAY,
+    LOGGER,
+) = shared.setup(__file__)
+
+# Assign DATETIME_TODAY from shared library to TODAY
+TODAY = DATETIME_TODAY.date()
 
 # Load environment variables
 load_dotenv(PATH_DOTENV)
+
+# Constants
+API_KEY = os.getenv("GOOGLE_API_KEYS")
+CX = os.getenv("CUSTOM_SEARCH_ENGINE_ID")
+BASE_URL = "https://www.googleapis.com/customsearch/v1"
+STATE_FILE = os.path.join(PATH_WORK_DIR, "state.json")
 
 # Log the start of the script execution
 LOGGER.info("Script execution started.")
@@ -41,17 +58,19 @@ def get_search_service():
     )
 
 
-def fetch_results(
-    query: str, records_per_query: int, pages: int
-) -> List[dict]:
+def fetch_results(args, start_index: int) -> (List[dict], int):
     """
     Fetch search results from Google Custom Search API.
+    Returns a list of seach items.
     """
+    query = args.query
+    records_per_query = args.records
+    pages = args.pages
+
     service = get_search_service()
     all_results = []
 
     for page in range(pages):
-        start_index = page * records_per_query + 1
         try:
             results = (
                 service.cse()
@@ -59,12 +78,12 @@ def fetch_results(
                 .execute()
             )
             all_results.extend(results.get("items", []))
-            time.sleep(1)  # Ensure script completes within ~1 second
+            start_index += records_per_query
         except HttpError as e:
             LOGGER.error(f"Error fetching results: {e}")
             break
 
-    return all_results
+    return all_results, start_index
 
 
 def parse_arguments():
@@ -84,17 +103,40 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def main():
-    args = parse_arguments()
-    query = args.query
-    records_per_query = args.records
-    pages = args.pages
+# State Management
 
-    all_results = fetch_results(query, records_per_query, pages)
+
+def load_state(state_file: str):
+    """
+    Loads the state from a JSON file, returns the last fetched start index.
+    """
+    if os.path.exists(state_file):
+        with open(state_file, "r") as f:
+            return json.load(f)
+    return {"start_index": 1}
+
+
+def save_state(state_file: str, state: dict):
+    """
+    Saves the state to a JSON file.
+    Parameters:
+        state_file: Path to the state file.
+        start_index: Last fetched start index.
+    """
+    with open(state_file, "w") as f:
+        json.dump(state, f)
+
+
+def main():
+
+    args = parse_arguments()
+    state = load_state(STATE_FILE)
+    start_index = state["start_index"]
+    all_results, start_index = fetch_results(args, start_index)
 
     # Create new directory structure for year and quarter
     year = time.strftime("%Y")
-    quarter = (int(time.strftime("%m")) - 1) // 3 + 1
+    quarter = pd.PeriodIndex([TODAY], freq="Q")[0]
     data_directory = os.path.join(
         PATH_REPO_ROOT, "data", "1-fetched", f"{year}Q{quarter}"
     )
@@ -102,11 +144,13 @@ def main():
 
     # Convert results to DataFrame to save as CSV
     df = pd.DataFrame(all_results)
-    file_name = os.path.join(
-        data_directory, "google_custom_search_results.csv"
-    )
+    file_name = os.path.join(data_directory, "gcs_fetched.csv")
 
     df.to_csv(file_name, index=False)
+
+    # Save the state checkpoint after fetching
+    state["start_index"] = start_index
+    save_state(STATE_FILE, state)
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 flickrapi = "*"
+google-api-python-client = "*"
 internetarchive = "*"
 jupyterlab = ">=3.6.7"
 matplotlib = "*"
@@ -27,3 +28,6 @@ pre-commit = "*"
 
 [requires]
 python_version = "3.11"
+
+[scripts]
+gcs_query = "python ./scripts/1-queries/gcs_query.py"
