@@ -30,4 +30,4 @@ pre-commit = "*"
 python_version = "3.11"
 
 [scripts]
-gcs_query = "python ./scripts/1-queries/gcs_query.py"
+gcs_query = "./scripts/1-fetched/gcs_query.py"

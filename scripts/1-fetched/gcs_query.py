@@ -7,7 +7,8 @@ import argparse
 import json
 import os
 import sys
-import time
+
+# import time
 import traceback
 from typing import List
 
@@ -19,10 +20,10 @@ from googleapiclient.errors import HttpError
 
 # Setup paths and LOGGER using shared library
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
-# sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-sys.path.append(".")
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+# sys.path.append(".")
 
-# Third-party
+# First-party/Local
 import shared  # noqa: E402
 
 (
@@ -134,11 +135,13 @@ def main():
     start_index = state["start_index"]
     all_results, start_index = fetch_results(args, start_index)
 
+    LOGGER.info(f"PATH_REPO_ROOT: {PATH_REPO_ROOT}")
+
     # Create new directory structure for year and quarter
-    year = time.strftime("%Y")
     quarter = pd.PeriodIndex([TODAY], freq="Q")[0]
+    quarter_str = str(quarter)
     data_directory = os.path.join(
-        PATH_REPO_ROOT, "data", "1-fetched", f"{year}Q{quarter}"
+        PATH_REPO_ROOT, "data", "1-fetched", quarter_str
     )
     os.makedirs(data_directory, exist_ok=True)
 
