@@ -6,6 +6,7 @@ This file is dedicated to querying data from the Google Custom Search API.
 import argparse
 import json
 import os
+import re
 import sys
 
 # import time
@@ -59,7 +60,9 @@ def get_search_service():
     )
 
 
-def fetch_results(args, start_index: int) -> (List[dict], int):
+def fetch_results(
+    args, start_index: int, cr=None, lr=None
+) -> (List[dict], int):
     """
     Fetch search results from Google Custom Search API.
     Returns a list of seach items.
@@ -75,14 +78,20 @@ def fetch_results(args, start_index: int) -> (List[dict], int):
         try:
             results = (
                 service.cse()
-                .list(q=query, cx=CX, num=records_per_query, start=start_index)
+                .list(
+                    q=query,
+                    cx=CX,
+                    num=records_per_query,
+                    start=start_index,
+                    cr=cr,
+                    lr=lr,
+                )
                 .execute()
             )
-            all_results.extend(results.get("items", []))
-            start_index += records_per_query
+            return results.get("searchInformation", {}).get("totalResults", 0)
         except HttpError as e:
             LOGGER.error(f"Error fetching results: {e}")
-            break
+            return 0
 
     return all_results, start_index
 
@@ -104,9 +113,32 @@ def parse_arguments():
     return parser.parse_args()
 
 
+def set_up_data_file(data_directory):
+    """
+    Sets up the data files for recording results.
+    Results are currently grouped by location (country) and language
+    """
+    header = (
+        "LICENSE TYPE,No Priori,Australia,Brazil,Canada,Egypt,"
+        "Germany,India,Japan,Spain,"
+        "United Kingdom,United States,Arabic,"
+        "Chinese (Simplified),Chinese (Traditional),"
+        "English,French,Indonesian,Portuguese,Spanish\n"
+    )
+    # open 'w' = open a file for writing
+    with open(os.path.join(data_directory, "gcs_fetched.csv"), "w") as f:
+        f.write(header)
+
+
+def record_results(data_directory, results):
+    """ """
+    # open 'a' = Open for appending at the end of the file without truncating
+    with open(os.path.join(data_directory, "gcs_fetched.csv"), "a") as f:
+        for result in results:
+            f.write(",".join(str(value) for value in result) + "\n")
+
+
 # State Management
-
-
 def load_state(state_file: str):
     """
     Loads the state from a JSON file, returns the last fetched start index.
@@ -128,14 +160,122 @@ def save_state(state_file: str, state: dict):
         json.dump(state, f)
 
 
+def get_license_list():
+    """
+    Provides the list of licenses from Creative Commons.
+
+    Returns:
+    - np.array:
+            An np array containing all license types that should be searched
+            via Programmable Search Engine (PSE).
+    """
+    license_list = []
+    with open(
+        os.path.join(PATH_REPO_ROOT, "legal-tool-paths.txt"), "r"
+    ) as file:
+        for line in file:
+            match = re.search(r"((?:[^/]+/){2}(?:[^/]+)).*", line)
+            if match:
+                license_list.append(match.group(1))
+    return list(set(license_list))  # Remove duplicates
+
+
+def get_country_list(select_all=False):
+    """
+    Provides the list of countries to find Creative Commons usage data on.
+    """
+    countries = []
+    with open(
+        os.path.join(PATH_REPO_ROOT, "google_countries.tsv"), "r"
+    ) as file:
+        for line in file:
+            country = line.strip().split("\t")[0]
+            country = country.replace(",", " ")
+            countries.append(country)
+
+    if select_all:
+        return sorted(countries)
+
+    selected_countries = [
+        "India",
+        "Japan",
+        "United States",
+        "Canada",
+        "Brazil",
+        "Germany",
+        "United Kingdom",
+        "Spain",
+        "Australia",
+        "Egypt",
+    ]
+    return sorted(
+        [country for country in countries if country in selected_countries]
+    )
+
+
+def get_lang_list():
+    """
+    Provides the list of languages to find Creative Commons usage data on.
+    """
+    languages = []
+    with open(os.path.join(PATH_REPO_ROOT, "google_lang.txt"), "r") as file:
+        for line in file:
+            match = re.search(r'"([^"]+)"', line)
+            if match:
+                languages.append(match.group(1))
+
+    selected_languages = [
+        "Arabic",
+        "Chinese (Simplified)",
+        "Chinese (Traditional)",
+        "English",
+        "French",
+        "Indonesian",
+        "Portuguese",
+        "Spanish",
+    ]
+    return sorted([lang for lang in languages if lang in selected_languages])
+
+
+def record_license_data(args, license_list, data_directory):
+    """
+    Records the data of all license types into the CSV file.
+    """
+    selected_countries = get_country_list()
+    selected_languages = get_lang_list()
+
+    data = []
+
+    for license_type in license_list:
+        row = [license_type]
+        no_priori_search = fetch_results(args, start_index=1)
+        row.append(no_priori_search)
+
+        for country in selected_countries:
+            country_data = fetch_results(
+                args, start_index=1, cr=f"country{country}"
+            )
+            row.append(country_data)
+
+        for language in selected_languages:
+            language_data = fetch_results(
+                args, start_index=1, lr=f"lang_{language}"
+            )
+            row.append(language_data)
+
+        data.append(row)
+
+    record_results(data_directory, data)
+
+
 def main():
 
     args = parse_arguments()
     state = load_state(STATE_FILE)
     start_index = state["start_index"]
-    all_results, start_index = fetch_results(args, start_index)
 
     LOGGER.info(f"PATH_REPO_ROOT: {PATH_REPO_ROOT}")
+    LOGGER.info(f"PATH_WORK_DIR: {PATH_WORK_DIR}")
 
     # Create new directory structure for year and quarter
     quarter = pd.PeriodIndex([TODAY], freq="Q")[0]
@@ -145,11 +285,11 @@ def main():
     )
     os.makedirs(data_directory, exist_ok=True)
 
-    # Convert results to DataFrame to save as CSV
-    df = pd.DataFrame(all_results)
-    file_name = os.path.join(data_directory, "gcs_fetched.csv")
+    set_up_data_file(data_directory)
 
-    df.to_csv(file_name, index=False)
+    license_list = get_license_list()
+
+    record_license_data(args, license_list, data_directory)
 
     # Save the state checkpoint after fetching
     state["start_index"] = start_index
