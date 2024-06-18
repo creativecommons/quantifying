@@ -58,7 +58,7 @@ def get_search_service():
     """
     LOGGER.info("Getting Google Custom Search API Service.")
     return googleapiclient.discovery.build(
-        "customsearch", "v1", developerKey=API_KEY
+        "customsearch", "v1", developerKey=API_KEY, cache_discovery=False
     )
 
 
