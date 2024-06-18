@@ -259,7 +259,7 @@ def retrieve_license_data(args, service, license_list):
     data = []
 
     for license_type in license_list:
-        encoded_license = urllib.parse.quote(license_type)
+        encoded_license = urllib.parse.quote(license_type.strip())
         row = [license_type]
         no_priori_search = fetch_results(
             args, service, start_index=1, link_site=encoded_license
