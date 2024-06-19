@@ -22,7 +22,7 @@ def setup(current_file):
     # Paths
     paths = {}
     paths["repo"] = os.path.dirname(
-        os.path.abspath(os.path.realpath(os.path.join(__file__, "..", "..")))
+        os.path.abspath(os.path.realpath(os.path.join(__file__, "..")))
     )
     paths["dotenv"] = os.path.join(paths["repo"], ".env")
     paths["data"] = os.path.dirname(
