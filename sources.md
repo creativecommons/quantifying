@@ -58,7 +58,9 @@ and access towards related query data using a programmable search engine.
 **API documentation links:**
 - [Custom Search JSON API Reference | Programmable Search Engine | Google
   Developers][google-json]
+- [Google API Python Client Library][google-python]
 - [Method: cse.list | Custom Search JSON API | Google Developers][cse-list]
+- [XML API reference appendices][reference-appendix]
 
 **API information:**
 - API key required
@@ -73,6 +75,8 @@ and access towards related query data using a programmable search engine.
 
 [google-json]: https://developers.google.com/custom-search/v1/reference/rest
 [cse-list]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
+[reference-appendix]: https://developers.google.com/custom-search/docs/xml_results_appendices
+[google-python]: https://github.com/googleapis/google-api-python-client
 
 
 ## Internet Archive Python Interface

@@ -4,6 +4,7 @@ This file is dedicated to querying data from the Google Custom Search API.
 """
 # Standard library
 import argparse
+import csv
 import json
 import os
 import re
@@ -73,29 +74,36 @@ def fetch_results(
         "Fetching and returning number of search results "
         "from Google Custom Search API"
     )
-    # records_per_query = args.records
+    records_per_query = args.records
     try:
-        #     results = (
-        #         service.cse()
-        #         .list(
-        #             cx=CX,
-        #             num=records_per_query,
-        #             start=start_index,
-        #             cr=cr,
-        #             lr=lr,
-        #             linkSite=link_site
-        #         )
-        #         .execute()
-        #     )
-        #     return int(results.get("searchInformation",
-        # {}).get("totalResults", 0))
+        # Added initial query_params parameter for logging purposes
+        query_params = {
+            "cx": CX,
+            "num": records_per_query,
+            "start": start_index,
+            "cr": cr,
+            "lr": lr,
+            "q": link_site,
+        }
+        # Filter out None values
+        query_params = {k: v for k, v in query_params.items() if v is not None}
+
+        LOGGER.info(f"Query Parameters: {query_params}")
+
+        results = service.cse().list(**query_params).execute()
+
+        total_results = int(
+            results.get("searchInformation", {}).get("totalResults", 0)
+        )
+        LOGGER.info(f"Total Results: {total_results}")
+        return total_results
 
         # Testing: print parameters instead of calling API
-        LOGGER.info(
-            f"Query: {link_site}, Country: {cr},"
-            f"Language: {lr}, Start Index: {start_index}"
-        )
-        return 1  # Simulate a result count for testing
+        # LOGGER.info(
+        #     f"Query: {link_site}, Country: {cr},"
+        #     f"Language: {lr}, Start Index: {start_index}"
+        # )
+        # return 1  # Simulate a result count for testing
     except HttpError as e:
         LOGGER.error(f"Error fetching results: {e}")
         return 0
@@ -126,11 +134,12 @@ def set_up_data_file(data_directory):
     """
     LOGGER.info("Setting up the data files for recording results.")
     header = (
-        "LICENSE TYPE,No Priori,Australia,Brazil,Canada,Egypt,"
-        "Germany,India,Japan,Spain,"
-        "United Kingdom,United States,Arabic,"
-        "Chinese (Simplified),Chinese (Traditional),"
-        "English,French,Indonesian,Portuguese,Spanish\n"
+        "LICENSE TYPE, No Priori, United States, English\n"
+        # "LICENSE TYPE,No Priori,Australia,Brazil,Canada,Egypt,"
+        # "Germany,India,Japan,Spain,"
+        # "United Kingdom,United States,Arabic,"
+        # "Chinese (Simplified),Chinese (Traditional),"
+        # "English,French,Indonesian,Portuguese,Spanish\n"
     )
     # open 'w' = open a file for writing
     with open(os.path.join(data_directory, "gcs_fetched.csv"), "w") as f:
@@ -174,10 +183,17 @@ def get_license_list(args):
         os.path.join(PATH_REPO_ROOT, "legal-tool-paths.txt"), "r"
     ) as file:
         for line in file:
+            line = (
+                line.strip()
+            )  # Strip newline and whitespace characters from the line
             match = re.search(r"((?:[^/]+/){2}(?:[^/]+)).*", line)
             if match:
-                license_list.append(match.group(1))
-    return list(set(license_list))[:1]  # Only the first license for testing
+                license_list.append(
+                    f"https://creativecommons.org/{match.group(1)}"
+                )
+    return list(set(license_list))[
+        : args.licenses
+    ]  # Only the first license for testing
     # Change [:1] to [args.licenses] later, to limit based on args
 
 
@@ -259,7 +275,7 @@ def retrieve_license_data(args, service, license_list):
     data = []
 
     for license_type in license_list:
-        encoded_license = urllib.parse.quote(license_type.strip())
+        encoded_license = urllib.parse.quote(license_type, safe=":/")
         row = [license_type]
         no_priori_search = fetch_results(
             args, service, start_index=1, link_site=encoded_license
@@ -287,6 +303,12 @@ def retrieve_license_data(args, service, license_list):
             row.append(language_data)
 
         data.append(row)
+
+    # Print the collected data for debugging
+    # Data Row Format: [License, No_Priori, United States, English]
+    for row in data:
+        LOGGER.info(f"Collected data row: {row}")
+
     return data
 
 
@@ -296,9 +318,12 @@ def record_results(data_directory, results):
     """
     LOGGER.info("Recording the search results into the CSV file.")
     # open 'a' = Open for appending at the end of the file without truncating
-    with open(os.path.join(data_directory, "gcs_fetched.csv"), "a") as f:
+    with open(
+        os.path.join(data_directory, "gcs_fetched.csv"), "a", newline=""
+    ) as f:
+        writer = csv.writer(f)
         for result in results:
-            f.write(",".join(str(value) for value in result) + "\n")
+            writer.writerow(result)
 
 
 def main():
@@ -323,6 +348,7 @@ def main():
     license_list = get_license_list(args)
 
     data = retrieve_license_data(args, service, license_list)
+    LOGGER.info(f"Final Data: {data}")
     record_results(data_directory, data)
 
     # Save the state checkpoint after fetching
