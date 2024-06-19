@@ -16,38 +16,25 @@ import urllib.parse
 
 # Third-party
 import googleapiclient.discovery
-import pandas as pd
 from dotenv import load_dotenv
 from googleapiclient.errors import HttpError
 
-# from typing import List
-
-
-# Setup paths and LOGGER using shared library
-# sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'shared'))
+# Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-# sys.path.append(".")
 
 # First-party/Local
 import shared  # noqa: E402
 
-(
-    PATH_REPO_ROOT,
-    PATH_WORK_DIR,
-    PATH_DOTENV,
-    DATETIME_TODAY,
-    LOGGER,
-) = shared.setup(__file__)
-
+# Setup
+LOGGER, PATHS = shared.setup(__file__)
 
 # Load environment variables
-load_dotenv(PATH_DOTENV)
+load_dotenv(PATHS["dotenv"])
 
 # Constants
 API_KEY = os.getenv("GOOGLE_API_KEYS")
 CX = os.getenv("CUSTOM_SEARCH_ENGINE_ID")
 BASE_URL = "https://www.googleapis.com/customsearch/v1"
-STATE_FILE = os.path.join(PATH_WORK_DIR, "state.json")
 
 # Log the start of the script execution
 LOGGER.info("Script execution started.")
@@ -127,7 +114,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def set_up_data_file(data_directory):
+def set_up_data_file():
     """
     Sets up the data files for recording results.
     Results are currently grouped by location (country) and language
@@ -142,29 +129,29 @@ def set_up_data_file(data_directory):
         # "English,French,Indonesian,Portuguese,Spanish\n"
     )
     # open 'w' = open a file for writing
-    with open(os.path.join(data_directory, "gcs_fetched.csv"), "w") as f:
+    with open(os.path.join(PATHS["data_phase"], "gcs_fetched.csv"), "w") as f:
         f.write(header)
 
 
 # State Management
-def load_state(state_file: str):
+def load_state():
     """
     Loads the state from a JSON file, returns the last fetched start index.
     """
-    if os.path.exists(state_file):
-        with open(state_file, "r") as f:
+    if os.path.exists(PATHS["state"]):
+        with open(PATHS["state"], "r") as f:
             return json.load(f)
     return {"start_index": 1}
 
 
-def save_state(state_file: str, state: dict):
+def save_state(state: dict):
     """
     Saves the state to a JSON file.
     Parameters:
         state_file: Path to the state file.
         start_index: Last fetched start index.
     """
-    with open(state_file, "w") as f:
+    with open(PATHS["state"], "w") as f:
         json.dump(state, f)
 
 
@@ -180,7 +167,7 @@ def get_license_list(args):
     LOGGER.info("Providing the list of licenses from Creative Commons")
     license_list = []
     with open(
-        os.path.join(PATH_REPO_ROOT, "legal-tool-paths.txt"), "r"
+        os.path.join(PATHS["data"], "legal-tool-paths.txt"), "r"
     ) as file:
         for line in file:
             line = (
@@ -205,7 +192,7 @@ def get_country_list(select_all=False):
     LOGGER.info("Providing the list of countries to find CC usage data on.")
     # countries = []
     # with open(
-    #     os.path.join(PATH_REPO_ROOT, "google_countries.tsv"), "r"
+    #     os.path.join(PATHS["data"], "google_countries.tsv"), "r"
     # ) as file:
     #     for line in file:
     #         country = line.strip().split("\t")[0]
@@ -242,7 +229,9 @@ def get_lang_list():
     """
     LOGGER.info("Providing the list of languages to find CC usage data on.")
     # languages = []
-    # with open(os.path.join(PATH_REPO_ROOT, "google_lang.txt"), "r") as file:
+    # with open(
+    #     os.path.join(PATHS["data"], "google_lang.txt"), "r"
+    # ) as file:
     #     for line in file:
     #         match = re.search(r'"([^"]+)"', line)
     #         if match:
@@ -312,14 +301,14 @@ def retrieve_license_data(args, service, license_list):
     return data
 
 
-def record_results(data_directory, results):
+def record_results(results):
     """
     Records the search results into the CSV file.
     """
     LOGGER.info("Recording the search results into the CSV file.")
     # open 'a' = Open for appending at the end of the file without truncating
     with open(
-        os.path.join(data_directory, "gcs_fetched.csv"), "a", newline=""
+        os.path.join(PATHS["data_phase"], "gcs_fetched.csv"), "a", newline=""
     ) as f:
         writer = csv.writer(f)
         for result in results:
@@ -329,31 +318,26 @@ def record_results(data_directory, results):
 def main():
 
     args = parse_arguments()
-    state = load_state(STATE_FILE)
+    state = load_state()
     start_index = state["start_index"]
 
-    LOGGER.info(f"PATH_REPO_ROOT: {PATH_REPO_ROOT}")
-    LOGGER.info(f"PATH_WORK_DIR: {PATH_WORK_DIR}")
+    shared.log_paths(LOGGER, PATHS)
 
-    # Create new directory structure for year and quarter
-    quarter = pd.PeriodIndex([DATETIME_TODAY.date()], freq="Q")[0]
-    data_directory = os.path.join(
-        PATH_REPO_ROOT, "data", "1-fetched", f"{quarter}"
-    )
-    os.makedirs(data_directory, exist_ok=True)
+    # Create data directory for this phase
+    os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    set_up_data_file(data_directory)
+    set_up_data_file()
 
     service = get_search_service()
     license_list = get_license_list(args)
 
     data = retrieve_license_data(args, service, license_list)
     LOGGER.info(f"Final Data: {data}")
-    record_results(data_directory, data)
+    record_results(data)
 
     # Save the state checkpoint after fetching
     state["start_index"] = start_index
-    save_state(STATE_FILE, state)
+    save_state(state)
 
 
 if __name__ == "__main__":
