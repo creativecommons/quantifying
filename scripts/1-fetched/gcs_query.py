@@ -32,8 +32,8 @@ LOGGER, PATHS = shared.setup(__file__)
 load_dotenv(PATHS["dotenv"])
 
 # Constants
-API_KEY = os.getenv("GOOGLE_API_KEYS")
-CX = os.getenv("CUSTOM_SEARCH_ENGINE_ID")
+DEVELOPER_KEY = os.getenv("GCS_DEVELOPER_KEY")
+CX = os.getenv("GCS_CX")
 BASE_URL = "https://www.googleapis.com/customsearch/v1"
 
 # Log the start of the script execution
@@ -46,7 +46,7 @@ def get_search_service():
     """
     LOGGER.info("Getting Google Custom Search API Service.")
     return googleapiclient.discovery.build(
-        "customsearch", "v1", developerKey=API_KEY, cache_discovery=False
+        "customsearch", "v1", developerKey=DEVELOPER_KEY, cache_discovery=False
     )
 
 
