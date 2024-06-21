@@ -33,7 +33,7 @@ def setup(current_file):
     )
     paths["data"] = os.path.join(paths["repo"], "data")
     data_quarter = os.path.join(paths["data"], f"{quarter}")
-    paths["state"] = os.path.join(data_quarter, "state.json")
+    paths["state"] = os.path.join(data_quarter, "state.yaml")
     paths["data_phase"] = os.path.join(data_quarter, phase)
 
     return logger, paths

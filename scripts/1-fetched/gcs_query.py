@@ -5,7 +5,6 @@ This file is dedicated to querying data from the Google Custom Search API.
 # Standard library
 import argparse
 import csv
-import json
 import os
 import re
 import sys
@@ -16,6 +15,7 @@ import urllib.parse
 
 # Third-party
 import googleapiclient.discovery
+import yaml
 from dotenv import load_dotenv
 from googleapiclient.errors import HttpError
 
@@ -140,8 +140,8 @@ def load_state():
     """
     if os.path.exists(PATHS["state"]):
         with open(PATHS["state"], "r") as f:
-            return json.load(f)
-    return {"start_index": 1}
+            return yaml.safe_load(f)
+    return {"total_records_retrieved": 0}
 
 
 def save_state(state: dict):
@@ -152,7 +152,7 @@ def save_state(state: dict):
         start_index: Last fetched start index.
     """
     with open(PATHS["state"], "w") as f:
-        json.dump(state, f)
+        yaml.safe_dump(state, f)
 
 
 def get_license_list(args):
@@ -319,14 +319,24 @@ def main():
 
     args = parse_arguments()
     state = load_state()
-    start_index = state["start_index"]
+    total_records_retrieved = state["total_records_retrieved"]
+    LOGGER.info(f"Initial total_records_retrieved: {total_records_retrieved}")
+    goal_records = 90  # Set goal number of records
+
+    if total_records_retrieved >= goal_records:
+        LOGGER.info(
+            f"Goal of {goal_records} records already achieved."
+            "No further action required."
+        )
+        return
 
     shared.log_paths(LOGGER, PATHS)
 
     # Create data directory for this phase
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    set_up_data_file()
+    if total_records_retrieved == 0:
+        set_up_data_file()
 
     service = get_search_service()
     license_list = get_license_list(args)
@@ -336,7 +346,13 @@ def main():
     record_results(data)
 
     # Save the state checkpoint after fetching
-    state["start_index"] = start_index
+    total_records_retrieved += sum(
+        len(row) - 1 for row in data
+    )  # Exclude license type row
+    LOGGER.info(
+        f"total_records_retrieved after fetching: {total_records_retrieved}"
+    )
+    state["total_records_retrieved"] = total_records_retrieved
     save_state(state)
 
 
