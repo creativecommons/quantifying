@@ -31,3 +31,5 @@ python_version = "3.11"
 
 [scripts]
 gcs_query = "./scripts/1-fetched/gcs_query.py"
+gcs_analysis = "./scripts/2-processed/gcs_analysis.py"
+gcs_visualization = "./scripts/3-reports/gcs_visualization.py"
