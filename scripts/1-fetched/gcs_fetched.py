@@ -93,9 +93,10 @@ def fetch_results(
             return total_results
 
         except HttpError as e:
-            if e.resp.status == 429:
+            if e.status_code == 429:
                 LOGGER.warning(
-                    f"Rate limit exceeded, retrying in {initial_delay} seconds"
+                    f"{e.status_code}: {e.reason}. retrying in {initial_delay}"
+                    " seconds"
                 )
                 time.sleep(initial_delay)
                 initial_delay *= 2  # Exponential backoff
