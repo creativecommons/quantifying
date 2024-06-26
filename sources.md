@@ -71,8 +71,7 @@ and access towards related query data using a programmable search engine.
 
 **API information:**
 - API key required
-- Query limit: 10,000 queries per day for CC (100 queries per day for free
-  version)
+- Query limit: 100 queries per day
 - Data available through JSON format
 
 **Notes:**
