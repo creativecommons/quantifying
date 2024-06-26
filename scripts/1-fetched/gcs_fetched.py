@@ -8,6 +8,7 @@ import csv
 import os
 import re
 import sys
+import time
 import traceback
 
 # import time
@@ -62,38 +63,47 @@ def fetch_results(
         "from Google Custom Search API"
     )
     records_per_query = args.records
-    try:
-        # Added initial query_params parameter for logging purposes
-        query_params = {
-            "cx": CX,
-            "num": records_per_query,
-            "start": start_index,
-            "cr": cr,
-            "lr": lr,
-            "q": link_site,
-        }
-        # Filter out None values
-        query_params = {k: v for k, v in query_params.items() if v is not None}
+    max_retries = 5
+    initial_delay = 1  # in seconds
 
-        LOGGER.info(f"Query Parameters: {query_params}")
+    for attempt in range(max_retries):
+        try:
+            # Added initial query_params parameter for logging purposes
+            query_params = {
+                "cx": CX,
+                "num": records_per_query,
+                "start": start_index,
+                "cr": cr,
+                "lr": lr,
+                "q": link_site,
+            }
+            # Filter out None values
+            query_params = {
+                k: v for k, v in query_params.items() if v is not None
+            }
 
-        results = service.cse().list(**query_params).execute()
+            LOGGER.info(f"Query Parameters: {query_params}")
 
-        total_results = int(
-            results.get("searchInformation", {}).get("totalResults", 0)
-        )
-        LOGGER.info(f"Total Results: {total_results}")
-        return total_results
+            results = service.cse().list(**query_params).execute()
 
-        # Testing: print parameters instead of calling API
-        # LOGGER.info(
-        #     f"Query: {link_site}, Country: {cr},"
-        #     f"Language: {lr}, Start Index: {start_index}"
-        # )
-        # return 1  # Simulate a result count for testing
-    except HttpError as e:
-        LOGGER.error(f"Error fetching results: {e}")
-        return 0
+            total_results = int(
+                results.get("searchInformation", {}).get("totalResults", 0)
+            )
+            LOGGER.info(f"Total Results: {total_results}")
+            return total_results
+
+        except HttpError as e:
+            if e.resp.status == 429:
+                LOGGER.warning(
+                    f"Rate limit exceeded, retrying in {initial_delay} seconds"
+                )
+                time.sleep(initial_delay)
+                initial_delay *= 2  # Exponential backoff
+            else:
+                LOGGER.error(f"Error fetching results: {e}")
+                return 0
+    LOGGER.error("Max tries exceeded. Could not complete the request.")
+    return 0
 
 
 def parse_arguments():
@@ -121,7 +131,10 @@ def set_up_data_file():
     """
     LOGGER.info("Setting up the data files for recording results.")
     header = (
-        "LICENSE TYPE, No Priori, United States, English\n"
+        "LICENSE TYPE, No Priori, United States, Canada, "
+        "India, United Kingdom, Australia, Japan, "
+        "English, Spanish, French, Arabic, "
+        "Chinese (Simplified), Indonesian\n"
         # "LICENSE TYPE,No Priori,Australia,Brazil,Canada,Egypt,"
         # "Germany,India,Japan,Spain,"
         # "United Kingdom,United States,Arabic,"
@@ -219,7 +232,7 @@ def get_country_list(select_all=False):
     # )
 
     # Commented out for testing purposes
-    return ["US"]
+    return ["US", "CA", "IN", "UK", "AU", "JP"]
 
 
 def get_lang_list():
@@ -250,7 +263,7 @@ def get_lang_list():
     # return sorted([lang for lang in languages if lang in selected_languages])
 
     # Commented out for testing purposes
-    return ["en"]
+    return ["en", "es", "fr", "ar", "zh-CH", "id"]
 
 
 def retrieve_license_data(args, service, license_list):
@@ -321,7 +334,7 @@ def main():
     state = load_state()
     total_records_retrieved = state["total_records_retrieved"]
     LOGGER.info(f"Initial total_records_retrieved: {total_records_retrieved}")
-    goal_records = 90  # Set goal number of records
+    goal_records = 120  # Set goal number of records
 
     if total_records_retrieved >= goal_records:
         LOGGER.info(
