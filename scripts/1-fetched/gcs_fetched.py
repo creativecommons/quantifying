@@ -335,7 +335,7 @@ def main():
     state = load_state()
     total_records_retrieved = state["total_records_retrieved"]
     LOGGER.info(f"Initial total_records_retrieved: {total_records_retrieved}")
-    goal_records = 200  # Set goal number of records
+    goal_records = 1000  # Set goal number of records
 
     if total_records_retrieved >= goal_records:
         LOGGER.info(

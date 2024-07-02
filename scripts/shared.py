@@ -36,6 +36,8 @@ def setup(current_file):
     paths["state"] = os.path.join(data_quarter, "state.yaml")
     paths["data_phase"] = os.path.join(data_quarter, phase)
 
+    paths["data_quarter"] = data_quarter
+
     return logger, paths
 
 
