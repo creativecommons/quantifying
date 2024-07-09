@@ -65,6 +65,9 @@ def update_readme(image_path, description, section_title, args):
     readme_path = os.path.join(PATHS["data"], args.quarter, "README.md")
     section_marker = f"## {section_title}"
 
+    # Convert image path to a relative path
+    rel_image_path = os.path.relpath(image_path, os.path.dirname(readme_path))
+
     if os.path.exists(readme_path):
         with open(readme_path, "r") as f:
             lines = f.readlines()
@@ -83,7 +86,7 @@ def update_readme(image_path, description, section_title, args):
         section_start = len(lines) - 1
 
     # Add the image and description
-    lines.insert(section_start + 1, f"![{description}]({image_path})\n")
+    lines.insert(section_start + 1, f"![{description}]({rel_image_path})\n")
     lines.insert(section_start + 2, f"{description}\n\n")
 
     # Write back to the README.md file
