@@ -30,6 +30,6 @@ pre-commit = "*"
 python_version = "3.11"
 
 [scripts]
-gcs_fetched = "./scripts/1-fetched/gcs_fetched.py"
-gcs_processed = "./scripts/2-processed/gcs_processed.py"
-gcs_reports = "./scripts/3-reports/gcs_reports.py"
+gcs_fetched = "./scripts/1-fetch/gcs_fetched.py"
+gcs_processed = "./scripts/2-process/gcs_processed.py"
+gcs_reports = "./scripts/3-report/gcs_reports.py"

@@ -24,7 +24,7 @@ LOGGER, PATHS = shared.setup(__file__)
 #     Load data for a specific quarter.
 #     """
 #     file_path = os.path.join(PATHS["data"], f"{quarter}",
-#       "1-fetched", "gcs_fetched.csv")
+#       "1-fetch", "gcs_fetched.csv")
 #     if not os.path.exists(file_path):
 #         LOGGER.error(f"Data file for quarter {quarter} not found.")
 #         return None

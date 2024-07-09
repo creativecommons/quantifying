@@ -46,7 +46,7 @@ def load_data(args):
     selected_quarter = args.quarter
 
     file_path = os.path.join(
-        PATHS["data"], f"{selected_quarter}", "1-fetched", "gcs_fetched.csv"
+        PATHS["data"], f"{selected_quarter}", "1-fetch", "gcs_fetched.csv"
     )
 
     if not os.path.exists(file_path):
@@ -151,7 +151,7 @@ def visualize_by_country(data, args):
     )
 
     output_directory = os.path.join(
-        PATHS["data"], f"{selected_quarter}", "3-reports"
+        PATHS["data"], f"{selected_quarter}", "3-report"
     )
 
     LOGGER.info(f"Output directory: {output_directory}")
@@ -209,7 +209,7 @@ def visualize_by_license_type(data, args):
     plt.tight_layout()
 
     output_directory = os.path.join(
-        PATHS["data"], f"{selected_quarter}", "3-reports"
+        PATHS["data"], f"{selected_quarter}", "3-report"
     )
 
     LOGGER.info(f"Output directory: {output_directory}")
@@ -284,7 +284,7 @@ def visualize_by_language(data, args):
     )
 
     output_directory = os.path.join(
-        PATHS["data"], f"{selected_quarter}", "3-reports"
+        PATHS["data"], f"{selected_quarter}", "3-report"
     )
 
     LOGGER.info(f"Output directory: {output_directory}")
