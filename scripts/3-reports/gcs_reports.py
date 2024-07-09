@@ -58,6 +58,41 @@ def load_data(args):
     return data
 
 
+def update_readme(image_path, description, section_title, args):
+    """
+    Update the README.md file with the generated images and descriptions.
+    """
+    readme_path = os.path.join(PATHS["data"], args.quarter, "README.md")
+    section_marker = f"## {section_title}"
+
+    if os.path.exists(readme_path):
+        with open(readme_path, "r") as f:
+            lines = f.readlines()
+    else:
+        lines = []
+
+    section_start = None
+    for i, line in enumerate(lines):
+        if section_marker in line:
+            section_start = i
+            break
+
+    if section_start is None:
+        # If section does not exist, add it at the end
+        lines.append(f"\n{section_marker}\n")
+        section_start = len(lines) - 1
+
+    # Add the image and description
+    lines.insert(section_start + 1, f"![{description}]({image_path})\n")
+    lines.insert(section_start + 2, f"{description}\n\n")
+
+    # Write back to the README.md file
+    with open(readme_path, "w") as f:
+        f.writelines(lines)
+
+    LOGGER.info(f"Updated {readme_path} with new image and description.")
+
+
 # By country, by license type, by license language
 
 
@@ -120,9 +155,17 @@ def visualize_by_country(data, args):
 
     # Create the directory if it does not exist
     os.makedirs(output_directory, exist_ok=True)
-    plt.savefig(os.path.join(output_directory, "gcs_country_report.png"))
+    image_path = os.path.join(output_directory, "gcs_country_report.png")
+    plt.savefig(image_path)
 
     plt.show()
+
+    update_readme(
+        image_path,
+        "Number of Google Webpages Licensed by Country",
+        "Country Report",
+        args,
+    )
 
     LOGGER.info("Visualization by country created.")
 
@@ -170,9 +213,18 @@ def visualize_by_license_type(data, args):
 
     # Create the directory if it does not exist
     os.makedirs(output_directory, exist_ok=True)
-    plt.savefig(os.path.join(output_directory, "gcs_licensetype_report.png"))
+    image_path = os.path.join(output_directory, "gcs_licensetype_report.png")
+
+    plt.savefig(image_path)
 
     plt.show()
+
+    update_readme(
+        image_path,
+        "Number of Webpages Licensed by License Type",
+        "License Type Report",
+        args,
+    )
 
     LOGGER.info("Visualization by license type created.")
 
@@ -236,9 +288,17 @@ def visualize_by_language(data, args):
 
     # Create the directory if it does not exist
     os.makedirs(output_directory, exist_ok=True)
-    plt.savefig(os.path.join(output_directory, "gcs_language_report.png"))
+    image_path = os.path.join(output_directory, "gcs_language_report.png")
+    plt.savefig(image_path)
 
     plt.show()
+
+    update_readme(
+        image_path,
+        "Number of Google Webpages Licensed by Language",
+        "Language Report",
+        args,
+    )
 
     LOGGER.info("Visualization by language created.")
 
