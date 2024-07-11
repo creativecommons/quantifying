@@ -31,5 +31,6 @@ python_version = "3.11"
 
 [scripts]
 gcs_fetched = "./scripts/1-fetch/gcs_fetched.py"
+flickr_fetched = "./scripts/1-fetch/flickr_fetched.py"
 gcs_processed = "./scripts/2-process/gcs_processed.py"
 gcs_reports = "./scripts/3-report/gcs_reports.py"

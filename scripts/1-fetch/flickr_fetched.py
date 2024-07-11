@@ -1,12 +1,15 @@
+#!/usr/bin/env python
 """
-Fetching photo information from Flickr API for photos under
-each Creative Commons license and saving the data into CSV files.
+Script to fetch photo information from Flickr API, process the data,
+and save it into multiple CSV files and a JSON file.
 """
 
 # Standard library
-# import json
+import csv
+import json
 import os
 import sys
+import time
 import traceback
 
 # Third-party
@@ -14,143 +17,352 @@ import flickrapi
 import pandas as pd
 from dotenv import load_dotenv
 
-# from datetime import datetime
+# Add parent directory so shared can be imported
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-
-sys.path.append(".")
 # First-party/Local
 import shared  # noqa: E402
 
-# Setup paths and LOGGER using quantify.setup()
-_, PATH_WORK_DIR, PATH_DOTENV, _, LOGGER = shared.setup(__file__)
+# Setup paths, and LOGGER using quantify.setup()
+LOGGER, PATHS = shared.setup(__file__)
 
 # Load environment variables
-load_dotenv(PATH_DOTENV)
+load_dotenv(PATHS["dotenv"])
+
+# Global variable: Number of retries for error handling
+RETRIES = 0
 
 # Log the start of the script execution
 LOGGER.info("Script execution started.")
 
-# Define Flickr API key and secret
-FLICKR_API_KEY = os.getenv("FLICKR_API_KEY")
-FLICKR_API_SECRET = os.getenv("FLICKR_API_SECRET")
+# PATHS["data_phase"], "flickr_fetched",
 
-# Initialize Flickr API instance
-flickr = flickrapi.FlickrAPI(
-    FLICKR_API_KEY, FLICKR_API_SECRET, format="parsed-json"
-)
-
-# List of Creative Commons licenses
-licenses = {
-    "1": "Attribution-NonCommercial-ShareAlike License",
-    "2": "Attribution-NonCommercial License",
-    "3": "Attribution-NonCommercial-NoDerivs License",
-    "4": "Attribution License",
-    "5": "Attribution-ShareAlike License",
-    "6": "Attribution-NoDerivs License",
-    "7": "No known copyright restrictions",
-    "8": "United States Government Work",
-    "9": "Public Domain Dedication (CC0)",
-    "10": "Public Domain Mark",
-}
+# Flickr API rate limits
+FLICKR_API_CALLS_PER_HOUR = 3600
+SECONDS_PER_HOUR = 3600
+API_CALL_INTERVAL = SECONDS_PER_HOUR / FLICKR_API_CALLS_PER_HOUR
 
 
-def fetch_photos(license_id, page=1):
+def to_df(datalist, namelist):
     """
-    Fetch photos for a specific license from the Flickr API.
+    Transform data into a DataFrame.
+
     Args:
-    - license_id (int): License ID.
-    - page (int): Page number for pagination.
+    - datalist (list): List of lists containing data.
+    - namelist (list): List of column names.
+
     Returns:
-    - List of photo data.
+    - df (DataFrame): DataFrame constructed from the data.
     """
-    try:
-        photos = flickr.photos.search(
-            license=license_id,
-            per_page=100,
-            page=page,
-            extras="date_taken,license,description,tags,views,comments,geo",
-        )
-        return photos["photos"]["photo"]
-    except Exception as e:
-        LOGGER.error(
-            f"Error fetching photos for license {license_id} "
-            f"on page {page}: {e}"
-        )
-        return []
+    LOGGER.info("Transforming data into a DataFrame.")
+    df = pd.DataFrame(datalist).transpose()
+    df.columns = namelist
+    return df
 
 
-def process_photo_data(photos):
+def df_to_csv(temp_list, name_list, temp_csv, final_csv):
     """
-    Process photo data and extract the required fields.
+    Save data to temporary CSV and then merge it with final CSV.
+
     Args:
-    - photos (list): List of photo data.
+    - temp_list (list): csv that is used for saving data every 100 seconds.
+    - name_list (list): List of column names.
+    - temp_csv (str): Temporary CSV file path.
+    - final_csv (str): Final CSV file path.
+    """
+    LOGGER.info("Saving data to temporary CSV and merging with final CSV.")
+    df = to_df(temp_list, name_list)
+    df.to_csv(temp_csv, index=False)
+    # Merge temporary CSV with final CSV, ignoring index to avoid duplication
+    if os.path.exists(final_csv):
+        df_final = pd.read_csv(final_csv)
+        df = pd.concat([df_final, df], ignore_index=True)
+    df.to_csv(final_csv, index=False)
+
+
+def creat_lisoflis(size):
+    """
+    Create one list of list [[],[],[]] to save all the columns with
+    each column as a list.
+
+    Args:
+    - size (int): Size of the list of lists.
+
     Returns:
-    - List of dictionaries with the processed data.
+    - temp_list (list): List of empty lists.
     """
-    processed_data = []
-    for photo in photos:
-        location = f"{photo.get('latitude', '')}, {photo.get('longitude', '')}"
-        dates = photo.get("datetaken", "")
-        license_id = photo.get("license", "")
-        description = photo.get("description", {}).get("_content", "")
-        tags = photo.get("tags", "").split()
-        views = photo.get("views", 0)
-        comments = photo.get("comments", 0)
-        processed_data.append(
-            {
-                "location": location,
-                "dates": dates,
-                "license": license_id,
-                "description": description,
-                "tags": tags,
-                "views": views,
-                "comments": comments,
-            }
-        )
-    return processed_data
+    LOGGER.info("Creating list of lists for data storage.")
+    temp_list = [[] for _ in range(size)]
+    return temp_list
 
 
-def save_to_csv(data, license_name):
+def clean_saveas_csv(old_csv_str, new_csv_str):
     """
-    Save processed data to a CSV file.
+    Clean empty columns and save CSV to a new file.
+
     Args:
-    - data (list): List of dictionaries with processed data.
-    - license_name (str): Name of the license.
+    - old_csv_str (str): Path to the old CSV file.
+    - new_csv_str (str): Path to the new CSV file.
     """
-    df = pd.DataFrame(data)
-    csv_file = os.path.join(
-        PATH_WORK_DIR, f"{license_name.replace(' ', '_')}.csv"
+    LOGGER.info("Cleaning empty columns and saving CSV to a new file.")
+    data = pd.read_csv(old_csv_str, low_memory=False)
+    data = data.loc[:, ~data.columns.str.contains("^Unnamed")]
+    data.to_csv(new_csv_str, index=False)
+
+
+def query_helper1(raw, part, detail, temp_list, index):
+    """
+    Helper function 1 for querying data.
+
+    Args:
+    - raw (dict): Raw data from API.
+    - part (str): Part of the data.
+    - detail (str): Detail to be queried.
+    - temp_list (list): List to store queried data.
+    - index (int): Index of the data in temp_list.
+    """
+    queried_raw = raw["photo"][part][detail]
+    temp_list[index].append(queried_raw)
+
+
+def query_helper2(raw, part, temp_list, index):
+    """
+    Helper function 2 for querying data.
+
+    Args:
+    - raw (dict): Raw data from API.
+    - part (str): Part of the data.
+    - temp_list (list): List to store queried data.
+    - index (int): Index of the data in temp_list.
+    """
+    queried_raw = raw["photo"][part]
+    temp_list[index].append(queried_raw)
+
+
+def query_data(raw_data, name_list, data_list):
+    """
+    Query useful data from raw pulled data and store it in lists.
+
+    Args:
+    - raw_data (dict): Raw data from API.
+    - name_list (list): List of column names.
+    - data_list (list): List of lists to store data.
+    """
+    LOGGER.info(
+        "Querying useful data from raw pulled data and storing it in lists."
     )
-    df.to_csv(csv_file, index=False)
-    LOGGER.info(f"CSV file generated for license: {license_name}")
+    for a in range(len(name_list)):
+        if (0 <= a < 4) or a == 9:
+            query_helper2(raw_data, name_list[a], data_list, a)
+        elif a in [4, 5]:
+            query_helper1(raw_data, "owner", name_list[a], data_list, a)
+        elif a in [6, 7, 10]:
+            query_helper1(raw_data, name_list[a], "_content", data_list, a)
+        elif a == 8:
+            query_helper1(raw_data, "dates", "taken", data_list, a)
+        if a == 11:
+            tags = raw_data["photo"]["tags"]["tag"]
+            data_list[a].append([tag["raw"] for tag in tags] if tags else [])
+
+
+def page1_reset(final_csv, raw_data):
+    """
+    Reset page count and update total picture count.
+
+    Args:
+    - final_csv (str): Path to the final CSV file.
+    - raw_data (dict): Raw data from API call.
+
+    Returns:
+    - int: Total number of pages.
+    """
+    LOGGER.info("Resetting page count and updating total picture count.")
+    if os.path.exists(final_csv):
+        data = pd.read_csv(final_csv, low_memory=False)
+        data.drop(data.columns, axis=1, inplace=True)
+        data.to_csv(final_csv, index=False)
+    return raw_data["photos"]["pages"]
+
+
+def handle_rate_limiting():
+    """
+    Handle rate limiting by pausing execution
+    to avoid hitting the API rate limit.
+    """
+    LOGGER.info(
+        f"Sleeping for {API_CALL_INTERVAL} seconds to handle rate limiting."
+    )
+    time.sleep(API_CALL_INTERVAL)
+
+
+def process_data():
+    final_csv_path = os.path.join(
+        PATHS["data_phase"], "flickr_fetched", "final.csv"
+    )
+    record_txt_path = os.path.join(
+        PATHS["data_phase"], "flickr_fetched", "rec.txt"
+    )
+    hs_csv_path = os.path.join(PATHS["data_phase"], "flickr_fetched", "hs.csv")
+
+    # Ensure files exist
+    if not os.path.exists(record_txt_path):
+        with open(record_txt_path, "w") as f:
+            f.write("1 1 1")  # Start from page 1, license 1, total pages 1
+
+    if not os.path.exists(final_csv_path):
+        with open(final_csv_path, "w") as f:
+            pass  # Create an empty final.csv
+
+    if not os.path.exists(hs_csv_path):
+        with open(hs_csv_path, "w") as f:
+            pass  # Create an empty hs.csv
+
+    flickr = flickrapi.FlickrAPI(
+        os.getenv("FLICKR_API_KEY"),
+        os.getenv("FLICKR_API_SECRET"),
+        format="json",
+    )
+    license_list = [1, 2, 3, 4, 5, 6, 9, 10]
+    name_list = [
+        "id",
+        "dateuploaded",
+        "isfavorite",
+        "license",
+        "realname",
+        "location",
+        "title",
+        "description",
+        "dates",
+        "views",
+        "comments",
+        "tags",
+    ]
+    temp_list = creat_lisoflis(len(name_list))
+
+    # Dictionary to store photo data for each Creative Commons license
+    photo_data_dict = {license_num: [] for license_num in license_list}
+
+    with open(record_txt_path) as f:
+        readed = f.read().split(" ")
+        j = int(readed[0])
+        i = int(readed[1])
+        total = int(readed[2])
+
+    while i in license_list:
+        while j <= total:
+            try:
+                photosJson = flickr.photos.search(
+                    license=i, per_page=100, page=j
+                )
+                handle_rate_limiting()
+                photos = json.loads(photosJson.decode("utf-8"))
+                id_list = [x["id"] for x in photos["photos"]["photo"]]
+
+                if j == 1:
+                    total = page1_reset(final_csv_path, photos)
+
+                for index in range(len(id_list)):
+                    detailJson = flickr.photos.getInfo(
+                        license=i, photo_id=id_list[index]
+                    )
+                    handle_rate_limiting()
+                    photos_detail = json.loads(detailJson.decode("utf-8"))
+                    LOGGER.info(
+                        f"{index} id out of {len(id_list)} in "
+                        f"license {i}, page {j} out of {total}"
+                    )
+                    query_data(photos_detail, name_list, temp_list)
+                    photo_data_dict[i].append(photos_detail)
+
+                j += 1
+                LOGGER.info(
+                    f"Page {j} out of {total} in license "
+                    f"{i} with retry number {RETRIES}"
+                )
+                df_to_csv(temp_list, name_list, hs_csv_path, final_csv_path)
+                with open(record_txt_path, "w") as f:
+                    f.write(f"{j} {i} {total}")
+                temp_list = creat_lisoflis(len(name_list))
+
+                if j > total:
+                    license_i_path = os.path.join(
+                        PATHS["data_phase"],
+                        "flickr_fetched",
+                        f"cleaned_license{i}.csv",
+                    )
+                    clean_saveas_csv(final_csv_path, license_i_path)
+                    i += 1
+                    j = 1
+                    while i not in license_list:
+                        i += 1
+                    with open(record_txt_path, "w") as f:
+                        f.write(f"{j} {i} {total}")
+                    temp_list = creat_lisoflis(len(name_list))
+                    break
+
+            except flickrapi.exceptions.FlickrError as e:
+                if "rate limit" in str(e).lower():
+                    LOGGER.warning("Rate limit reached, sleeping for an hour.")
+                    time.sleep(SECONDS_PER_HOUR)
+                    continue
+                else:
+                    LOGGER.error(f"Flickr API error: {e}")
+                    raise
+
+    # Save the dictionary containing photo data to a JSON file
+    with open(
+        os.path.join(PATHS["data_phase"], "flickr_fetched", "photos.json"), "w"
+    ) as json_file:
+        json.dump(photo_data_dict, json_file)
+
+
+def save_license_totals():
+    LOGGER.info("Saving license totals.")
+    license_counts = {}
+    for i in [1, 2, 3, 4, 5, 6, 9, 10]:
+        df = pd.read_csv(
+            os.path.join(
+                PATHS["data_phase"],
+                "flickr_fetched",
+                f"cleaned_license{i}.csv",
+            )
+        )
+        license_counts[i] = len(df)
+
+    license_total_path = os.path.join(
+        PATHS["data_phase"], "flickr_fetched", "license_total.csv"
+    )
+    with open(license_total_path, "w") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["License", "Total"])
+        for license, total in license_counts.items():
+            writer.writerow([license, total])
 
 
 def main():
-    for license_id, license_name in licenses.items():
-        page = 1
-        all_photos = []
-        while True:
-            photos = fetch_photos(license_id, page)
-            if not photos:
-                break
-            processed_data = process_photo_data(photos)
-            all_photos.extend(processed_data)
-            page += 1
-        if all_photos:
-            save_to_csv(all_photos, license_name)
-        else:
-            LOGGER.info(f"No photos found for license: {license_name}")
+    process_data()
+    save_license_totals()
+    LOGGER.info("Script execution completed successfully.")
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except SystemExit as e:
-        LOGGER.error(f"System exit with code: {e.code}")
-        sys.exit(e.code)
-    except KeyboardInterrupt:
-        LOGGER.info("(130) Halted via KeyboardInterrupt.")
-        sys.exit(130)
-    except Exception:
-        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
-        sys.exit(1)
+    RETRIES = 0
+    while True:
+        try:
+            main()
+            break
+        except SystemExit as e:
+            LOGGER.error(f"System exit with code: {e.code}")
+            sys.exit(e.code)
+        except KeyboardInterrupt:
+            LOGGER.info("(130) Halted via KeyboardInterrupt.")
+            sys.exit(130)
+        except Exception:
+            RETRIES += 1
+            LOGGER.exception(
+                f"(1) Unhandled exception: {traceback.format_exc()}"
+            )
+            if RETRIES <= 20:
+                continue
+            else:
+                sys.exit(1)
