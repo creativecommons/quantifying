@@ -1,14 +1,18 @@
 
-## Country Report
+# 2024Q2 Quantifying the Commons
+<!-- GCS Start -->
+## Data Source: Google Custom Search
+
+
+### Country Report
 ![Number of Google Webpages Licensed by Country](3-report/gcs_country_report.png)
 Number of Google Webpages Licensed by Country
 
-
-## License Type Report
+### License Type Report
 ![Number of Webpages Licensed by License Type](3-report/gcs_licensetype_report.png)
 Number of Webpages Licensed by License Type
 
-
-## Language Report
+### Language Report
 ![Number of Google Webpages Licensed by Language](3-report/gcs_language_report.png)
 Number of Google Webpages Licensed by Language
+<!-- GCS End -->

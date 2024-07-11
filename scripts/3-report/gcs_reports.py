@@ -7,12 +7,14 @@ import argparse
 import os
 import sys
 import traceback
+from datetime import datetime, timezone
 
 # Third-party
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import pandas as pd
 import seaborn as sns
+from pandas import PeriodIndex
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -29,11 +31,18 @@ def parse_arguments():
     Parses command-line arguments, returns parsed arguments.
     """
     LOGGER.info("Parsing command-line arguments")
+
+    # Taken from shared module, fix later
+    datetime_today = datetime.now(timezone.utc)
+    quarter = PeriodIndex([datetime_today.date()], freq="Q")[0]
+
     parser = argparse.ArgumentParser(description="Google Custom Search Report")
     parser.add_argument(
         "--quarter",
+        "-q",
         type=str,
-        required=True,
+        required=False,
+        default=f"{quarter}",
         help="Data quarter in format YYYYQx, e.g., 2024Q2",
     )
     return parser.parse_args()
@@ -63,7 +72,9 @@ def update_readme(image_path, description, section_title, args):
     Update the README.md file with the generated images and descriptions.
     """
     readme_path = os.path.join(PATHS["data"], args.quarter, "README.md")
-    section_marker = f"## {section_title}"
+    section_marker_start = "<!-- GCS Start -->"
+    section_marker_end = "<!-- GCS End -->"
+    data_source_title = "## Data Source: Google Custom Search"
 
     # Convert image path to a relative path
     rel_image_path = os.path.relpath(image_path, os.path.dirname(readme_path))
@@ -75,28 +86,37 @@ def update_readme(image_path, description, section_title, args):
         lines = []
 
     section_start = None
+    section_end = None
     for i, line in enumerate(lines):
-        if section_marker in line:
+        if section_marker_start in line:
             section_start = i
-            break
+        if section_marker_end in line:
+            section_end = i
 
-    if section_start is None:
-        # If section does not exist, add it at the end
-        lines.append(f"\n{section_marker}\n")
-        section_start = len(lines) - 1
+    if section_start is None or section_end is None:
+        # If the section does not exist, add it at the end
+        lines.append(f"\n# {args.quarter} Quantifying the Commons\n")
+        lines.append(f"{section_marker_start}\n")
+        lines.append(f"{data_source_title}\n\n")
+        lines.append(f"{section_marker_end}\n")
+        section_start = len(lines) - 3
+        section_end = len(lines) - 1
 
-    # Add the image and description
-    lines.insert(section_start + 1, f"![{description}]({rel_image_path})\n")
-    lines.insert(section_start + 2, f"{description}\n\n")
+    # Prepare the content to be added
+    new_content = [
+        f"\n### {section_title}\n",
+        f"![{description}]({rel_image_path})\n",
+        f"{description}\n",
+    ]
+
+    # Insert the new content before the section end marker
+    lines = lines[:section_end] + new_content + lines[section_end:]
 
     # Write back to the README.md file
     with open(readme_path, "w") as f:
         f.writelines(lines)
 
     LOGGER.info(f"Updated {readme_path} with new image and description.")
-
-
-# By country, by license type, by license language
 
 
 def visualize_by_country(data, args):
@@ -178,8 +198,8 @@ def visualize_by_license_type(data, args):
     Create a bar chart for the number of webpages licensed by license type
     """
     LOGGER.info(
-        "Creating a bar chart for the number of"
-        " webpages licensed by license type."
+        "Creating a bar chart for the number of "
+        "webpages licensed by license type."
     )
 
     selected_quarter = args.quarter
@@ -198,6 +218,14 @@ def visualize_by_license_type(data, args):
     plt.xlabel("License Type")
     plt.ylabel("Number of Webpages")
     plt.xticks(rotation=45, ha="right")
+
+    # Use shorter X axis labels
+    ax.set_xticklabels(
+        [
+            "CC BY 2.5" if "by/2.5" in label else label
+            for label in license_data.index
+        ]
+    )
 
     # Use the millions formatter for y-axis
     def millions_formatter(x, pos):
@@ -260,9 +288,9 @@ def visualize_by_language(data, args):
     plt.figure(figsize=(12, 8))
     ax = sns.barplot(x=language_data.index, y=language_data.values)
     plt.title(
-        f"Number of Google Webpages Licensed by Country ({selected_quarter})"
+        f"Number of Google Webpages Licensed by Language ({selected_quarter})"
     )
-    plt.xlabel("Country")
+    plt.xlabel("Language")
     plt.ylabel("Number of Webpages")
     plt.xticks(rotation=45)
 
