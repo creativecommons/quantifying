@@ -1,0 +1,112 @@
+name: Quarterly Reports Automation
+
+on:
+  push:
+    branches:
+      # Temporarily set automation to one branch to avoid issues w/ main codebase
+      - automation-workflow
+  schedule:
+    - cron: '0 0 1 */3 *'  # Run at midnight on the first day of every quarter
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks out repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Sets up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Installs dependencies using pipenv
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv sync --system
+
+      # Run fetch scripts (add more data sources)
+      - name: Run fetch script
+        run: |
+          python scripts/1-fetch/gcs_fetched.py
+
+      # Commit and push changes
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/git_operations.py --operation commit --message "Automated data fetch and commit"
+
+  process:
+    runs-on: ubuntu-latest
+    needs: fetch
+
+    steps:
+      # Checks out repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Sets up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Installs dependencies using pipenv
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv sync --system
+
+      # Run process scripts (add more data sources)
+      - name: Run process script
+        run: |
+          python scripts/2-process/gcs_processed.py
+
+      # Commit and push changes
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/git_operations.py --operation commit --message "Automated data processing and commit"
+
+  report:
+    runs-on: ubuntu-latest
+    needs: fetch
+
+    steps:
+      # Checks out repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Sets up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Installs dependencies using pipenv
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv sync --system
+
+      # Run report scripts (add more data sources)
+      - name: Run report script
+        run: |
+          python scripts/3-report/gcs_reports.py
+
+      # Commit and push changes
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/git_operations.py --operation commit --message "Automated report generation and commit"
