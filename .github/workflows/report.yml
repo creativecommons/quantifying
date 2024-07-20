@@ -1,0 +1,36 @@
+name: Generate Report
+
+on:
+  schedule:
+    - cron: '15 1 1-20 3,6,9,12 *'
+  workflow_dispatch:
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv sync --system
+
+      - name: Run report script
+        run: |
+          python scripts/3-report/gcs_reports.py
+
+      - name: Commit and push changes if needed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/shared.py --operation add_and_commit --message "Automated report generation and commit"
+          python scripts/shared.py --operation push

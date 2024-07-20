@@ -1,0 +1,40 @@
+name: Fetch Data
+
+on:
+  schedule:
+    - cron: '15 1 1-20 1,4,7,10 *'
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    env:
+      GCS_DEVELOPER_KEY: ${{ secrets.GCS_DEVELOPER_KEY }}
+      GCS_CX: ${{ secrets.GCS_CX }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv sync --system
+
+      - name: Run fetch script
+        run: |
+          python scripts/1-fetch/gcs_fetched.py
+
+      - name: Commit and push changes if needed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/shared.py --operation add_and_commit --message "Automated data fetch and commit"
+          python scripts/shared.py --operation push
