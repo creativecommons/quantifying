@@ -1,9 +1,9 @@
 name: Process Data
 
 on:
-  push:
-    branches:
-        - automation-workflow
+#   push:
+#     branches:
+#         - automation-workflow
   schedule:
     - cron: '15 1 1-20 2,5,8,11 *'
   workflow_dispatch:

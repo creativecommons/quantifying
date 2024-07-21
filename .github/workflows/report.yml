@@ -1,9 +1,9 @@
 name: Generate Report
 
 on:
-  push:
-    branches:
-        - automation-workflow
+#   push:
+#     branches:
+#         - automation-workflow
   schedule:
     - cron: '15 1 1-20 3,6,9,12 *'
   workflow_dispatch:
