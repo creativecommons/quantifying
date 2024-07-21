@@ -2,8 +2,6 @@ name: Fetch Data
 
 on:
   push:
-    branches:
-      - automation-workflow
   schedule:
     - cron: '15 1 1-20 1,4,7,10 *'
     - cron: '15 5 1-20 1,4,7,10 *'
