@@ -52,21 +52,31 @@ def log_paths(logger, paths):
     logger.info(f"PATHS:{paths_list}")
 
 
-def commit_changes(message):
-    repo_path = os.getcwd()
+def add_and_commit(repo_path, message):
     try:
         repo = Repo(repo_path)
+        if not repo.is_dirty(untracked_files=True):
+            logging.info("No changes to commit")
+            return
+        repo.git.add(update=True)
+        repo.index.commit(message)
+        logging.info("Changes committed")
     except InvalidGitRepositoryError:
         logging.error(f"Invalid Git repository at {repo_path}")
-        return
     except NoSuchPathError:
         logging.error(f"No such path: {repo_path}")
-        return
 
-    repo.git.add(update=True)
-    repo.index.commit(message)
-    origin = repo.remote(name="origin")
-    origin.push()
+
+def push_changes(repo_path):
+    try:
+        repo = Repo(repo_path)
+        origin = repo.remote(name="origin")
+        origin.push()
+        logging.info("Changes pushed")
+    except InvalidGitRepositoryError:
+        logging.error(f"Invalid Git repository at {repo_path}")
+    except NoSuchPathError:
+        logging.error(f"No such path: {repo_path}")
 
 
 def main():
@@ -75,16 +85,21 @@ def main():
         "--operation",
         type=str,
         required=True,
-        help="Operation to perform: commit",
+        help="Operation to perform: add_and_commit, push",
     )
-    parser.add_argument(
-        "--message", type=str, required=True, help="Commit message"
-    )
-
+    parser.add_argument("--message", type=str, help="Commit message")
     args = parser.parse_args()
 
-    if args.operation == "commit":
-        commit_changes(args.message)
+    repo_path = os.getcwd()
+
+    if args.operation == "add_and_commit":
+        if not args.message:
+            raise ValueError(
+                "Commit message is required for add_and_commit operation"
+            )
+        add_and_commit(repo_path, args.message)
+    elif args.operation == "push":
+        push_changes(repo_path)
     else:
         raise ValueError("Unsupported operation")
 

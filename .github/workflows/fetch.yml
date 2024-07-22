@@ -39,13 +39,14 @@ jobs:
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
 
-      - name: Run fetch script
-        run: |
-          python scripts/1-fetch/gcs_fetched.py
-
-      - name: Commit and push changes if needed
+      - name: Add and commit changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python scripts/shared.py --operation add_and_commit --message "Automated data fetch and commit"
+
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           python scripts/shared.py --operation push
