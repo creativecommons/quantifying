@@ -1,11 +1,15 @@
 name: Generate Report
 
 on:
-#   push:
-#     branches:
-#         - automation-workflow
+  push:
   schedule:
-    - cron: '15 1 1-20 3,6,9,12 *'
+    - cron: '15 1 1-20 1,4,7,10 *'
+    - cron: '15 5 1-20 1,4,7,10 *'
+    - cron: '15 9 1-20 1,4,7,10 *'
+    - cron: '15 13 1-20 1,4,7,10 *'
+    - cron: '15 17 1-20 1,4,7,10 *'
+    - cron: '15 21 1-20 1,4,7,10 *'
+    - cron: '15 23 1-20 1,4,7,10 *'
   workflow_dispatch:
 
 jobs:
@@ -26,14 +30,23 @@ jobs:
           pip install --upgrade pip
           pip install pipenv
           pipenv sync --system
+          pip install -r requirements.txt
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
 
       - name: Run report script
         run: |
           python scripts/3-report/gcs_reports.py
 
-      - name: Commit and push changes if needed
+      - name: Add and commit changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python scripts/shared.py --operation add_and_commit --message "Automated report generation and commit"
+          python scripts/shared.py --operation add_and_commit --message "Automated data fetch and commit"
+
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           python scripts/shared.py --operation push
