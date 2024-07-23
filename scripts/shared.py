@@ -107,7 +107,9 @@ def main():
 
     repo_path = os.getcwd()
 
-    if args.operation == "add_and_commit":
+    if args.operation == "fetch_and_merge":
+        fetch_and_merge(repo_path)
+    elif args.operation == "add_and_commit":
         if not args.message:
             raise ValueError(
                 "Commit message is required for add_and_commit operation"
