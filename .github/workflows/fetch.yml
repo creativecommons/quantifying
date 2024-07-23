@@ -43,6 +43,12 @@ jobs:
         run: |
           python scripts/1-fetch/gcs_fetched.py
 
+      - name: Fetch and merge changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/shared.py --operation fetch_and_merge
+
       - name: Add and commit changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -52,6 +52,21 @@ def log_paths(logger, paths):
     logger.info(f"PATHS:{paths_list}")
 
 
+def fetch_and_merge(repo_path):
+    try:
+        repo = Repo(repo_path)
+        origin = repo.remote(name="origin")
+        origin.fetch()
+        repo.git.merge("origin/main")
+        logging.info("Fetched and merged latest changes from remote")
+    except InvalidGitRepositoryError:
+        logging.error(f"Invalid Git repository at {repo_path}")
+    except NoSuchPathError:
+        logging.error(f"No such path: {repo_path}")
+    except Exception as e:
+        logging.error(f"Error during fetch and merge: {e}")
+
+
 def add_and_commit(repo_path, message):
     try:
         repo = Repo(repo_path)
