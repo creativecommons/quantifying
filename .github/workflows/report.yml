@@ -1,7 +1,7 @@
 name: Generate Report
 
 on:
-  # push:
+  push:
   schedule:
     - cron: '15 1 1-20 1,4,7,10 *'
     - cron: '15 5 1-20 1,4,7,10 *'
@@ -39,11 +39,11 @@ jobs:
         run: |
           python scripts/3-report/gcs_reports.py
 
-      - name: Fetch and merge changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/shared.py --operation fetch_and_merge
+          - name: Fetch and merge changes
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            python scripts/shared.py --operation fetch_and_merge --branch fetch-automation
 
       - name: Add and commit changes
         env:
