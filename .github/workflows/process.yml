@@ -43,7 +43,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python scripts/shared.py --operation fetch_and_merge
+          python scripts/shared.py --operation fetch_and_merge --branch fetch-automation
 
       - name: Add and commit changes
         env:

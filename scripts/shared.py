@@ -52,13 +52,13 @@ def log_paths(logger, paths):
     logger.info(f"PATHS:{paths_list}")
 
 
-def fetch_and_merge(repo_path):
+def fetch_and_merge(repo_path, branch="fetch-automation"):
     try:
         repo = Repo(repo_path)
         origin = repo.remote(name="origin")
         origin.fetch()
-        repo.git.merge("origin/main")
-        logging.info("Fetched and merged latest changes from remote")
+        repo.git.merge(f"origin/{branch}", allow_unrelated_histories=True)
+        logging.info(f"Fetched and merged latest changes from {branch}")
     except InvalidGitRepositoryError:
         logging.error(f"Invalid Git repository at {repo_path}")
     except NoSuchPathError:
@@ -100,15 +100,21 @@ def main():
         "--operation",
         type=str,
         required=True,
-        help="Operation to perform: add_and_commit, push",
+        help="Operation to perform: fetch_and_merge, add_and_commit, push",
     )
     parser.add_argument("--message", type=str, help="Commit message")
+    parser.add_argument(
+        "--branch",
+        type=str,
+        default="fetch-automation",
+        help="Branch to fetch and merge from",
+    )
     args = parser.parse_args()
 
-    repo_path = os.getcwd()
+    repo_path = os.getcwd()  # Assuming the script runs in the root of the repo
 
     if args.operation == "fetch_and_merge":
-        fetch_and_merge(repo_path)
+        fetch_and_merge(repo_path, args.branch)
     elif args.operation == "add_and_commit":
         if not args.message:
             raise ValueError(
