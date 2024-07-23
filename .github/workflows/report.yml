@@ -39,11 +39,11 @@ jobs:
         run: |
           python scripts/3-report/gcs_reports.py
 
-          - name: Fetch and merge changes
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            python scripts/shared.py --operation fetch_and_merge --branch fetch-automation
+      - name: Fetch and merge changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/shared.py --operation fetch_and_merge --branch fetch-automation
 
       - name: Add and commit changes
         env:
