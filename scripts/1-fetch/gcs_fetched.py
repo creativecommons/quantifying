@@ -66,6 +66,8 @@ def fetch_results(
     max_retries = 5
     initial_delay = 1  # in seconds
 
+    LOGGER.info(f"Records per query: {records_per_query}")
+
     for attempt in range(max_retries):
         try:
             # Added initial query_params parameter for logging purposes

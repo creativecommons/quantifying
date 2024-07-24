@@ -1,9 +1,11 @@
 # Standard library
+import argparse
 import logging
 import os
 from datetime import datetime, timezone
 
 # Third-party
+from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from pandas import PeriodIndex
 
 
@@ -48,3 +50,44 @@ def log_paths(logger, paths):
         paths_list.append(f"\n{' ' * 12}{label:<11} {path}")
     paths_list = "".join(paths_list)
     logger.info(f"PATHS:{paths_list}")
+
+
+def commit_changes(message):
+    repo_path = os.getcwd()
+    try:
+        repo = Repo(repo_path)
+    except InvalidGitRepositoryError:
+        logging.error(f"Invalid Git repository at {repo_path}")
+        return
+    except NoSuchPathError:
+        logging.error(f"No such path: {repo_path}")
+        return
+
+    repo.git.add(update=True)
+    repo.index.commit(message)
+    origin = repo.remote(name="origin")
+    origin.push()
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Git operations script")
+    parser.add_argument(
+        "--operation",
+        type=str,
+        required=True,
+        help="Operation to perform: commit",
+    )
+    parser.add_argument(
+        "--message", type=str, required=True, help="Commit message"
+    )
+
+    args = parser.parse_args()
+
+    if args.operation == "commit":
+        commit_changes(args.message)
+    else:
+        raise ValueError("Unsupported operation")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,39 @@
+name: Process Data
+
+on:
+#   push:
+#     branches:
+#         - automation-workflow
+  schedule:
+    - cron: '15 1 1-20 2,5,8,11 *'
+  workflow_dispatch:
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv sync --system
+
+      - name: Run process script
+        run: |
+          python scripts/2-process/gcs_processed.py
+
+      - name: Commit and push changes if needed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/shared.py --operation add_and_commit --message "Automated data processing and commit"
+          python scripts/shared.py --operation push
