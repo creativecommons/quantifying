@@ -2,10 +2,14 @@ name: Fetch Data
 
 on:
   push:
-    branches:
-      - automation-workflow
   schedule:
     - cron: '15 1 1-20 1,4,7,10 *'
+    - cron: '15 5 1-20 1,4,7,10 *'
+    - cron: '15 9 1-20 1,4,7,10 *'
+    - cron: '15 13 1-20 1,4,7,10 *'
+    - cron: '15 17 1-20 1,4,7,10 *'
+    - cron: '15 21 1-20 1,4,7,10 *'
+    - cron: '15 23 1-20 1,4,7,10 *'
   workflow_dispatch:
 
 jobs:
@@ -39,9 +43,20 @@ jobs:
         run: |
           python scripts/1-fetch/gcs_fetched.py
 
-      - name: Commit and push changes if needed
+      - name: Fetch and merge changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/shared.py --operation fetch_and_merge --branch fetch-automation
+
+      - name: Add and commit changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python scripts/shared.py --operation add_and_commit --message "Automated data fetch and commit"
+
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           python scripts/shared.py --operation push

@@ -52,21 +52,46 @@ def log_paths(logger, paths):
     logger.info(f"PATHS:{paths_list}")
 
 
-def commit_changes(message):
-    repo_path = os.getcwd()
+def fetch_and_merge(repo_path, branch="fetch-automation"):
     try:
         repo = Repo(repo_path)
+        origin = repo.remote(name="origin")
+        origin.fetch()
+        repo.git.merge(f"origin/{branch}", allow_unrelated_histories=True)
+        logging.info(f"Fetched and merged latest changes from {branch}")
     except InvalidGitRepositoryError:
         logging.error(f"Invalid Git repository at {repo_path}")
-        return
     except NoSuchPathError:
         logging.error(f"No such path: {repo_path}")
-        return
+    except Exception as e:
+        logging.error(f"Error during fetch and merge: {e}")
 
-    repo.git.add(update=True)
-    repo.index.commit(message)
-    origin = repo.remote(name="origin")
-    origin.push()
+
+def add_and_commit(repo_path, message):
+    try:
+        repo = Repo(repo_path)
+        if not repo.is_dirty(untracked_files=True):
+            logging.info("No changes to commit")
+            return
+        repo.git.add(update=True)
+        repo.index.commit(message)
+        logging.info("Changes committed")
+    except InvalidGitRepositoryError:
+        logging.error(f"Invalid Git repository at {repo_path}")
+    except NoSuchPathError:
+        logging.error(f"No such path: {repo_path}")
+
+
+def push_changes(repo_path):
+    try:
+        repo = Repo(repo_path)
+        origin = repo.remote(name="origin")
+        origin.push()
+        logging.info("Changes pushed")
+    except InvalidGitRepositoryError:
+        logging.error(f"Invalid Git repository at {repo_path}")
+    except NoSuchPathError:
+        logging.error(f"No such path: {repo_path}")
 
 
 def main():
@@ -75,16 +100,29 @@ def main():
         "--operation",
         type=str,
         required=True,
-        help="Operation to perform: commit",
+        help="Operation to perform: fetch_and_merge, add_and_commit, push",
     )
+    parser.add_argument("--message", type=str, help="Commit message")
     parser.add_argument(
-        "--message", type=str, required=True, help="Commit message"
+        "--branch",
+        type=str,
+        default="fetch-automation",
+        help="Branch to fetch and merge from",
     )
-
     args = parser.parse_args()
 
-    if args.operation == "commit":
-        commit_changes(args.message)
+    repo_path = os.getcwd()  # Assuming the script runs in the root of the repo
+
+    if args.operation == "fetch_and_merge":
+        fetch_and_merge(repo_path, args.branch)
+    elif args.operation == "add_and_commit":
+        if not args.message:
+            raise ValueError(
+                "Commit message is required for add_and_commit operation"
+            )
+        add_and_commit(repo_path, args.message)
+    elif args.operation == "push":
+        push_changes(repo_path)
     else:
         raise ValueError("Unsupported operation")
 
