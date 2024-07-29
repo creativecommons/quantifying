@@ -26,7 +26,6 @@ jobs:
           pip install --upgrade pip
           pip install pipenv
           pipenv sync --system
-          pip install -r requirements.txt
 
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
