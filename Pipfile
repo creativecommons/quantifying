@@ -18,6 +18,7 @@ requests = ">=2.31.0"
 seaborn = "*"
 urllib3 = ">=1.26.18"
 wordcloud = "*"
+gitpython = "*"
 
 [dev-packages]
 black = "*"

@@ -137,7 +137,7 @@ def set_up_data_file():
         "LICENSE TYPE, No Priori, United States, Canada, "
         "India, United Kingdom, Australia, Japan, "
         "English, Spanish, French, Arabic, "
-        "Chinese (Simplified), Indonesian\n"
+        "Chinese (Simplified), Indonesian\r\n"
         # "LICENSE TYPE,No Priori,Australia,Brazil,Canada,Egypt,"
         # "Germany,India,Japan,Spain,"
         # "United Kingdom,United States,Arabic,"

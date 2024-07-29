@@ -3,14 +3,10 @@ name: Generate Report
 on:
   push:
   schedule:
-    - cron: '15 1 1-20 1,4,7,10 *'
-    - cron: '15 5 1-20 1,4,7,10 *'
-    - cron: '15 9 1-20 1,4,7,10 *'
-    - cron: '15 13 1-20 1,4,7,10 *'
-    - cron: '15 17 1-20 1,4,7,10 *'
-    - cron: '15 21 1-20 1,4,7,10 *'
-    - cron: '15 23 1-20 1,4,7,10 *'
+    # 1:15am onwards, days 1-20, third month of each quarter
+    - cron: '15 1,5,9,13,17,21,23 1-20 3,6,9,12 *'
   workflow_dispatch:
+
 
 jobs:
   generate-report:
