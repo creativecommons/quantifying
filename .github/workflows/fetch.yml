@@ -37,20 +37,20 @@ jobs:
         run: |
           python scripts/1-fetch/gcs_fetched.py
 
-      - name: Fetch and merge changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/shared.py --operation fetch_and_merge --branch fetch-automation
+      # - name: Fetch and merge changes
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     python scripts/shared.py --operation fetch_and_merge --branch fetch-automation
 
-      - name: Add and commit changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/shared.py --operation add_and_commit --message "Automated data fetch and commit"
+      # - name: Add and commit changes
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     python scripts/shared.py --operation add_and_commit --message "Automated data fetch and commit"
 
-      - name: Push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/shared.py --operation push
+      # - name: Push changes
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     python scripts/shared.py --operation push
