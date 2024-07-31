@@ -358,7 +358,7 @@ def main():
 
     try:
         # Add and commit changes
-        shared.add_and_commit(PATHS["repo"], "Fetched and updated new data")
+        shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
     except shared.GitOperationError as e:
         LOGGER.error(f"Add and commit failed: {e}")
         sys.exit(e.exit_code)
