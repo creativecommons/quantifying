@@ -32,21 +32,3 @@ jobs:
       - name: Run process script
         run: |
           python scripts/2-process/gcs_processed.py
-
-      - name: Fetch and merge changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/shared.py --operation fetch_and_merge --branch fetch-automation
-
-      - name: Add and commit changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/shared.py --operation add_and_commit --message "Automated data processing and commit"
-
-      - name: Push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/shared.py --operation push

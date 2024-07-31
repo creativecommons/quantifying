@@ -336,6 +336,13 @@ def visualize_by_language(data, args):
 
 def main():
 
+    try:
+        # Fetch and merge changes
+        shared.fetch_and_merge(PATHS["repo"])
+    except shared.GitOperationError as e:
+        LOGGER.error(f"Fetch and merge failed: {e}")
+        sys.exit(e.exit_code)
+
     args = parse_arguments()
 
     data = load_data(args)
@@ -348,6 +355,20 @@ def main():
     visualize_by_country(data, args)
     visualize_by_license_type(data, args)
     visualize_by_language(data, args)
+
+    try:
+        # Add and commit changes
+        shared.add_and_commit(PATHS["repo"], "Fetched and updated new data")
+    except shared.GitOperationError as e:
+        LOGGER.error(f"Add and commit failed: {e}")
+        sys.exit(e.exit_code)
+
+    try:
+        # Push changes
+        shared.push_changes(PATHS["repo"])
+    except shared.GitOperationError as e:
+        LOGGER.error(f"Push changes failed: {e}")
+        sys.exit(e.exit_code)
 
 
 if __name__ == "__main__":
