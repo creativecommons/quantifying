@@ -134,10 +134,10 @@ def update_readme(image_path, description, section_title, args):
         ]
         # Replace the content between the specific markers
         lines = (
-            lines[:specific_start] + new_content + lines[specific_end + 1 :]
+            lines[:specific_start] + new_content + lines[specific_end + 1:]
         )
     else:
-        # If the specific section does not exist, add it before the main end marker
+        # If specific section does not exist, add it before main end marker
         new_content = [
             f"{specific_section_start}\n",
             f"### {section_title}\n",
@@ -416,12 +416,12 @@ def visualize_by_language(data, args):
 
 def main():
 
-    # try:
-    #     # Fetch and merge changes
-    #     shared.fetch_and_merge(PATHS["repo"])
-    # except shared.GitOperationError as e:
-    #     LOGGER.error(f"Fetch and merge failed: {e}")
-    #     sys.exit(e.exit_code)
+    try:
+        # Fetch and merge changes
+        shared.fetch_and_merge(PATHS["repo"])
+    except shared.GitOperationError as e:
+        LOGGER.error(f"Fetch and merge failed: {e}")
+        sys.exit(e.exit_code)
 
     args = parse_arguments()
 
@@ -436,19 +436,19 @@ def main():
     visualize_by_license_type(data, args)
     visualize_by_language(data, args)
 
-    # try:
-    #     # Add and commit changes
-    #     shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
-    # except shared.GitOperationError as e:
-    #     LOGGER.error(f"Add and commit failed: {e}")
-    #     sys.exit(e.exit_code)
+    try:
+        # Add and commit changes
+        shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
+    except shared.GitOperationError as e:
+        LOGGER.error(f"Add and commit failed: {e}")
+        sys.exit(e.exit_code)
 
-    # try:
-    #     # Push changes
-    #     shared.push_changes(PATHS["repo"])
-    # except shared.GitOperationError as e:
-    #     LOGGER.error(f"Push changes failed: {e}")
-    #     sys.exit(e.exit_code)
+    try:
+        # Push changes
+        shared.push_changes(PATHS["repo"])
+    except shared.GitOperationError as e:
+        LOGGER.error(f"Push changes failed: {e}")
+        sys.exit(e.exit_code)
 
 
 if __name__ == "__main__":
