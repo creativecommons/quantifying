@@ -76,6 +76,11 @@ def update_readme(image_path, description, section_title, args):
     section_marker_end = "<!-- GCS End -->"
     data_source_title = "## Data Source: Google Custom Search"
 
+    # Define section markers for each report type
+    specific_section_start = f"<!-- {section_title} Start -->"
+    specific_section_end = f"<!-- {section_title} End -->"
+    data_source_title = "## Data Source: Google Custom Search"
+
     # Convert image path to a relative path
     rel_image_path = os.path.relpath(image_path, os.path.dirname(readme_path))
 
@@ -85,6 +90,7 @@ def update_readme(image_path, description, section_title, args):
     else:
         lines = []
 
+    # Main GCS Section
     section_start = None
     section_end = None
     for i, line in enumerate(lines):
@@ -93,24 +99,98 @@ def update_readme(image_path, description, section_title, args):
         if section_marker_end in line:
             section_end = i
 
+    # Check if the main section is present
     if section_start is None or section_end is None:
-        # If the section does not exist, add it at the end
-        lines.append(f"\n# {args.quarter} Quantifying the Commons\n")
-        lines.append(f"{section_marker_start}\n")
-        lines.append(f"{data_source_title}\n\n")
-        lines.append(f"{section_marker_end}\n")
-        section_start = len(lines) - 3
+        # If the main section is not present, add it
+        lines.extend(
+            [
+                f"# {args.quarter} Quantifying the Commons\n",
+                f"{section_marker_start}\n",
+                f"{data_source_title}\n\n",
+                f"{section_marker_end}\n",
+            ]
+        )
+        section_start = len(lines) - 2
         section_end = len(lines) - 1
 
-    # Prepare the content to be added
-    new_content = [
-        f"\n### {section_title}\n",
-        f"![{description}]({rel_image_path})\n",
-        f"{description}\n",
-    ]
+    # Locate the specific section markers within the main section
+    specific_start = None
+    specific_end = None
+    for i in range(section_start, section_end):
+        if specific_section_start in lines[i]:
+            specific_start = i
+        if specific_section_end in lines[i]:
+            specific_end = i
 
-    # Insert the new content before the section end marker
-    lines = lines[:section_end] + new_content + lines[section_end:]
+    # If the specific section is found, replace the content
+    if specific_start is not None and specific_end is not None:
+        # Prepare the new content for this specific section
+        new_content = [
+            f"{specific_section_start}\n",
+            f"### {section_title}\n",
+            f"![{description}]({rel_image_path})\n",
+            f"{description}\n",
+            f"{specific_section_end}\n",
+        ]
+        # Replace the content between the specific markers
+        lines = (
+            lines[:specific_start] + new_content + lines[specific_end + 1 :]
+        )
+    else:
+        # If the specific section does not exist, add it before the main end marker
+        new_content = [
+            f"{specific_section_start}\n",
+            f"### {section_title}\n",
+            f"![{description}]({rel_image_path})\n",
+            f"{description}\n",
+            f"{specific_section_end}\n",
+        ]
+        lines = lines[:section_end] + new_content + lines[section_end:]
+
+    # # If markers are found, replace the content between them
+    # if section_start is not None and section_end is not None:
+    #     # Prepare the new content to replace the old one
+    #     new_content = [
+    #         f"{section_marker_start}\n",
+    #         f"{data_source_title}\n\n",
+    #         f"### {section_title}\n",
+    #         f"![{description}]({rel_image_path})\n",
+    #         f"{description}\n",
+    #         f"{section_marker_end}\n"
+    #     ]
+
+    #     # Replace the content between the start and end markers
+    #     lines = lines[:section_start] + new_content + lines[section_end + 1:]
+    # else:
+    #     # If the section does not exist, add it at the end
+    #     new_content = [
+    #         f"\n{section_marker_start}\n",
+    #         f"{data_source_title}\n\n",
+    #         f"### {section_title}\n",
+    #         f"![{description}]({rel_image_path})\n",
+    #         f"{description}\n",
+    #         f"{section_marker_end}\n"
+    #     ]
+    #     lines.extend(new_content)
+
+    # if section_start is None or section_end is None:
+    #     # If the section does not exist, add it at the end
+    #     lines.append(f"\n# {args.quarter} Quantifying the Commons\n")
+    #     lines.append(f"{section_marker_start}\n")
+    #     lines.append(f"{data_source_title}\n\n")
+    #     lines.append(f"{section_marker_end}\n")
+    #     section_start = len(lines) - 3
+    #     section_end = len(lines) - 1
+
+    # # Prepare the content to be added
+    # new_content = [
+    #     f"\n### {section_title}\n",
+    #     f"![{description}]({rel_image_path})\n",
+    #     f"{description}\n",
+    # ]
+
+    # # Insert the new content before the section end marker
+    # lines = lines[:section_end] + new_content + lines[section_end:]
 
     # Write back to the README.md file
     with open(readme_path, "w") as f:
@@ -336,12 +416,12 @@ def visualize_by_language(data, args):
 
 def main():
 
-    try:
-        # Fetch and merge changes
-        shared.fetch_and_merge(PATHS["repo"])
-    except shared.GitOperationError as e:
-        LOGGER.error(f"Fetch and merge failed: {e}")
-        sys.exit(e.exit_code)
+    # try:
+    #     # Fetch and merge changes
+    #     shared.fetch_and_merge(PATHS["repo"])
+    # except shared.GitOperationError as e:
+    #     LOGGER.error(f"Fetch and merge failed: {e}")
+    #     sys.exit(e.exit_code)
 
     args = parse_arguments()
 
@@ -356,19 +436,19 @@ def main():
     visualize_by_license_type(data, args)
     visualize_by_language(data, args)
 
-    try:
-        # Add and commit changes
-        shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
-    except shared.GitOperationError as e:
-        LOGGER.error(f"Add and commit failed: {e}")
-        sys.exit(e.exit_code)
+    # try:
+    #     # Add and commit changes
+    #     shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
+    # except shared.GitOperationError as e:
+    #     LOGGER.error(f"Add and commit failed: {e}")
+    #     sys.exit(e.exit_code)
 
-    try:
-        # Push changes
-        shared.push_changes(PATHS["repo"])
-    except shared.GitOperationError as e:
-        LOGGER.error(f"Push changes failed: {e}")
-        sys.exit(e.exit_code)
+    # try:
+    #     # Push changes
+    #     shared.push_changes(PATHS["repo"])
+    # except shared.GitOperationError as e:
+    #     LOGGER.error(f"Push changes failed: {e}")
+    #     sys.exit(e.exit_code)
 
 
 if __name__ == "__main__":
