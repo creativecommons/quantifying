@@ -137,7 +137,7 @@ def set_up_data_file():
         "LICENSE TYPE, No Priori, United States, Canada, "
         "India, United Kingdom, Australia, Japan, "
         "English, Spanish, French, Arabic, "
-        "Chinese (Simplified), Indonesian\r\n"
+        "Chinese (Simplified), Indonesian\n"
         # "LICENSE TYPE,No Priori,Australia,Brazil,Canada,Egypt,"
         # "Germany,India,Japan,Spain,"
         # "United Kingdom,United States,Arabic,"
@@ -333,12 +333,8 @@ def record_results(results):
 
 def main():
 
-    try:
-        # Fetch and merge changes
-        shared.fetch_and_merge(PATHS["repo"])
-    except shared.GitOperationError as e:
-        LOGGER.error(f"Fetch and merge failed: {e}")
-        sys.exit(e.exit_code)
+    # Fetch and merge changes
+    shared.fetch_and_merge(PATHS["repo"])
 
     args = parse_arguments()
     state = load_state()
@@ -378,24 +374,22 @@ def main():
     state["total_records_retrieved"] = total_records_retrieved
     save_state(state)
 
-    try:
-        # Add and commit changes
-        shared.add_and_commit(PATHS["repo"], "Fetched and updated new data")
-    except shared.GitOperationError as e:
-        LOGGER.error(f"Add and commit failed: {e}")
-        sys.exit(e.exit_code)
+    # Add and commit changes
+    shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
 
-    try:
-        # Push changes
-        shared.push_changes(PATHS["repo"])
-    except shared.GitOperationError as e:
-        LOGGER.error(f"Push changes failed: {e}")
-        sys.exit(e.exit_code)
+    # Push changes
+    shared.push_changes(PATHS["repo"])
 
 
 if __name__ == "__main__":
     try:
         main()
+    except shared.QuantifyingException as e:
+        if e.exit_code == 0:
+            LOGGER.info(e.message)
+        else:
+            LOGGER.error(e.message)
+        sys.exit(e.exit_code)
     except SystemExit as e:
         LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)

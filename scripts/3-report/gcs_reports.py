@@ -67,140 +67,6 @@ def load_data(args):
     return data
 
 
-def update_readme(image_path, description, section_title, args):
-    """
-    Update the README.md file with the generated images and descriptions.
-    """
-    readme_path = os.path.join(PATHS["data"], args.quarter, "README.md")
-    section_marker_start = "<!-- GCS Start -->"
-    section_marker_end = "<!-- GCS End -->"
-    data_source_title = "## Data Source: Google Custom Search"
-
-    # Define section markers for each report type
-    specific_section_start = f"<!-- {section_title} Start -->"
-    specific_section_end = f"<!-- {section_title} End -->"
-    data_source_title = "## Data Source: Google Custom Search"
-
-    # Convert image path to a relative path
-    rel_image_path = os.path.relpath(image_path, os.path.dirname(readme_path))
-
-    if os.path.exists(readme_path):
-        with open(readme_path, "r") as f:
-            lines = f.readlines()
-    else:
-        lines = []
-
-    # Main GCS Section
-    section_start = None
-    section_end = None
-    for i, line in enumerate(lines):
-        if section_marker_start in line:
-            section_start = i
-        if section_marker_end in line:
-            section_end = i
-
-    # Check if the main section is present
-    if section_start is None or section_end is None:
-        # If the main section is not present, add it
-        lines.extend(
-            [
-                f"# {args.quarter} Quantifying the Commons\n",
-                f"{section_marker_start}\n",
-                f"{data_source_title}\n\n",
-                f"{section_marker_end}\n",
-            ]
-        )
-        section_start = len(lines) - 2
-        section_end = len(lines) - 1
-
-    # Locate the specific section markers within the main section
-    specific_start = None
-    specific_end = None
-    for i in range(section_start, section_end):
-        if specific_section_start in lines[i]:
-            specific_start = i
-        if specific_section_end in lines[i]:
-            specific_end = i
-
-    # If the specific section is found, replace the content
-    if specific_start is not None and specific_end is not None:
-        # Prepare the new content for this specific section
-        new_content = [
-            f"{specific_section_start}\n",
-            f"### {section_title}\n",
-            f"![{description}]({rel_image_path})\n",
-            f"{description}\n",
-            f"{specific_section_end}\n",
-        ]
-        # Replace the content between the specific markers
-        lines = (
-            lines[:specific_start]
-            + new_content
-            + lines[specific_end + 1 :]  # noqa: E203
-        )
-    else:
-        # If specific section does not exist, add it before main end marker
-        new_content = [
-            f"{specific_section_start}\n",
-            f"### {section_title}\n",
-            f"![{description}]({rel_image_path})\n",
-            f"{description}\n",
-            f"{specific_section_end}\n",
-        ]
-        lines = lines[:section_end] + new_content + lines[section_end:]
-
-    # # If markers are found, replace the content between them
-    # if section_start is not None and section_end is not None:
-    #     # Prepare the new content to replace the old one
-    #     new_content = [
-    #         f"{section_marker_start}\n",
-    #         f"{data_source_title}\n\n",
-    #         f"### {section_title}\n",
-    #         f"![{description}]({rel_image_path})\n",
-    #         f"{description}\n",
-    #         f"{section_marker_end}\n"
-    #     ]
-
-    #     # Replace the content between the start and end markers
-    #     lines = lines[:section_start] + new_content + lines[section_end + 1:]
-    # else:
-    #     # If the section does not exist, add it at the end
-    #     new_content = [
-    #         f"\n{section_marker_start}\n",
-    #         f"{data_source_title}\n\n",
-    #         f"### {section_title}\n",
-    #         f"![{description}]({rel_image_path})\n",
-    #         f"{description}\n",
-    #         f"{section_marker_end}\n"
-    #     ]
-    #     lines.extend(new_content)
-
-    # if section_start is None or section_end is None:
-    #     # If the section does not exist, add it at the end
-    #     lines.append(f"\n# {args.quarter} Quantifying the Commons\n")
-    #     lines.append(f"{section_marker_start}\n")
-    #     lines.append(f"{data_source_title}\n\n")
-    #     lines.append(f"{section_marker_end}\n")
-    #     section_start = len(lines) - 3
-    #     section_end = len(lines) - 1
-
-    # # Prepare the content to be added
-    # new_content = [
-    #     f"\n### {section_title}\n",
-    #     f"![{description}]({rel_image_path})\n",
-    #     f"{description}\n",
-    # ]
-
-    # # Insert the new content before the section end marker
-    # lines = lines[:section_end] + new_content + lines[section_end:]
-
-    # Write back to the README.md file
-    with open(readme_path, "w") as f:
-        f.writelines(lines)
-
-    LOGGER.info(f"Updated {readme_path} with new image and description.")
-
-
 def visualize_by_country(data, args):
     """
     Create a bar chart for the number of webpages licensed by country.
@@ -265,8 +131,10 @@ def visualize_by_country(data, args):
 
     plt.show()
 
-    update_readme(
+    shared.update_readme(
+        PATHS,
         image_path,
+        "Google Custom Search",
         "Number of Google Webpages Licensed by Country",
         "Country Report",
         args,
@@ -332,8 +200,10 @@ def visualize_by_license_type(data, args):
 
     plt.show()
 
-    update_readme(
+    shared.update_readme(
+        PATHS,
         image_path,
+        "Google Custom Search",
         "Number of Webpages Licensed by License Type",
         "License Type Report",
         args,
@@ -406,8 +276,10 @@ def visualize_by_language(data, args):
 
     plt.show()
 
-    update_readme(
+    shared.update_readme(
+        PATHS,
         image_path,
+        "Google Custom Search",
         "Number of Google Webpages Licensed by Language",
         "Language Report",
         args,
@@ -418,12 +290,8 @@ def visualize_by_language(data, args):
 
 def main():
 
-    try:
-        # Fetch and merge changes
-        shared.fetch_and_merge(PATHS["repo"])
-    except shared.GitOperationError as e:
-        LOGGER.error(f"Fetch and merge failed: {e}")
-        sys.exit(e.exit_code)
+    # Fetch and merge changes
+    shared.fetch_and_merge(PATHS["repo"])
 
     args = parse_arguments()
 
@@ -438,24 +306,22 @@ def main():
     visualize_by_license_type(data, args)
     visualize_by_language(data, args)
 
-    try:
-        # Add and commit changes
-        shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
-    except shared.GitOperationError as e:
-        LOGGER.error(f"Add and commit failed: {e}")
-        sys.exit(e.exit_code)
+    # Add and commit changes
+    shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
 
-    try:
-        # Push changes
-        shared.push_changes(PATHS["repo"])
-    except shared.GitOperationError as e:
-        LOGGER.error(f"Push changes failed: {e}")
-        sys.exit(e.exit_code)
+    # Push changes
+    shared.push_changes(PATHS["repo"])
 
 
 if __name__ == "__main__":
     try:
         main()
+    except shared.QuantifyingException as e:
+        if e.exit_code == 0:
+            LOGGER.info(e.message)
+        else:
+            LOGGER.error(e.message)
+        sys.exit(e.exit_code)
     except SystemExit as e:
         LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
