@@ -162,16 +162,17 @@ def update_readme(
         if specific_section_end in lines[i]:
             specific_end = i
 
+    # Prepare the new content for this specific section
+    new_content = [
+        f"{specific_section_start}\n",
+        f"### {section_title}\n",
+        f"![{description}]({rel_image_path})\n",
+        f"{description}\n",
+        f"{specific_section_end}\n",
+    ]
+
     # If the specific section is found, replace the content
     if specific_start is not None and specific_end is not None:
-        # Prepare the new content for this specific section
-        new_content = [
-            f"{specific_section_start}\n",
-            f"### {section_title}\n",
-            f"![{description}]({rel_image_path})\n",
-            f"{description}\n",
-            f"{specific_section_end}\n",
-        ]
         # Replace the content between the specific markers
         lines = (
             lines[:specific_start]
@@ -180,13 +181,6 @@ def update_readme(
         )
     else:
         # If specific section does not exist, add it before main end marker
-        new_content = [
-            f"{specific_section_start}\n",
-            f"### {section_title}\n",
-            f"![{description}]({rel_image_path})\n",
-            f"{description}\n",
-            f"{specific_section_end}\n",
-        ]
         lines = lines[:section_end] + new_content + lines[section_end:]
 
     # Write back to the README.md file
