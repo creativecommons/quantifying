@@ -41,11 +41,28 @@ def parse_arguments():
         "--quarter",
         "-q",
         type=str,
-        required=False,
         default=f"{quarter}",
         help="Data quarter in format YYYYQx, e.g., 2024Q2",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--skip-commit",
+        action="store_true",
+        help="Don't git commit changes (also skips git push changes)",
+    )
+    parser.add_argument(
+        "--skip-push",
+        action="store_true",
+        help="Don't git push changes",
+    )
+    parser.add_argument(
+        "--show-plots",
+        action="store_true",
+        help="Show generated plots (in addition to saving them)",
+    )
+    args = parser.parse_args()
+    if args.skip_commit:
+        args.skip_push = True
+    return args
 
 
 def load_data(args):
@@ -129,7 +146,8 @@ def visualize_by_country(data, args):
     image_path = os.path.join(output_directory, "gcs_country_report.png")
     plt.savefig(image_path)
 
-    plt.show()
+    if args.show_plots:
+        plt.show()
 
     shared.update_readme(
         PATHS,
@@ -198,7 +216,8 @@ def visualize_by_license_type(data, args):
 
     plt.savefig(image_path)
 
-    plt.show()
+    if args.show_plots:
+        plt.show()
 
     shared.update_readme(
         PATHS,
@@ -274,7 +293,8 @@ def visualize_by_language(data, args):
     image_path = os.path.join(output_directory, "gcs_language_report.png")
     plt.savefig(image_path)
 
-    plt.show()
+    if args.show_plots:
+        plt.show()
 
     shared.update_readme(
         PATHS,
@@ -307,10 +327,12 @@ def main():
     visualize_by_language(data, args)
 
     # Add and commit changes
-    shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
+    if not args.skip_commit:
+        shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
 
     # Push changes
-    shared.push_changes(PATHS["repo"])
+    if not args.skip_push:
+        shared.push_changes(PATHS["repo"])
 
 
 if __name__ == "__main__":
