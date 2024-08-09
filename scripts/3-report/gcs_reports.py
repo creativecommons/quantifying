@@ -134,7 +134,9 @@ def update_readme(image_path, description, section_title, args):
         ]
         # Replace the content between the specific markers
         lines = (
-            lines[:specific_start] + new_content + lines[specific_end + 1:]
+            lines[:specific_start]
+            + new_content
+            + lines[specific_end + 1 :]  # noqa: E203
         )
     else:
         # If specific section does not exist, add it before main end marker
