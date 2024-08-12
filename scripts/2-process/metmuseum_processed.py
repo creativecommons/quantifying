@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This file is dedicated to processing Flickr data
+This file is dedicated to processing Met Museum data
 for analysis and comparison between quarters.
 """
 # Standard library
@@ -24,10 +24,10 @@ LOGGER, PATHS = shared.setup(__file__)
 #     Load data for a specific quarter.
 #     """
 #     file_path = os.path.join(PATHS["data"], f"{quarter}",
-#       "1-fetch", "flickr_fetched", "license_total.csv")
+#       "1-fetch", "metmuseum_fetched")
 #     if not os.path.exists(file_path):
 #         LOGGER.error(f"Data file for quarter {quarter} not found.")
-#         return None
+#         return Nones
 #     return pd.read_csv(file_path)
 
 
