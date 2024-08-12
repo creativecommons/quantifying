@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 flickrapi = "*"
+GitPython = "*"
 google-api-python-client = "*"
 internetarchive = "*"
 jupyterlab = ">=3.6.7"

@@ -333,6 +333,9 @@ def record_results(results):
 
 def main():
 
+    # Fetch and merge changes
+    shared.fetch_and_merge(PATHS["repo"])
+
     args = parse_arguments()
     state = load_state()
     total_records_retrieved = state["total_records_retrieved"]
@@ -371,10 +374,22 @@ def main():
     state["total_records_retrieved"] = total_records_retrieved
     save_state(state)
 
+    # Add and commit changes
+    shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
+
+    # Push changes
+    shared.push_changes(PATHS["repo"])
+
 
 if __name__ == "__main__":
     try:
         main()
+    except shared.QuantifyingException as e:
+        if e.exit_code == 0:
+            LOGGER.info(e.message)
+        else:
+            LOGGER.error(e.message)
+        sys.exit(e.exit_code)
     except SystemExit as e:
         LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)

@@ -158,13 +158,27 @@ LOGGER, PATHS = shared.setup(__file__)
 
 
 def main():
-    LOGGER.info("No current code for Phase 2")
-    pass
+    raise shared.QuantifyingException("No current code for Phase 2", 0)
+
+    # # Fetch and merge changes
+    # shared.fetch_and_merge(PATHS["repo"])
+
+    # # Add and commit changes
+    # shared.add_and_commit(PATHS["repo"], "Fetched and updated new data")
+
+    # # Push changes
+    # shared.push_changes(PATHS["repo"])
 
 
 if __name__ == "__main__":
     try:
         main()
+    except shared.QuantifyingException as e:
+        if e.exit_code == 0:
+            LOGGER.info(e.message)
+        else:
+            LOGGER.error(e.message)
+        sys.exit(e.code)
     except SystemExit as e:
         LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)

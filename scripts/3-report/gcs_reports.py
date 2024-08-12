@@ -41,11 +41,28 @@ def parse_arguments():
         "--quarter",
         "-q",
         type=str,
-        required=False,
         default=f"{quarter}",
         help="Data quarter in format YYYYQx, e.g., 2024Q2",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--skip-commit",
+        action="store_true",
+        help="Don't git commit changes (also skips git push changes)",
+    )
+    parser.add_argument(
+        "--skip-push",
+        action="store_true",
+        help="Don't git push changes",
+    )
+    parser.add_argument(
+        "--show-plots",
+        action="store_true",
+        help="Show generated plots (in addition to saving them)",
+    )
+    args = parser.parse_args()
+    if args.skip_commit:
+        args.skip_push = True
+    return args
 
 
 def load_data(args):
@@ -65,58 +82,6 @@ def load_data(args):
     data = pd.read_csv(file_path)
     LOGGER.info(f"Data loaded from {file_path}")
     return data
-
-
-def update_readme(image_path, description, section_title, args):
-    """
-    Update the README.md file with the generated images and descriptions.
-    """
-    readme_path = os.path.join(PATHS["data"], args.quarter, "README.md")
-    section_marker_start = "<!-- GCS Start -->"
-    section_marker_end = "<!-- GCS End -->"
-    data_source_title = "## Data Source: Google Custom Search"
-
-    # Convert image path to a relative path
-    rel_image_path = os.path.relpath(image_path, os.path.dirname(readme_path))
-
-    if os.path.exists(readme_path):
-        with open(readme_path, "r") as f:
-            lines = f.readlines()
-    else:
-        lines = []
-
-    section_start = None
-    section_end = None
-    for i, line in enumerate(lines):
-        if section_marker_start in line:
-            section_start = i
-        if section_marker_end in line:
-            section_end = i
-
-    if section_start is None or section_end is None:
-        # If the section does not exist, add it at the end
-        lines.append(f"\n# {args.quarter} Quantifying the Commons\n")
-        lines.append(f"{section_marker_start}\n")
-        lines.append(f"{data_source_title}\n\n")
-        lines.append(f"{section_marker_end}\n")
-        section_start = len(lines) - 3
-        section_end = len(lines) - 1
-
-    # Prepare the content to be added
-    new_content = [
-        f"\n### {section_title}\n",
-        f"![{description}]({rel_image_path})\n",
-        f"{description}\n",
-    ]
-
-    # Insert the new content before the section end marker
-    lines = lines[:section_end] + new_content + lines[section_end:]
-
-    # Write back to the README.md file
-    with open(readme_path, "w") as f:
-        f.writelines(lines)
-
-    LOGGER.info(f"Updated {readme_path} with new image and description.")
 
 
 def visualize_by_country(data, args):
@@ -181,10 +146,13 @@ def visualize_by_country(data, args):
     image_path = os.path.join(output_directory, "gcs_country_report.png")
     plt.savefig(image_path)
 
-    plt.show()
+    if args.show_plots:
+        plt.show()
 
-    update_readme(
+    shared.update_readme(
+        PATHS,
         image_path,
+        "Google Custom Search",
         "Number of Google Webpages Licensed by Country",
         "Country Report",
         args,
@@ -248,10 +216,13 @@ def visualize_by_license_type(data, args):
 
     plt.savefig(image_path)
 
-    plt.show()
+    if args.show_plots:
+        plt.show()
 
-    update_readme(
+    shared.update_readme(
+        PATHS,
         image_path,
+        "Google Custom Search",
         "Number of Webpages Licensed by License Type",
         "License Type Report",
         args,
@@ -322,10 +293,13 @@ def visualize_by_language(data, args):
     image_path = os.path.join(output_directory, "gcs_language_report.png")
     plt.savefig(image_path)
 
-    plt.show()
+    if args.show_plots:
+        plt.show()
 
-    update_readme(
+    shared.update_readme(
+        PATHS,
         image_path,
+        "Google Custom Search",
         "Number of Google Webpages Licensed by Language",
         "Language Report",
         args,
@@ -335,6 +309,9 @@ def visualize_by_language(data, args):
 
 
 def main():
+
+    # Fetch and merge changes
+    shared.fetch_and_merge(PATHS["repo"])
 
     args = parse_arguments()
 
@@ -349,10 +326,24 @@ def main():
     visualize_by_license_type(data, args)
     visualize_by_language(data, args)
 
+    # Add and commit changes
+    if not args.skip_commit:
+        shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
+
+    # Push changes
+    if not args.skip_push:
+        shared.push_changes(PATHS["repo"])
+
 
 if __name__ == "__main__":
     try:
         main()
+    except shared.QuantifyingException as e:
+        if e.exit_code == 0:
+            LOGGER.info(e.message)
+        else:
+            LOGGER.error(e.message)
+        sys.exit(e.exit_code)
     except SystemExit as e:
         LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
