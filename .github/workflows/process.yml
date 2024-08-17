@@ -1,7 +1,7 @@
 name: Process Data
 
 on:
-  # push:
+  push:
   schedule:
     # 1:15am onwards, days 1-20, second month of each quarter
     - cron: '15 1,5,9,13,17,21,23 1-20 2,5,8,11 *'
