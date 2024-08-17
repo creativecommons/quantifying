@@ -178,10 +178,10 @@ if __name__ == "__main__":
             LOGGER.info(e.message)
         else:
             LOGGER.error(e.message)
-        sys.exit(e.code)
+        sys.exit(e.exit_code)
     except SystemExit as e:
-        LOGGER.error(f"System exit with code: {e.code}")
-        sys.exit(e.code)
+        LOGGER.error(f"System exit with code: {e.exit_code}")
+        sys.exit(e.exit_code)
     except KeyboardInterrupt:
         LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
