@@ -60,7 +60,7 @@ def log_paths(logger, paths):
     logger.info(f"PATHS:{paths_list}")
 
 
-def fetch_and_merge(repo_path, branch="refine-automation"):
+def fetch_and_merge(repo_path, branch="gsoc2024-dev-1"):
     try:
         repo = Repo(repo_path)
         origin = repo.remote(name="origin")
