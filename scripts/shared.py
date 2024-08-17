@@ -12,7 +12,7 @@ from pandas import PeriodIndex
 
 class QuantifyingException(Exception):
     def __init__(self, message, exit_code=None):
-        self.exit_code = exit_code if exit_code else 1
+        self.exit_code = exit_code if exit_code is not None else 1
         self.message = message
         super().__init__(self.message)
 
