@@ -30,5 +30,14 @@ jobs:
         run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
 
       - name: Run process script
-        run: |
+        run:
+          # python scripts/2-process/deviantart_processed.py
+          # python scripts/2-process/flickr_processed.py
+          # python scripts/2-process/github_processed.py
+          # python scripts/2-process/internetarchive_processed.py
+          # python scripts/2-process/metmuseum_processed.py
+          # python scripts/2-process/vimeo_processed.py
+          # python scripts/2-process/wikicommons_processed.py
+          # python scripts/2-process/wikipedia_processed.py
+          # python scripts/2-process/youtube_processed.py
           python scripts/2-process/gcs_processed.py
