@@ -346,23 +346,20 @@ def main():
 
 
 if __name__ == "__main__":
-    RETRIES = 0
-    while True:
-        try:
-            main()
-            break
-        except SystemExit as e:
-            LOGGER.error(f"System exit with code: {e.code}")
-            sys.exit(e.code)
-        except KeyboardInterrupt:
-            LOGGER.info("(130) Halted via KeyboardInterrupt.")
-            sys.exit(130)
-        except Exception:
-            RETRIES += 1
-            LOGGER.exception(
-                f"(1) Unhandled exception: {traceback.format_exc()}"
-            )
-            if RETRIES <= 20:
-                continue
-            else:
-                sys.exit(1)
+    try:
+        main()
+    except shared.QuantifyingException as e:
+        if e.exit_code == 0:
+            LOGGER.info(e.message)
+        else:
+            LOGGER.error(e.message)
+        sys.exit(e.exit_code)
+    except SystemExit as e:
+        LOGGER.error(f"System exit with code: {e.code}")
+        sys.exit(e.code)
+    except KeyboardInterrupt:
+        LOGGER.info("(130) Halted via KeyboardInterrupt.")
+        sys.exit(130)
+    except Exception:
+        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
+        sys.exit(1)
