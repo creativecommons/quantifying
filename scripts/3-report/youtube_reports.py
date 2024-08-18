@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-This file is dedicated to visualizing the data collected for Flickr.
+This file is dedicated to visualizing and analyzing the data collected
+from YouTube.
 """
 # Standard library
 import argparse
@@ -10,11 +11,9 @@ import traceback
 from datetime import datetime, timezone
 
 # Third-party
-# import matplotlib.pyplot as plt
-# import matplotlib.ticker as ticker
+import matplotlib.pyplot as plt
 import pandas as pd
-
-# import seaborn as sns
+import seaborn as sns
 from pandas import PeriodIndex
 
 # Add parent directory so shared can be imported
@@ -32,17 +31,15 @@ def parse_arguments():
     Parses command-line arguments, returns parsed arguments.
     """
     LOGGER.info("Parsing command-line arguments")
-
     # Taken from shared module, fix later
     datetime_today = datetime.now(timezone.utc)
     quarter = PeriodIndex([datetime_today.date()], freq="Q")[0]
 
-    parser = argparse.ArgumentParser(description="Flickr Report")
+    parser = argparse.ArgumentParser(description="YouTube Data Report")
     parser.add_argument(
         "--quarter",
         "-q",
         type=str,
-        required=False,
         default=f"{quarter}",
         help="Data quarter in format YYYYQx, e.g., 2024Q2",
     )
@@ -74,11 +71,7 @@ def load_data(args):
     selected_quarter = args.quarter
 
     file_path = os.path.join(
-        PATHS["data"],
-        f"{selected_quarter}",
-        "1-fetch",
-        "flickr_fetched",
-        "final.csv",
+        PATHS["data"], f"{selected_quarter}", "1-fetch", "youtube_fetched.csv"
     )
 
     if not os.path.exists(file_path):
@@ -90,7 +83,63 @@ def load_data(args):
     return data
 
 
-# Add functions for individual license graphs + word clouds + total license
+def visualize_by_license_type_over_time(data, args):
+    """
+    Create a line chart for document count over time by license type.
+    """
+    LOGGER.info(
+        "Creating a line chart for document count over time by license type."
+    )
+
+    selected_quarter = args.quarter
+
+    # Strip any leading/trailing spaces from the columns
+    data.columns = data.columns.str.strip()
+
+    plt.figure(figsize=(12, 8))
+    ax = sns.lineplot(
+        x="Time", y="Document Count", hue="LICENSE TYPE", data=data
+    )
+    plt.title("YouTube Document Count Over Time by License Type")
+    plt.xlabel("Time")
+    plt.ylabel("Document Count")
+    plt.xticks(rotation=45, ha="right")
+
+    # Add value numbers to the top of each bar
+    for p in ax.patches:
+        ax.annotate(
+            format(p.get_height(), ",.0f"),
+            (p.get_x() + p.get_width() / 2.0, p.get_height()),
+            ha="center",
+            va="center",
+            xytext=(0, 9),
+            textcoords="offset points",
+        )
+
+    output_directory = os.path.join(
+        PATHS["data"], f"{selected_quarter}", "3-report"
+    )
+
+    LOGGER.info(f"Output directory: {output_directory}")
+
+    os.makedirs(output_directory, exist_ok=True)
+    image_path = os.path.join(
+        output_directory, "youtube_license_over_time_report.png"
+    )
+    plt.savefig(image_path)
+
+    if args.show_plots:
+        plt.show()
+
+    shared.update_readme(
+        PATHS,
+        image_path,
+        "YouTube",
+        "YouTube Document Count Over Time by License Type",
+        "License Over Time Report",
+        args,
+    )
+    LOGGER.info("Visualization by license type over time created.")
 
 
 def main():
@@ -107,14 +156,12 @@ def main():
     current_directory = os.getcwd()
     LOGGER.info(f"Current working directory: {current_directory}")
 
-    """
-    Insert functions for Flickr
-    """
+    visualize_by_license_type_over_time(data, args)
 
     # Add and commit changes
     if not args.skip_commit:
         shared.add_and_commit(
-            PATHS["repo"], "Added and committed new GitHub reports"
+            PATHS["repo"], "Added and committed new YouTube reports"
         )
 
     # Push changes

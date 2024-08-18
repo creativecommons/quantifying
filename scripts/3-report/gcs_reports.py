@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-This file is dedicated to visualizing and analyzing the data collected.
+This file is dedicated to visualizing and analyzing the data collected
+from Google Custom Search.
 """
 # Standard library
 import argparse

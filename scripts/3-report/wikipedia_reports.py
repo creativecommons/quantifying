@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-This file is dedicated to visualizing the data collected for Flickr.
+This file is dedicated to visualizing and analyzing the data collected
+from Wikipedia.
 """
 # Standard library
 import argparse
@@ -10,11 +11,9 @@ import traceback
 from datetime import datetime, timezone
 
 # Third-party
-# import matplotlib.pyplot as plt
-# import matplotlib.ticker as ticker
+import matplotlib.pyplot as plt
 import pandas as pd
-
-# import seaborn as sns
+import seaborn as sns
 from pandas import PeriodIndex
 
 # Add parent directory so shared can be imported
@@ -32,17 +31,15 @@ def parse_arguments():
     Parses command-line arguments, returns parsed arguments.
     """
     LOGGER.info("Parsing command-line arguments")
-
     # Taken from shared module, fix later
     datetime_today = datetime.now(timezone.utc)
     quarter = PeriodIndex([datetime_today.date()], freq="Q")[0]
 
-    parser = argparse.ArgumentParser(description="Flickr Report")
+    parser = argparse.ArgumentParser(description="Wikipedia Data Report")
     parser.add_argument(
         "--quarter",
         "-q",
         type=str,
-        required=False,
         default=f"{quarter}",
         help="Data quarter in format YYYYQx, e.g., 2024Q2",
     )
@@ -77,8 +74,7 @@ def load_data(args):
         PATHS["data"],
         f"{selected_quarter}",
         "1-fetch",
-        "flickr_fetched",
-        "final.csv",
+        "wikipedia_fetched.csv",
     )
 
     if not os.path.exists(file_path):
@@ -90,7 +86,60 @@ def load_data(args):
     return data
 
 
-# Add functions for individual license graphs + word clouds + total license
+def visualize_by_language(data, args):
+    """
+    Create a bar chart for various statistics by language.
+    """
+    LOGGER.info("Creating bar charts for various statistics by language.")
+
+    selected_quarter = args.quarter
+
+    # Strip any leading/trailing spaces from the columns
+    data.columns = data.columns.str.strip()
+
+    columns_to_plot = ["pages", "articles", "edits", "images", "users"]
+    for column in columns_to_plot:
+        plt.figure(figsize=(12, 8))
+        ax = sns.barplot(x="language", y=column, data=data)
+        plt.title(f"Wikipedia {column.capitalize()} by Language")
+        plt.xlabel("Language")
+        plt.ylabel(column.capitalize())
+        plt.xticks(rotation=45, ha="right")
+
+        # Add value numbers to the top of each bar
+        for p in ax.patches:
+            ax.annotate(
+                format(p.get_height(), ",.0f"),
+                (p.get_x() + p.get_width() / 2.0, p.get_height()),
+                ha="center",
+                va="center",
+                xytext=(0, 9),
+                textcoords="offset points",
+            )
+
+        output_directory = os.path.join(
+            PATHS["data"], f"{selected_quarter}", "3-report"
+        )
+
+        LOGGER.info(f"Output directory: {output_directory}")
+        os.makedirs(output_directory, exist_ok=True)
+        image_path = os.path.join(
+            output_directory, f"wikipedia_{column}_report.png"
+        )
+        plt.savefig(image_path)
+
+        if args.show_plots:
+            plt.show()
+
+        shared.update_readme(
+            PATHS,
+            image_path,
+            "Wikipedia",
+            f"Wikipedia {column.capitalize()} by Language",
+            f"{column.capitalize()} Report",
+            args,
+        )
+        LOGGER.info(f"Visualization by {column} created.")
 
 
 def main():
@@ -107,14 +156,12 @@ def main():
     current_directory = os.getcwd()
     LOGGER.info(f"Current working directory: {current_directory}")
 
-    """
-    Insert functions for Flickr
-    """
+    visualize_by_language(data, args)
 
     # Add and commit changes
     if not args.skip_commit:
         shared.add_and_commit(
-            PATHS["repo"], "Added and committed new GitHub reports"
+            PATHS["repo"], "Added and committed new Wikpedia reports"
         )
 
     # Push changes

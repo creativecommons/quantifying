@@ -113,14 +113,14 @@ def update_readme(
     Update the README.md file with the generated images and descriptions.
     """
     readme_path = os.path.join(paths["data"], args.quarter, "README.md")
-    section_marker_start = "<!-- GCS Start -->"
-    section_marker_end = "<!-- GCS End -->"
-    data_source_title = f"## Data Source: {data_source}"
 
-    # Define section markers for each report type
+    # Define section markers for each data source
+    section_marker_start = f"<!-- {data_source} Start -->"
+    section_marker_end = f"<!-- {data_source} End -->"
+
+    # Define specific section markers for each report type
     specific_section_start = f"<!-- {section_title} Start -->"
     specific_section_end = f"<!-- {section_title} End -->"
-    data_source_title = f"## Data Source: {data_source}"
 
     # Convert image path to a relative path
     rel_image_path = os.path.relpath(image_path, os.path.dirname(readme_path))
@@ -131,32 +131,35 @@ def update_readme(
     else:
         lines = []
 
-    # Main GCS Section
-    section_start = None
-    section_end = None
+    # Ensure the title is at the top
+    title_line = f"# {args.quarter} Quantifying the Commons\n"
+
+    if not lines or lines[0].strip() != title_line.strip():
+        # Add title if not present or incorrect
+        lines = [title_line] + lines
+
+    # Locate or create the data source section
+    section_start = section_end = None
     for i, line in enumerate(lines):
         if section_marker_start in line:
             section_start = i
         if section_marker_end in line:
             section_end = i
 
-    # Check if the main section is present
     if section_start is None or section_end is None:
-        # If the main section is not present, add it
+        # If the data source section is not present, add it
         lines.extend(
             [
-                f"# {args.quarter} Quantifying the Commons\n",
+                f"## Data Source: {data_source}\n",
                 f"{section_marker_start}\n",
-                f"{data_source_title}\n\n",
                 f"{section_marker_end}\n",
             ]
         )
         section_start = len(lines) - 2
         section_end = len(lines) - 1
 
-    # Locate the specific section markers within the main section
-    specific_start = None
-    specific_end = None
+    # Locate or create the specific section within the data source section
+    specific_start = specific_end = None
     for i in range(section_start, section_end):
         if specific_section_start in lines[i]:
             specific_start = i
@@ -172,7 +175,7 @@ def update_readme(
         f"{specific_section_end}\n",
     ]
 
-    # If the specific section is found, replace the content
+    # Replace or add the specific section content
     if specific_start is not None and specific_end is not None:
         # Replace the content between the specific markers
         lines = (
@@ -181,7 +184,7 @@ def update_readme(
             + lines[specific_end + 1 :]  # noqa: E203
         )
     else:
-        # If specific section does not exist, add it before main end marker
+        # Add new specific section before the end of the data source section
         lines = lines[:section_end] + new_content + lines[section_end:]
 
     # Write back to the README.md file
