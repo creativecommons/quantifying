@@ -5,6 +5,7 @@ and save it into multiple CSV files and a JSON file.
 """
 
 # Standard library
+import argparse
 import csv
 import json
 import os
@@ -41,6 +42,24 @@ LOGGER.info("Script execution started.")
 FLICKR_API_CALLS_PER_HOUR = 3600
 SECONDS_PER_HOUR = 3600
 API_CALL_INTERVAL = SECONDS_PER_HOUR / FLICKR_API_CALLS_PER_HOUR
+
+
+def parse_arguments():
+    """
+    Parses command-line arguments, returns parsed arguments.
+    """
+    LOGGER.info("Parsing command-line arguments")
+    parser = argparse.ArgumentParser(description="Google Custom Search Script")
+    parser.add_argument(
+        "--records", type=int, default=1, help="Number of records per query"
+    )
+    parser.add_argument(
+        "--pages", type=int, default=1, help="Number of pages to query"
+    )
+    parser.add_argument(
+        "--licenses", type=int, default=1, help="Number of licenses to query"
+    )
+    return parser.parse_args()
 
 
 def to_df(datalist, namelist):
@@ -340,9 +359,18 @@ def save_license_totals():
 
 
 def main():
+    # Fetch and merge changes
+    shared.fetch_and_merge(PATHS["repo"])
+
     process_data()
     save_license_totals()
     LOGGER.info("Script execution completed successfully.")
+
+    # Add and commit changes
+    shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
+
+    # Push changes
+    shared.push_changes(PATHS["repo"])
 
 
 if __name__ == "__main__":
