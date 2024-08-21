@@ -2,6 +2,14 @@
 
 [stateof]: https://github.com/creativecommons/stateof
 
+## 2024 Google Summer of Code
+
+- [Automating Quantifying the Commons: Part 1][part1]
+- [Automating Quantifying the Commons: Part 2][part2]
+
+[part1]: https://opensource.creativecommons.org/blog/entries/2024-07-10-automating-quantifying/
+[part2]:
+
 
 ## 2022 Data Science Discovery - UC Berkeley
 
