@@ -60,11 +60,23 @@ def log_paths(logger, paths):
     logger.info(f"PATHS:{paths_list}")
 
 
-def fetch_and_merge(repo_path, branch="gsoc2024-dev-1"):
+def fetch_and_merge(repo_path, branch=None):
     try:
         repo = Repo(repo_path)
         origin = repo.remote(name="origin")
         origin.fetch()
+
+        # Determine the branch to use
+        if branch is None:
+            # Use the current branch if no branch is provided
+            branch = repo.active_branch.name if repo.active_branch else "main"
+
+        # Ensure that the branch exists in the remote
+        if f"origin/{branch}" not in [ref.name for ref in repo.refs]:
+            raise ValueError(
+                f"Branch '{branch}' does not exist in remote 'origin'"
+            )
+
         repo.git.merge(f"origin/{branch}", allow_unrelated_histories=True)
         logging.info(f"Fetched and merged latest changes from {branch}")
     except InvalidGitRepositoryError:
