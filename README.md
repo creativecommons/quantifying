@@ -59,7 +59,7 @@ Quantifying/
 │   └── ...
 ├── dev/
 ├── pre-automation/
-│   └── ... # All folders and files from the 2022 Data Discovery Program prior to automation
+│   └── ... # All Quantifying work prior to adding automation system
 ├── scripts/   # Runs scripts for all phases
 │   ├── 1-fetch/
 │   ├── 2-process/
