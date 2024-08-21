@@ -38,6 +38,47 @@ See [`CONTRIBUTING.md`][org-contrib].
 
 [org-contrib]: https://github.com/creativecommons/.github/blob/main/CONTRIBUTING.md
 
+### Project Structure
+Please note that in the directory tree below, all instances of `fetch`, `process`, and `report` and referring to
+the three phases of data gathering, processing, and report generation.
+
+```
+Quantifying/
+├── .github/
+│   ├── workflows/
+│   │   ├── fetch.yml
+│   │   ├── process.yml
+│   │   ├── report.yml
+│   │   └── static_analysis.yml
+├── data/   # Data storages from script runs
+│   ├── 20XXQX/
+│   │   ├── 1-fetch/
+│   │   ├── 2-process/
+│   │   ├── 3-report/
+│   │   │   └── README.md  # All generated reports are displayed in the README
+│   └── ...
+├── dev/
+├── pre-automation/
+│   └── ... # All folders and files from the 2022 Data Discovery Program prior to automation
+├── scripts/   # Runs scripts for all phases
+│   ├── 1-fetch/
+│   ├── 2-process/
+│   ├── 3-report/
+│   └── shared.py
+├── .cc-metadata.yml
+├── .flake8
+├── .gitignore
+├── .pre-commit-config.yaml
+├── LICENSE
+├── Pipfile # Specifies the project's dependencies and Python version
+├── Pipfile.lock
+├── README.md
+├── env.example
+├── history.md
+├── pyproject.toml
+└── sources.md
+```
+
 
 ## Development
 

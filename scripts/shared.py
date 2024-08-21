@@ -60,7 +60,7 @@ def log_paths(logger, paths):
     logger.info(f"PATHS:{paths_list}")
 
 
-def fetch_and_merge(repo_path, branch=None):
+def fetch_and_merge(repo_path, branch="main"):
     try:
         repo = Repo(repo_path)
         origin = repo.remote(name="origin")
