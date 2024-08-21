@@ -39,7 +39,7 @@ See [`CONTRIBUTING.md`][org-contrib].
 [org-contrib]: https://github.com/creativecommons/.github/blob/main/CONTRIBUTING.md
 
 ### Project Structure
-Please note that in the directory tree below, all instances of `fetch`, `process`, and `report` and referring to
+Please note that in the directory tree below, all instances of `fetch`, `process`, and `report` are referring to
 the three phases of data gathering, processing, and report generation.
 
 ```
@@ -58,8 +58,7 @@ Quantifying/
 │   │   │   └── README.md  # All generated reports are displayed in the README
 │   └── ...
 ├── dev/
-├── pre-automation/
-│   └── ... # All Quantifying work prior to adding automation system
+├── pre-automation/ # All Quantifying work prior to adding automation system
 ├── scripts/   # Runs scripts for all phases
 │   ├── 1-fetch/
 │   ├── 2-process/
