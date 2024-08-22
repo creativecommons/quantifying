@@ -6,7 +6,7 @@
 
 - [Automating Quantifying the Commons: Part 1][part1]
 - [Automating Quantifying the Commons: Part 2][part2]
-- [Documentation]: [doc]
+- [Documentation][doc]
 
 [part1]: https://opensource.creativecommons.org/blog/entries/2024-07-10-automating-quantifying/
 [part2]: https://opensource.creativecommons.org/blog/entries/2024-08-22-automating-quantifying/
