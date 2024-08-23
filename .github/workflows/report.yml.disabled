@@ -1,0 +1,43 @@
+name: Generate Report
+
+on:
+  schedule:
+    # 1:15am onwards, days 1-20, third month of each quarter
+    - cron: '15 1,5,9,13,17,21,23 1-20 3,6,9,12 *'
+  workflow_dispatch:
+
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv sync --system
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
+
+      - name: Run report script
+        run:
+          # python scripts/3-report/deviantart_reports.py
+          # python scripts/3-report/flickr_reports.py
+          # python scripts/3-report/github_reports.py
+          # python scripts/3-report/internetarchive_reports.py
+          # python scripts/3-report/metmuseum_reports.py
+          # python scripts/3-report/vimeo_reports.py
+          # python scripts/3-report/wikicommons_reports.py
+          # python scripts/3-report/wikipedia_reports.py
+          # python scripts/3-report/youtube_reports.py
+          python scripts/3-report/gcs_reports.py

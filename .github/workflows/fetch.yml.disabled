@@ -1,0 +1,46 @@
+name: Fetch Data
+
+on:
+  schedule:
+    # 1:15am onwards, days 1-20, first month of each quarter
+    - cron: '15 1,5,9,13,17,21,23 1-20 1,4,7,10 *'
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    env:
+      GCS_DEVELOPER_KEY: ${{ secrets.GCS_DEVELOPER_KEY }}
+      GCS_CX: ${{ secrets.GCS_CX }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv sync --system
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
+
+      - name: Run fetch script
+        run:
+          # python scripts/1-fetch/deviantart_fetched.py
+          # python scripts/1-fetch/flickr_fetched.py
+          # python scripts/1-fetch/github_fetched.py
+          # python scripts/1-fetch/internetarchive_fetched.py
+          # python scripts/1-fetch/metmuseum_fetched.py
+          # python scripts/1-fetch/vimeo_fetched.py
+          # python scripts/1-fetch/wikicommons_fetched.py
+          # python scripts/1-fetch/wikipedia_fetched.py
+          # python scripts/1-fetch/youtube_fetched.py
+          python scripts/1-fetch/gcs_fetched.py

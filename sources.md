@@ -50,7 +50,7 @@ The Flickr Developer Guide](https://www.flickr.com/services/developer/))
 - Data available through JSON format
 
 
-## Google Custom Search JSON API
+## GCS (Google Custom Search) JSON API
 
 **Description:** The Custom Search JSON API allows user-defined detailed query
 and access towards related query data using a programmable search engine.
@@ -58,11 +58,20 @@ and access towards related query data using a programmable search engine.
 **API documentation links:**
 - [Custom Search JSON API Reference | Programmable Search Engine | Google
   Developers][google-json]
+- [Google API Python Client Library][google-api-python]
+  - [Google API Client Library for Python Docs |
+    google-api-python-client][google-api-python]
+    - _Reference documentation for the core library
+      [googleapiclient][googleapiclient]._
+      - See: googleapiclient.discovery > build
+    - _[Library reference documentation by API][gcs-library-ref]_
+      - See Custom Search v1 [cse()][gcs-cse]
 - [Method: cse.list | Custom Search JSON API | Google Developers][cse-list]
+- [XML API reference appendices][reference-appendix]
 
 **API information:**
 - API key required
-- Query limit: 100 queries per day for free version
+- Query limit: 100 queries per day
 - Data available through JSON format
 
 **Notes:**
@@ -72,7 +81,12 @@ and access towards related query data using a programmable search engine.
   data's first column is sorted due to intermediate data analysis progress.
 
 [google-json]: https://developers.google.com/custom-search/v1/reference/rest
+[google-api-python]: https://github.com/googleapis/google-api-python-client
+[googleapiclient]: http://googleapis.github.io/google-api-python-client/docs/epy/index.html
+[gcs-library-ref]: https://googleapis.github.io/google-api-python-client/docs/dyn/
+[gcs-cse]: https://googleapis.github.io/google-api-python-client/docs/dyn/customsearch_v1.cse.html
 [cse-list]: https://developers.google.com/custom-search/v1/reference/rest/v1/cse/list
+[reference-appendix]: https://developers.google.com/custom-search/docs/xml_results_appendices
 
 
 ## Internet Archive Python Interface
