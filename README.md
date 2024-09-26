@@ -9,15 +9,6 @@ This project seeks to quantify the size and diversity of the commons--the
 collection of works that are openly licensed or in the public domain.
 
 
-### 2024 Status
-
-This project is currently being worked on as a Google Summer of Code (GSoC)
-project. The goal is to add automation of data gathering and report generation
-so that our reports quantifying the commons are never more than 3 months out of
-date. To prepare for this refactor, previous work was moved to
-[`pre-automation/`](pre-automation/).
-
-
 ## Code of conduct
 
 [`CODE_OF_CONDUCT.md`][org-coc]:
@@ -87,6 +78,10 @@ Quantifying/
 
 ### Prerequisites
 
+For information on learning and installing the prerequisite technologies for
+this project, please see [Foundational technologies — Creative Commons Open
+Source][found-tech].
+
 This repository uses [pipenv][pipenvdocs] to manage the required Python
 modules:
 1. Install `pipenv`:
@@ -104,6 +99,7 @@ modules:
     pipenv sync --dev
     ```
 
+[found-tech]: https://opensource.creativecommons.org/contributing-code/foundational-tech/
 [pipenvdocs]: https://pipenv.pypa.io/en/latest/
 [pipenvinstall]: https://pipenv.pypa.io/en/latest/installation/
 [homebrew]: https://brew.sh/
@@ -121,8 +117,8 @@ follow these steps:
 2. Uncomment the variables in the `.env` file and assign values as needed. See
    [`sources.md`](sources.md) on how to get credentials:
     ```
-    GOOGLE_API_KEYS=your_api_key
-    PSE_KEY=your_pse_key
+    GCS_DEVELOPER_KEY = your_api_key
+    GCS_CX = your_pse_id
     ```
 3. Save the changes to the `.env` file.
 4. You should now be able to run scripts that require client credentials
