@@ -31,13 +31,13 @@ jobs:
 
       - name: Run report script
         run:
-          # python scripts/3-report/deviantart_reports.py
-          # python scripts/3-report/flickr_reports.py
-          # python scripts/3-report/github_reports.py
-          # python scripts/3-report/internetarchive_reports.py
-          # python scripts/3-report/metmuseum_reports.py
-          # python scripts/3-report/vimeo_reports.py
-          # python scripts/3-report/wikicommons_reports.py
-          # python scripts/3-report/wikipedia_reports.py
-          # python scripts/3-report/youtube_reports.py
-          python scripts/3-report/gcs_reports.py
+          # ./scripts/3-report/deviantart_reports.py
+          # ./scripts/3-report/flickr_reports.py
+          # ./scripts/3-report/github_reports.py
+          # ./scripts/3-report/internetarchive_reports.py
+          # ./scripts/3-report/metmuseum_reports.py
+          # ./scripts/3-report/vimeo_reports.py
+          # ./scripts/3-report/wikicommons_reports.py
+          # ./scripts/3-report/wikipedia_reports.py
+          # ./scripts/3-report/youtube_reports.py
+          ./scripts/3-report/gcs_reports.py
