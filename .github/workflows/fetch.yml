@@ -34,13 +34,13 @@ jobs:
 
       - name: Run fetch script
         run:
-          # python scripts/1-fetch/deviantart_fetched.py
-          # python scripts/1-fetch/flickr_fetched.py
-          # python scripts/1-fetch/github_fetched.py
-          # python scripts/1-fetch/internetarchive_fetched.py
-          # python scripts/1-fetch/metmuseum_fetched.py
-          # python scripts/1-fetch/vimeo_fetched.py
-          # python scripts/1-fetch/wikicommons_fetched.py
-          # python scripts/1-fetch/wikipedia_fetched.py
-          # python scripts/1-fetch/youtube_fetched.py
-          python scripts/1-fetch/gcs_fetched.py
+          # ./scripts/1-fetch/deviantart_fetched.py
+          # ./scripts/1-fetch/flickr_fetched.py
+          # ./scripts/1-fetch/github_fetched.py
+          # ./scripts/1-fetch/internetarchive_fetched.py
+          # ./scripts/1-fetch/metmuseum_fetched.py
+          # ./scripts/1-fetch/vimeo_fetched.py
+          # ./scripts/1-fetch/wikicommons_fetched.py
+          # ./scripts/1-fetch/wikipedia_fetched.py
+          # ./scripts/1-fetch/youtube_fetched.py
+          ./scripts/1-fetch/gcs_fetched.py
