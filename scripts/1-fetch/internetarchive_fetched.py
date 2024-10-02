@@ -223,7 +223,9 @@ def main():
 
     # Add and commit changes
     shared.add_and_commit(
-        PATHS["repo"], "Added and committed Internet Archive data"
+        PATHS["repo"],
+        PATHS["data_phase"],
+        "Add and commit Internet Archive data",
     )
 
     # Push changes

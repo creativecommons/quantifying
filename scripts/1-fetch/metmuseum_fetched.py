@@ -191,7 +191,9 @@ def main():
     save_state(state)
 
     # Add and commit changes
-    shared.add_and_commit(PATHS["repo"], "Added and committed MetMuseum data")
+    shared.add_and_commit(
+        PATHS["repo"], PATHS["data_phase"], "Add and commit MetMuseum data"
+    )
 
     # Push changes
     shared.push_changes(PATHS["repo"])

@@ -275,7 +275,7 @@ def main():
 
     # Add and commit changes
     shared.add_and_commit(
-        PATHS["repo"], "Added and committed WikiCommons data"
+        PATHS["repo"], PATHS["data_phase"], "Add and commit WikiCommons data"
     )
 
     # Push changes

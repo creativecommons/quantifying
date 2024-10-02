@@ -376,7 +376,7 @@ def main():
 
     # Add and commit changes
     shared.add_and_commit(
-        PATHS["repo"], PATHS["data_phase"], "Added and committed new reports"
+        PATHS["repo"], PATHS["data_phase"], "Add and commit new reports"
     )
 
     # Push changes

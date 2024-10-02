@@ -367,7 +367,9 @@ def main():
     LOGGER.info("Script execution completed successfully.")
 
     # Add and commit changes
-    shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
+    shared.add_and_commit(
+        PATHS["repo"], PATHS["data_phase"], "Add and commit new reports"
+    )
 
     # Push changes
     shared.push_changes(PATHS["repo"])

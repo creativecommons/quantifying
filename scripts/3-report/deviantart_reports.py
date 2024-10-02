@@ -165,7 +165,9 @@ def main():
     # Add and commit changes
     if not args.skip_commit:
         shared.add_and_commit(
-            PATHS["repo"], "Added and committed new Deviantart reports"
+            PATHS["repo"],
+            PATHS["data_phase"],
+            "Add and commit new Deviantart reports",
         )
 
     # Push changes
