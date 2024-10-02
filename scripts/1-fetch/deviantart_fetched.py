@@ -195,7 +195,7 @@ def record_results(license_type, data):
         "a",
         newline="",
     ) as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, dialect="unix")
         writer.writerow(row)
 
 
@@ -263,7 +263,9 @@ def main():
     save_state(state)
 
     # Add and commit changes
-    shared.add_and_commit(PATHS["repo"], "Added and committed DeviantArt data")
+    shared.add_and_commit(
+        PATHS["repo"], PATHS["data_quarter"], "Add and commit DeviantArt data"
+    )
 
     # Push changes
     shared.push_changes(PATHS["repo"])

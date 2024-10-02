@@ -164,7 +164,9 @@ def main():
     # Add and commit changes
     if not args.skip_commit:
         shared.add_and_commit(
-            PATHS["repo"], "Added and committed new Internet Archive reports"
+            PATHS["repo"],
+            PATHS["data_quarter"],
+            "Add and commit new Internet Archive reports",
         )
 
     # Push changes

@@ -174,7 +174,7 @@ def record_results(license_type, time, document_count):
         "a",
         newline="",
     ) as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, dialect="unix")
         writer.writerow(row)
 
 
@@ -256,7 +256,9 @@ def main():
     save_state(state)
 
     # Add and commit changes
-    shared.add_and_commit(PATHS["repo"], "Added and committed YouTube data")
+    shared.add_and_commit(
+        PATHS["repo"], PATHS["data_quarter"], "Add and commit YouTube data"
+    )
 
     # Push changes
     shared.push_changes(PATHS["repo"])

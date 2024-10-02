@@ -176,7 +176,7 @@ def record_results(license_type, data):
         "a",
         newline="",
     ) as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, dialect="unix")
         writer.writerow(row)
 
 
@@ -275,7 +275,7 @@ def main():
 
     # Add and commit changes
     shared.add_and_commit(
-        PATHS["repo"], "Added and committed WikiCommons data"
+        PATHS["repo"], PATHS["data_quarter"], "Add and commit WikiCommons data"
     )
 
     # Push changes

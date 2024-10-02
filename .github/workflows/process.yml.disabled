@@ -2,17 +2,28 @@ name: Process Data
 
 on:
   schedule:
-    # 1:15am onwards, days 1-20, second month of each quarter
-    - cron: '15 1,5,9,13,17,21,23 1-20 2,5,8,11 *'
+    # at 01:15 on days 1-20 in second month of each quarter
+    - cron: '15 1 1-20 2,5,8,11 *'
   workflow_dispatch:
 
 jobs:
   process:
     runs-on: ubuntu-latest
 
+    # CC Technology team members:
+    #   See cc-quantifying-bot GitHub entry in Bitwarden for information on
+    #   BOT_ secrets
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "${{ secrets.BOT_NAME }}"
+          git config user.email "${{ secrets.BOT_EMAIL }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5

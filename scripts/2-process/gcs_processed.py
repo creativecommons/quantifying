@@ -164,7 +164,9 @@ def main():
     # shared.fetch_and_merge(PATHS["repo"])
 
     # # Add and commit changes
-    # shared.add_and_commit(PATHS["repo"], "Fetched and updated new data")
+    # shared.add_and_commit(
+    #     PATHS["repo"], PATHS["data_quarter"], "Fetched and updated new data"
+    # )
 
     # # Push changes
     # shared.push_changes(PATHS["repo"])

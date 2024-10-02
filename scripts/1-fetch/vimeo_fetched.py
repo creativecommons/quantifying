@@ -165,7 +165,7 @@ def record_results(license_type, data):
     with open(
         os.path.join(PATHS["data_phase"], "vimeo_fetched.csv"), "a", newline=""
     ) as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, dialect="unix")
         writer.writerow(row)
 
 
@@ -233,7 +233,9 @@ def main():
     save_state(state)
 
     # Add and commit changes
-    shared.add_and_commit(PATHS["repo"], "Added and committed Vimeo data")
+    shared.add_and_commit(
+        PATHS["repo"], PATHS["data_quarter"], "Add and commit Vimeo data"
+    )
 
     # Push changes
     shared.push_changes(PATHS["repo"])

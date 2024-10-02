@@ -2,8 +2,8 @@ name: Fetch Data
 
 on:
   schedule:
-    # 1:15am onwards, days 1-20, first month of each quarter
-    - cron: '15 1,5,9,13,17,21,23 1-20 1,4,7,10 *'
+    # at 01:15 on days 1-20 in first month of each quarter
+    - cron: '15 1 1-20 1,4,7,10 *'
   workflow_dispatch:
 
 jobs:
@@ -14,9 +14,20 @@ jobs:
       GCS_DEVELOPER_KEY: ${{ secrets.GCS_DEVELOPER_KEY }}
       GCS_CX: ${{ secrets.GCS_CX }}
 
+    # CC Technology team members:
+    #   See cc-quantifying-bot GitHub entry in Bitwarden for information on
+    #   BOT_ secrets
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "${{ secrets.BOT_NAME }}"
+          git config user.email "${{ secrets.BOT_EMAIL }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5

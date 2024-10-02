@@ -326,7 +326,7 @@ def record_results(results):
     with open(
         os.path.join(PATHS["data_phase"], "gcs_fetched.csv"), "a", newline=""
     ) as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, dialect="unix")
         for result in results:
             writer.writerow(result)
 
@@ -375,7 +375,9 @@ def main():
     save_state(state)
 
     # Add and commit changes
-    shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
+    shared.add_and_commit(
+        PATHS["repo"], PATHS["data_quarter"], "Add and commit new reports"
+    )
 
     # Push changes
     shared.push_changes(PATHS["repo"])
