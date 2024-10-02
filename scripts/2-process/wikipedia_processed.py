@@ -70,7 +70,7 @@ def main():
 
     # # Add and commit changes
     # shared.add_and_commit(
-    # PATHS["repo"], PATHS["data_phase"], "Fetched and updated new data"
+    # PATHS["repo"], PATHS["data_quarter"], "Fetched and updated new data"
     # )
 
     # # Push changes

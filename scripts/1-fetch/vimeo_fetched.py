@@ -234,7 +234,7 @@ def main():
 
     # Add and commit changes
     shared.add_and_commit(
-        PATHS["repo"], PATHS["data_phase"], "Add and commit Vimeo data"
+        PATHS["repo"], PATHS["data_quarter"], "Add and commit Vimeo data"
     )
 
     # Push changes

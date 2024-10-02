@@ -163,7 +163,7 @@ def main():
     if not args.skip_commit:
         shared.add_and_commit(
             PATHS["repo"],
-            PATHS["data_phase"],
+            PATHS["data_quarter"],
             "Add and commit new Metmuseum reports",
         )
 

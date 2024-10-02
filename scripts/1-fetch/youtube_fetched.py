@@ -257,7 +257,7 @@ def main():
 
     # Add and commit changes
     shared.add_and_commit(
-        PATHS["repo"], PATHS["data_phase"], "Add and commit YouTube data"
+        PATHS["repo"], PATHS["data_quarter"], "Add and commit YouTube data"
     )
 
     # Push changes
