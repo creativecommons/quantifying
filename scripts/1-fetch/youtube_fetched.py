@@ -174,7 +174,7 @@ def record_results(license_type, time, document_count):
         "a",
         newline="",
     ) as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, dialect="unix")
         writer.writerow(row)
 
 

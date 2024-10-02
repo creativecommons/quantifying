@@ -326,7 +326,7 @@ def record_results(results):
     with open(
         os.path.join(PATHS["data_phase"], "gcs_fetched.csv"), "a", newline=""
     ) as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, dialect="unix")
         for result in results:
             writer.writerow(result)
 

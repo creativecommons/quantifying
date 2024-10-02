@@ -351,8 +351,8 @@ def save_license_totals():
     license_total_path = os.path.join(
         PATHS["data_phase"], "flickr_fetched", "license_total.csv"
     )
-    with open(license_total_path, "w") as csvfile:
-        writer = csv.writer(csvfile)
+    with open(license_total_path, "w") as f:
+        writer = csv.writer(f, dialect="unix")
         writer.writerow(["License", "Total"])
         for license, total in license_counts.items():
             writer.writerow([license, total])
