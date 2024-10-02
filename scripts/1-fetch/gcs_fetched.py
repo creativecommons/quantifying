@@ -194,10 +194,9 @@ def get_license_list(args):
                 license_list.append(
                     f"https://creativecommons.org/{match.group(1)}"
                 )
-    return list(set(license_list))[
-        : args.licenses
-    ]  # Only the first license for testing
-    # Change [:1] to [args.licenses] later, to limit based on args
+    license_list = list(set(license_list))
+    license_list.sort()
+    return license_list[: args.licenses]
 
 
 def get_country_list(select_all=False):
