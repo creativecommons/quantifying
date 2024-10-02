@@ -375,10 +375,12 @@ def main():
     save_state(state)
 
     # Add and commit changes
-    shared.add_and_commit(PATHS["repo"], "Added and committed new reports")
+    shared.add_and_commit(
+        PATHS["data_phase"], "Added and committed new reports"
+    )
 
     # Push changes
-    shared.push_changes(PATHS["repo"])
+    shared.push_changes(PATHS["data_phase"])
 
 
 if __name__ == "__main__":
