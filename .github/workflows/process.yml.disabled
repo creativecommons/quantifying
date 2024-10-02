@@ -10,9 +10,20 @@ jobs:
   process:
     runs-on: ubuntu-latest
 
+    # CC Technology team members:
+    #   See cc-quantifying-bot GitHub entry in Bitwarden for information on
+    #   BOT_ secrets
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+
+      - name: Configure git
+      - run: |
+          git config user.name "${{ secrets.BOT_NAME }}"
+          git config user.email "${{ secrets.BOT_EMAIL }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
