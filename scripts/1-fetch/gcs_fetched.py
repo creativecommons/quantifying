@@ -376,11 +376,11 @@ def main():
 
     # Add and commit changes
     shared.add_and_commit(
-        PATHS["data_phase"], "Added and committed new reports"
+        PATHS["repo"], PATHS["data_phase"], "Added and committed new reports"
     )
 
     # Push changes
-    shared.push_changes(PATHS["data_phase"])
+    shared.push_changes(PATHS["repo"])
 
 
 if __name__ == "__main__":

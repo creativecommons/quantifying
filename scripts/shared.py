@@ -87,13 +87,13 @@ def fetch_and_merge(repo_path, branch="main"):
         raise QuantifyingException(f"Error during fetch and merge: {e}", 1)
 
 
-def add_and_commit(repo_path, message):
+def add_and_commit(repo_path, add_path, message):
     try:
         repo = Repo(repo_path)
         if not repo.is_dirty(untracked_files=True):
             logging.info("No changes to commit")
             return
-        repo.git.add(update=True)
+        repo.index.add([add_path])
         repo.index.commit(message)
         logging.info("Changes committed")
     except InvalidGitRepositoryError:
