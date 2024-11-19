@@ -16,7 +16,13 @@ Create a prioritized CC Legal Tool URLs file:
 # Standard library
 import os
 import sys
+import textwrap
 import traceback
+
+# Third-party
+from pygments import highlight
+from pygments.formatters import TerminalFormatter
+from pygments.lexers import PythonTracebackLexer
 
 # Add current directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__)))
@@ -34,7 +40,7 @@ LOGGER.info("Script execution started")
 def get_tool_urls():
     LOGGER.info("Loading CC Legal Tool paths and adding prefix")
     file_path = os.path.join(PATHS["data"], "legal-tool-paths.txt")
-    prefix = "https://creativecommons.org/"
+    prefix = "//creativecommons.org/"
     tool_urls = []
     with open(file_path, "r") as file_obj:
         for line in file_obj:
@@ -133,5 +139,13 @@ if __name__ == "__main__":
         LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
+        traceback_formatted = textwrap.indent(
+            highlight(
+                traceback.format_exc(),
+                PythonTracebackLexer(),
+                TerminalFormatter(),
+            ),
+            "    ",
+        )
+        LOGGER.exception(f"(1) Unhandled exception:\n{traceback_formatted}")
         sys.exit(1)
