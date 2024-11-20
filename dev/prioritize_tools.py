@@ -25,7 +25,7 @@ from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
 
 # Add current directory so shared can be imported
-sys.path.append(os.path.join(os.path.dirname(__file__)))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "scripts"))
 
 # First-party/Local
 import shared  # noqa: E402
