@@ -2,8 +2,13 @@ name: Fetch Data
 
 on:
   schedule:
-    # at 01:15 on days 1-20 in first month of each quarter
-    - cron: '15 1 1-20 1,4,7,10 *'
+    # Normal schedule
+    # # at 01:15 on all days in first month of each quarter
+    # - cron: '15 1 * 1,4,7,10 *'
+    # Temp schedule
+    # at 01:15 on all days in all months
+    - cron: '15 1 * * *'
+
   workflow_dispatch:
 
 jobs:
@@ -44,14 +49,6 @@ jobs:
         run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
 
       - name: Run fetch script
-        run:
-          # ./scripts/1-fetch/deviantart_fetched.py
-          # ./scripts/1-fetch/flickr_fetched.py
-          # ./scripts/1-fetch/github_fetched.py
-          # ./scripts/1-fetch/internetarchive_fetched.py
-          # ./scripts/1-fetch/metmuseum_fetched.py
-          # ./scripts/1-fetch/vimeo_fetched.py
-          # ./scripts/1-fetch/wikicommons_fetched.py
-          # ./scripts/1-fetch/wikipedia_fetched.py
-          # ./scripts/1-fetch/youtube_fetched.py
-          ./scripts/1-fetch/gcs_fetched.py
+        run: |
+          ./scripts/1-fetch/gcs_fetched.py \
+            --enable-git --enable-save --limit=100

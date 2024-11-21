@@ -6,19 +6,20 @@ This file is dedicated to querying data from the Google Custom Search API.
 import argparse
 import csv
 import os
-import re
+import random
 import sys
+import textwrap
 import time
 import traceback
-
-# import time
 import urllib.parse
 
 # Third-party
 import googleapiclient.discovery
-import yaml
 from dotenv import load_dotenv
 from googleapiclient.errors import HttpError
+from pygments import highlight
+from pygments.formatters import TerminalFormatter
+from pygments.lexers import PythonTracebackLexer
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -36,9 +37,48 @@ load_dotenv(PATHS["dotenv"])
 DEVELOPER_KEY = os.getenv("GCS_DEVELOPER_KEY")
 CX = os.getenv("GCS_CX")
 BASE_URL = "https://www.googleapis.com/customsearch/v1"
+FILE1_COUNT = os.path.join(PATHS["data_phase"], "gcs_1_count.csv")
+FILE2_LANGUAGE = os.path.join(
+    PATHS["data_phase"], "gcs_2_count_by_language.csv"
+)
+FILE3_COUNTRY = os.path.join(PATHS["data_phase"], "gcs_3_count_by_country.csv")
+HEADER1_COUNT = ["PLAN_INDEX", "TOOL_IDENTIFIER", "COUNT"]
+HEADER2_LANGUAGE = ["PLAN_INDEX", "TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
+HEADER3_COUNTRY = ["PLAN_INDEX", "TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
+QUARTER = os.path.basename(PATHS["data_quarter"])
 
 # Log the start of the script execution
 LOGGER.info("Script execution started.")
+
+
+def parse_arguments():
+    """
+    Parses command-line arguments, returns parsed arguments.
+    """
+    LOGGER.info("Parsing command-line arguments")
+    parser = argparse.ArgumentParser(description="Google Custom Search Script")
+    parser.add_argument(
+        "--dev",
+        action="store_true",
+        help="Development mode: avoid hitting API (generates fake data)",
+    )
+    parser.add_argument(
+        "--enable-git",
+        action="store_true",
+        help="Enable git actions (fetch, merge, add, commit, and push)",
+    )
+    parser.add_argument(
+        "--enable-save",
+        action="store_true",
+        help="Enable saving results",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=1,
+        help="Limit queries (default: 1)",
+    )
+    return parser.parse_args()
 
 
 def get_search_service():
@@ -51,335 +91,173 @@ def get_search_service():
     )
 
 
-def fetch_results(
-    args, service, start_index: int, cr=None, lr=None, link_site=None
-) -> int:
-    """
-    Fetch search results from Google Custom Search API.
-    Returns the total number of search results.
-    """
-    LOGGER.info(
-        "Fetching and returning number of search results "
-        "from Google Custom Search API"
-    )
-    records_per_query = args.records
-    max_retries = 5
-    initial_delay = 1  # in seconds
-
-    LOGGER.info(f"Records per query: {records_per_query}")
-
-    for attempt in range(max_retries):
-        try:
-            # Added initial query_params parameter for logging purposes
-            query_params = {
-                "cx": CX,
-                "num": records_per_query,
-                "start": start_index,
-                "cr": cr,
-                "lr": lr,
-                "q": link_site,
-            }
-            # Filter out None values
-            query_params = {
-                k: v for k, v in query_params.items() if v is not None
-            }
-
-            LOGGER.info(f"Query Parameters: {query_params}")
-
-            results = service.cse().list(**query_params).execute()
-
-            total_results = int(
-                results.get("searchInformation", {}).get("totalResults", 0)
+def initialize_data_file(file_path, header):
+    if not os.path.isfile(file_path):
+        with open(file_path, "w", newline="") as file_obj:
+            writer = csv.DictWriter(
+                file_obj, fieldnames=header, dialect="unix"
             )
-            LOGGER.info(f"Total Results: {total_results}")
-            return total_results
-
-        except HttpError as e:
-            if e.status_code == 429:
-                LOGGER.warning(
-                    f"{e.status_code}: {e.reason}. retrying in {initial_delay}"
-                    " seconds"
-                )
-                time.sleep(initial_delay)
-                initial_delay *= 2  # Exponential backoff
-            else:
-                LOGGER.error(f"Error fetching results: {e}")
-                return 0
-    LOGGER.error("Max tries exceeded. Could not complete the request.")
-    return 0
+            writer.writeheader()
 
 
-def parse_arguments():
-    """
-    Parses command-line arguments, returns parsed arguments.
-    """
-    LOGGER.info("Parsing command-line arguments")
-    parser = argparse.ArgumentParser(description="Google Custom Search Script")
-    parser.add_argument(
-        "--records", type=int, default=1, help="Number of records per query"
-    )
-    parser.add_argument(
-        "--pages", type=int, default=1, help="Number of pages to query"
-    )
-    parser.add_argument(
-        "--licenses", type=int, default=1, help="Number of licenses to query"
-    )
-    return parser.parse_args()
-
-
-def set_up_data_file():
-    """
-    Sets up the data files for recording results.
-    Results are currently grouped by location (country) and language
-    """
-    LOGGER.info("Setting up the data files for recording results.")
-    header = (
-        "LICENSE TYPE, No Priori, United States, Canada, "
-        "India, United Kingdom, Australia, Japan, "
-        "English, Spanish, French, Arabic, "
-        "Chinese (Simplified), Indonesian\n"
-        # "LICENSE TYPE,No Priori,Australia,Brazil,Canada,Egypt,"
-        # "Germany,India,Japan,Spain,"
-        # "United Kingdom,United States,Arabic,"
-        # "Chinese (Simplified),Chinese (Traditional),"
-        # "English,French,Indonesian,Portuguese,Spanish\n"
-    )
-    # open 'w' = open a file for writing
-    with open(os.path.join(PATHS["data_phase"], "gcs_fetched.csv"), "w") as f:
-        f.write(header)
-
-
-# State Management
-def load_state():
-    """
-    Loads the state from a JSON file, returns the last fetched start index.
-    """
-    if os.path.exists(PATHS["state"]):
-        with open(PATHS["state"], "r") as f:
-            return yaml.safe_load(f)
-    return {"total_records_retrieved": 0}
-
-
-def save_state(state: dict):
-    """
-    Saves the state to a JSON file.
-    Parameters:
-        state_file: Path to the state file.
-        start_index: Last fetched start index.
-    """
-    with open(PATHS["state"], "w") as f:
-        yaml.safe_dump(state, f)
-
-
-def get_license_list(args):
-    """
-    Provides the list of licenses from Creative Commons.
-
-    Returns:
-    - np.array:
-            An np array containing all license types that should be searched
-            via Programmable Search Engine (PSE).
-    """
-    LOGGER.info("Providing the list of licenses from Creative Commons")
-    license_list = []
-    with open(
-        os.path.join(PATHS["data"], "legal-tool-paths.txt"), "r"
-    ) as file:
-        for line in file:
-            line = (
-                line.strip()
-            )  # Strip newline and whitespace characters from the line
-            match = re.search(r"((?:[^/]+/){2}(?:[^/]+)).*", line)
-            if match:
-                license_list.append(
-                    f"https://creativecommons.org/{match.group(1)}"
-                )
-    license_list = list(set(license_list))
-    license_list.sort()
-    return license_list[: args.licenses]
-
-
-def get_country_list(select_all=False):
-    """
-    Provides the list of countries to find Creative Commons usage data on.
-    LISTED BY API COUNTRY CODE
-    """
-    LOGGER.info("Providing the list of countries to find CC usage data on.")
-    # countries = []
-    # with open(
-    #     os.path.join(PATHS["data"], "google_countries.tsv"), "r"
-    # ) as file:
-    #     for line in file:
-    #         country = line.strip().split("\t")[0]
-    #         country = country.replace(",", " ")
-    #         countries.append(country)
-
-    # if select_all:
-    #     return sorted(countries)
-
-    # selected_countries = [
-    #     "India",
-    #     "Japan",
-    #     "United States",
-    #     "Canada",
-    #     "Brazil",
-    #     "Germany",
-    #     "United Kingdom",
-    #     "Spain",
-    #     "Australia",
-    #     "Egypt",
-    # ]
-    # return sorted(
-    #     [country for country in countries if country in selected_countries]
-    # )
-
-    # Commented out for testing purposes
-    return ["US", "CA", "IN", "UK", "AU", "JP"]
-
-
-def get_lang_list():
-    """
-    Provides the list of languages to find Creative Commons usage data on.
-    LISTED BY API LANGUAGE ABBREVIATION
-    """
-    LOGGER.info("Providing the list of languages to find CC usage data on.")
-    # languages = []
-    # with open(
-    #     os.path.join(PATHS["data"], "google_lang.txt"), "r"
-    # ) as file:
-    #     for line in file:
-    #         match = re.search(r'"([^"]+)"', line)
-    #         if match:
-    #             languages.append(match.group(1))
-
-    # selected_languages = [
-    #     "Arabic",
-    #     "Chinese (Simplified)",
-    #     "Chinese (Traditional)",
-    #     "English",
-    #     "French",
-    #     "Indonesian",
-    #     "Portuguese",
-    #     "Spanish",
-    # ]
-    # return sorted([lang for lang in languages if lang in selected_languages])
-
-    # Commented out for testing purposes
-    return ["en", "es", "fr", "ar", "zh-CH", "id"]
-
-
-def retrieve_license_data(args, service, license_list):
-    """
-    Retrieves the data of all license types.
-    """
-    LOGGER.info("Retrieving the data of all license types.")
-    selected_countries = get_country_list()
-    selected_languages = get_lang_list()
-
-    data = []
-
-    for license_type in license_list:
-        encoded_license = urllib.parse.quote(license_type, safe=":/")
-        row = [license_type]
-        no_priori_search = fetch_results(
-            args, service, start_index=1, link_site=encoded_license
-        )
-        row.append(no_priori_search)
-
-        for country in selected_countries:
-            country_data = fetch_results(
-                args,
-                service,
-                start_index=1,
-                cr=f"country{country}",
-                link_site=encoded_license,
-            )
-            row.append(country_data)
-
-        for language in selected_languages:
-            language_data = fetch_results(
-                args,
-                service,
-                start_index=1,
-                lr=f"lang_{language}",
-                link_site=encoded_license,
-            )
-            row.append(language_data)
-
-        data.append(row)
-
-    # Print the collected data for debugging
-    # Data Row Format: [License, No_Priori, United States, English]
-    for row in data:
-        LOGGER.info(f"Collected data row: {row}")
-
-    return data
-
-
-def record_results(results):
-    """
-    Records the search results into the CSV file.
-    """
-    LOGGER.info("Recording the search results into the CSV file.")
-    # open 'a' = Open for appending at the end of the file without truncating
-    with open(
-        os.path.join(PATHS["data_phase"], "gcs_fetched.csv"), "a", newline=""
-    ) as f:
-        writer = csv.writer(f, dialect="unix")
-        for result in results:
-            writer.writerow(result)
-
-
-def main():
-
-    # Fetch and merge changes
-    shared.fetch_and_merge(PATHS["repo"])
-
-    args = parse_arguments()
-    state = load_state()
-    total_records_retrieved = state["total_records_retrieved"]
-    LOGGER.info(f"Initial total_records_retrieved: {total_records_retrieved}")
-    goal_records = 1000  # Set goal number of records
-
-    if total_records_retrieved >= goal_records:
-        LOGGER.info(
-            f"Goal of {goal_records} records already achieved."
-            "No further action required."
-        )
-        return
-
-    shared.log_paths(LOGGER, PATHS)
-
+def initialize_all_data_files():
     # Create data directory for this phase
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    if total_records_retrieved == 0:
-        set_up_data_file()
+    initialize_data_file(FILE1_COUNT, HEADER1_COUNT)
+    initialize_data_file(FILE2_LANGUAGE, HEADER2_LANGUAGE)
+    initialize_data_file(FILE3_COUNTRY, HEADER3_COUNTRY)
 
-    service = get_search_service()
-    license_list = get_license_list(args)
 
-    data = retrieve_license_data(args, service, license_list)
-    LOGGER.info(f"Final Data: {data}")
-    record_results(data)
+def get_last_completed_plan_index():
+    last_completed_plan_index = 0
+    for file_path in [FILE1_COUNT, FILE2_LANGUAGE, FILE3_COUNTRY]:
+        with open(file_path, "r", newline="") as file_obj:
+            reader = csv.DictReader(file_obj, dialect="unix")
+            for row in reader:
+                pass  # skip through to last row
+            try:
+                last_completed_plan_index = max(
+                    last_completed_plan_index,
+                    int(row["PLAN_INDEX"]),
+                )
+            except UnboundLocalError:
+                pass
+    LOGGER.info(f"Last completed plan index: {last_completed_plan_index}")
+    return last_completed_plan_index
 
-    # Save the state checkpoint after fetching
-    total_records_retrieved += sum(
-        len(row) - 1 for row in data
-    )  # Exclude license type row
+
+def load_plan():
+    path = []
+    file_path = os.path.join(PATHS["data"], "gcs_query_plan.csv")
+    with open(file_path, "r", newline="") as file_obj:
+        path = list(csv.DictReader(file_obj, dialect="unix"))
+    return path
+
+
+def append_data(args, plan_row, index, count):
+    if not args.enable_save:
+        return
+    if plan_row["COUNTRY"]:
+        file_path = FILE3_COUNTRY
+        fieldnames = HEADER3_COUNTRY
+        row = {
+            "PLAN_INDEX": index,
+            "TOOL_IDENTIFIER": plan_row["TOOL_IDENTIFIER"],
+            "COUNTRY": plan_row["COUNTRY"],
+            "COUNT": count,
+        }
+    elif plan_row["LANGUAGE"]:
+        file_path = FILE2_LANGUAGE
+        fieldnames = HEADER2_LANGUAGE
+        row = {
+            "PLAN_INDEX": index,
+            "TOOL_IDENTIFIER": plan_row["TOOL_IDENTIFIER"],
+            "LANGUAGE": plan_row["LANGUAGE"],
+            "COUNT": count,
+        }
+    else:
+        file_path = FILE1_COUNT
+        fieldnames = HEADER1_COUNT
+        row = {
+            "PLAN_INDEX": index,
+            "TOOL_IDENTIFIER": plan_row["TOOL_IDENTIFIER"],
+            "COUNT": count,
+        }
+    with open(file_path, "a", newline="") as file_obj:
+        writer = csv.DictWriter(
+            file_obj, fieldnames=fieldnames, dialect="unix"
+        )
+        writer.writerow(row)
+
+
+def query_gcs(args, service, last_completed_plan_index, plan):
     LOGGER.info(
-        f"total_records_retrieved after fetching: {total_records_retrieved}"
-    )
-    state["total_records_retrieved"] = total_records_retrieved
-    save_state(state)
-
-    # Add and commit changes
-    shared.add_and_commit(
-        PATHS["repo"], PATHS["data_quarter"], "Add and commit new reports"
+        "Beginning to fetch results from Google Custom Search (GCS) API"
     )
 
-    # Push changes
-    shared.push_changes(PATHS["repo"])
+    max_tries = 5
+    initial_delay = 1  # in seconds
+    start = last_completed_plan_index + 1
+    stop = start + args.limit
+
+    for plan_row in plan[start:stop]:  # noqa: E203
+        index = plan.index(plan_row)
+        query_info = f"index: {index}, tool: {plan_row['TOOL_IDENTIFIER']}"
+        encoded_tool_url = urllib.parse.quote(plan_row["TOOL_URL"], safe=":/")
+        query_params = {
+            "cx": CX,
+            # "num": records_per_query,
+            # "start": start_index,
+            # "cr": cr,
+            # "lr": lr,
+            "q": encoded_tool_url,
+        }
+        if plan_row["COUNTRY"]:
+            query_info = f"{query_info}, country: {plan_row['COUNTRY']}"
+            query_params["cr"] = plan_row["CR"]
+        elif plan_row["LANGUAGE"]:
+            query_info = f"{query_info}, language: {plan_row['LANGUAGE']}"
+            query_params["lr"] = plan_row["LR"]
+
+        success = False
+        for attempt in range(max_tries):
+            LOGGER.info(f"Query: {query_info}")
+            try:
+                if args.dev:
+                    results = {
+                        "searchInformation": {
+                            "totalResults": random.randint(666000, 666999)
+                        }
+                    }
+                else:
+                    results = service.cse().list(**query_params).execute()
+                count = int(
+                    results.get("searchInformation", {}).get("totalResults", 0)
+                )
+                success = True
+                break  # no need to try again
+
+            except HttpError as e:
+                if e.status_code == 429:
+                    LOGGER.warning(
+                        f"{e.status_code}: {e.reason}. retrying in"
+                        f" {initial_delay} seconds"
+                    )
+                    time.sleep(initial_delay)
+                    initial_delay *= 2  # Exponential backoff
+                else:
+                    LOGGER.error(f"Error fetching results: {e}")
+        if success:
+            append_data(args, plan_row, index, count)
+        else:
+            LOGGER.error(
+                "Max tries exceeded. Could not complete request (plan index"
+                f" {index})."
+            )
+            return  # abort queries
+
+
+def main():
+    args = parse_arguments()
+    shared.log_paths(LOGGER, PATHS)
+    service = get_search_service()
+    initialize_all_data_files()
+    last_completed_plan_index = get_last_completed_plan_index()
+    if last_completed_plan_index == 2867:
+        LOGGER.info(f"Data fetch completed for {QUARTER}")
+        return
+    plan = load_plan()
+    query_gcs(args, service, last_completed_plan_index, plan)
+    if args.enable_git:
+        shared.add_and_commit(
+            args,
+            PATHS["repo"],
+            PATHS["data_quarter"],
+            "Add and commit new Google Custom Search (GCS) data for"
+            f" {QUARTER}",
+        )
+        shared.push_changes(args, PATHS["repo"])
 
 
 if __name__ == "__main__":
@@ -398,5 +276,13 @@ if __name__ == "__main__":
         LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
+        traceback_formatted = textwrap.indent(
+            highlight(
+                traceback.format_exc(),
+                PythonTracebackLexer(),
+                TerminalFormatter(),
+            ),
+            "    ",
+        )
+        LOGGER.exception(f"(1) Unhandled exception:\n{traceback_formatted}")
         sys.exit(1)
