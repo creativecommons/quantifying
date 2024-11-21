@@ -144,29 +144,17 @@ to be run manually or with every commit:
        ```shell
        pipenv run pre-commit install
        ```
-   - Run manually before commit:
+   - Run manually using helper dev script:
        ```shell
-       pipenv run pre-commit run -a
+       ./dev/check.sh [FILE]
+       ```
+     If no file(s) are specified, then it runs against all files:
+       ```shell
+       ./dev/check.sh
        ```
 3. _(Optional)_ review the configuration file:
    [`.pre-commit-config.yaml`](.pre-commit-config.yaml)
 
-
-#### Using [`dev/tools.sh`][tools-sh] helper script
-
-The [`dev/tools.sh`][tools-sh] helper script runs the static analysis tools
-(`black`, `flake8`, and `isort`):
-```shell
-./dev/tools.sh
-```
-
-It can also accept command-line arguments to specify specific files or
-directories to check:
-```shell
-./dev/tools.sh PATH/TO/MY/FILE.PY
-```
-
-[tools-sh]: /dev/tools.sh
 [pre-commit]: https://pre-commit.com/
 
 

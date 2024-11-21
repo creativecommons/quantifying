@@ -95,7 +95,7 @@ def add_and_commit(repo_path, add_path, message):
             return
         repo.index.add([add_path])
         repo.index.commit(message)
-        logging.info("Changes committed")
+        logging.info(f"Changes committed: {message}")
     except InvalidGitRepositoryError:
         raise QuantifyingException(f"Invalid Git repository at {repo_path}", 2)
     except NoSuchPathError:
@@ -108,7 +108,7 @@ def push_changes(repo_path):
     try:
         repo = Repo(repo_path)
         origin = repo.remote(name="origin")
-        origin.push()
+        origin.push().raise_if_error()
         logging.info("Changes pushed")
     except InvalidGitRepositoryError:
         raise QuantifyingException(f"Invalid Git repository at {repo_path}", 2)
