@@ -154,7 +154,7 @@ def create_query_plan(tool_urls, countries, languages):
     # cr: Google Country Collection value
     # lr: Google Language Collection value
 
-    # Groupp 1: All tools without cr or lr
+    # Group 1: All tools without cr or lr
     #           subtotal:    652
     for identifier, tool in tool_data.items():
         plan.append({"TOOL_URL": tool.url, "TOOL_IDENTIFIER": identifier})
