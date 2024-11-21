@@ -220,12 +220,19 @@ def query_gcs(args, service, last_completed_plan_index, plan):
 
             except HttpError as e:
                 if e.status_code == 429:
-                    LOGGER.warning(
-                        f"{e.status_code}: {e.reason}. retrying in"
-                        f" {initial_delay} seconds"
-                    )
-                    time.sleep(initial_delay)
-                    initial_delay *= 2  # Exponential backoff
+                    if (
+                        "Quota exceeded" in e.reason
+                        and "Queries per day" in e.reason
+                    ):
+                        LOGGER.warning(f"{e.status_code}: {e.reason}.")
+                        return  # abort queries
+                    else:
+                        LOGGER.warning(
+                            f"{e.status_code}: {e.reason}. retrying in"
+                            f" {initial_delay} seconds"
+                        )
+                        time.sleep(initial_delay)
+                        initial_delay *= 2  # Exponential backoff
                 else:
                     LOGGER.error(f"Error fetching results: {e}")
         if success:
@@ -249,15 +256,13 @@ def main():
         return
     plan = load_plan()
     query_gcs(args, service, last_completed_plan_index, plan)
-    if args.enable_git:
-        shared.add_and_commit(
-            args,
-            PATHS["repo"],
-            PATHS["data_quarter"],
-            "Add and commit new Google Custom Search (GCS) data for"
-            f" {QUARTER}",
-        )
-        shared.push_changes(args, PATHS["repo"])
+    args = shared.git_add_and_commit(
+        args,
+        PATHS["repo"],
+        PATHS["data_quarter"],
+        "Add and commit new Google Custom Search (GCS) data for" f" {QUARTER}",
+    )
+    shared.git_push_changes(args, PATHS["repo"])
 
 
 if __name__ == "__main__":

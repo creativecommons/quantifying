@@ -60,7 +60,9 @@ def log_paths(logger, paths):
     logger.info(f"PATHS:{paths_list}")
 
 
-def fetch_and_merge(repo_path, branch=None):
+def git_fetch_and_merge(args, repo_path, branch=None):
+    if not args.enable_git:
+        return
     try:
         repo = Repo(repo_path)
         origin = repo.remote(name="origin")
@@ -87,12 +89,16 @@ def fetch_and_merge(repo_path, branch=None):
         raise QuantifyingException(f"Error during fetch and merge: {e}", 1)
 
 
-def add_and_commit(repo_path, add_path, message):
+def git_add_and_commit(args, repo_path, add_path, message):
+    if not args.enable_git:
+        return args
     try:
         repo = Repo(repo_path)
-        if not repo.is_dirty(untracked_files=True):
-            logging.info("No changes to commit")
-            return
+        if not repo.is_dirty(untracked_files=True, path=add_path):
+            relative_add_path = os.path.relpath(add_path, repo_path)
+            logging.info(f"No changes to commit in: {relative_add_path}")
+            args.enable_git = False
+            return args
         repo.index.add([add_path])
         repo.index.commit(message)
         logging.info(f"Changes committed: {message}")
@@ -104,7 +110,9 @@ def add_and_commit(repo_path, add_path, message):
         raise QuantifyingException(f"Error during add and commit: {e}", 1)
 
 
-def push_changes(repo_path):
+def git_push_changes(args, repo_path):
+    if not args.enable_git:
+        return
     try:
         repo = Repo(repo_path)
         origin = repo.remote(name="origin")
