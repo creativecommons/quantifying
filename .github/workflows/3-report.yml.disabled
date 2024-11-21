@@ -2,8 +2,8 @@ name: Generate Report
 
 on:
   schedule:
-    # at 01:15 on days 1-20 in third month of each quarter
-    - cron: '15 1 1-20 3,6,9,12 *'
+    # at 03:15 on all days in third month of each quarter
+    - cron: '15 3 * 3,6,9,12 *'
   workflow_dispatch:
 
 jobs:
