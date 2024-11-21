@@ -106,8 +106,8 @@ gsed --in-place \
     "${LANGUAGE_FILE}"
 echo '  Reformat to YAML'
 gsed --in-place --regexp-extended \
-    -e's|^([A-Z])|- country: \1|' \
-    -e's| \t|\n  cr: |' \
+    -e's|^([A-Z])|- language: \1|' \
+    -e's| \t|\n  lr: |' \
     "${LANGUAGE_FILE}"
 echo '  Done.'
 echo
