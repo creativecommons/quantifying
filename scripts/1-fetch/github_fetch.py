@@ -31,10 +31,10 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 FILE1_COUNT = os.path.join(PATHS["data_phase"], "github_1_count.csv")
+GH_TOKEN = os.getenv("GH_TOKEN")
 GITHUB_RETRY_STATUS_FORCELIST = [
     408,  # Request Timeout
-    422,  # Unprocessable Content
-    # (Validation failed, or the endpoint has been spammed)
+    422,  # Unprocessable Content (Validation failed, or endpoint spammed)
     429,  # Too Many Requests
     500,  # Internal Server Error
     502,  # Bad Gateway
@@ -94,7 +94,10 @@ def get_requests_session():
     )
     session = requests.Session()
     session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    session.headers.update({"Accept": "application/vnd.github+json"})
+    headers = {"accept": "application/vnd.github+json"}
+    if GH_TOKEN:
+        headers["authorization"] = f"Bearer {GH_TOKEN}"
+    session.headers.update(headers)
 
     return session
 
