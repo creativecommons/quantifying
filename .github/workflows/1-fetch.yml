@@ -17,47 +17,51 @@ jobs:
   fetch:
     runs-on: ubuntu-latest
 
-    env:
-      GCS_DEVELOPER_KEY: ${{ secrets.GCS_DEVELOPER_KEY }}
-      GCS_CX: ${{ secrets.GCS_CX }}
-
-    # CC Technology team members:
-    #   See cc-quantifying-bot GitHub entry in Bitwarden for information on
-    #   BOT_ secrets
-
     steps:
+
+      # CC Technology team members:
+      #   See cc-quantifying-bot GitHub entry in Bitwarden for information on
+      #   BOT_ secrets
+      - name: Configure git
+        run: |
+          git config --global init.defaultBranch main
+          git config --global user.name "${{ secrets.BOT_NAME }}"
+          git config --global user.email "${{ secrets.BOT_EMAIL }}"
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          # Default fetch-depth is 1, however that value results in errors
+          # when GitPython attempts to push changes:
+          # "failed to push some refs"
+          fetch-depth: 10
           token: ${{ secrets.BOT_TOKEN }}
-
-      - name: Configure git
-        run: |
-          git config user.name "${{ secrets.BOT_NAME }}"
-          git config user.email "${{ secrets.BOT_EMAIL }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
-          pip install --upgrade pip
-          pip install pipenv
+          pip install --upgrade pip pipenv
+
+      - name: Sync Python modules
+        run: |
           pipenv sync --system
 
-      - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
-
-      # - name: Fetch from Google Custom Search (GCS)
-      #   run: |
-      #     ./scripts/1-fetch/gcs_fetch.py \
-      #       --limit=100 --enable-save --enable-git
+      # CC Technology team members:
+      #   See cc-quantifying-bot Google Workspace  entry in Bitwarden for
+      #   information on GCS_ secrets
+      - name: Fetch from Google Custom Search (GCS)
+        run: |
+          ./scripts/1-fetch/gcs_fetch.py \
+            --limit=100 --enable-save --enable-git
+        env:
+          GCS_DEVELOPER_KEY: ${{ secrets.GCS_DEVELOPER_KEY }}
+          GCS_CX: ${{ secrets.GCS_CX }}
 
       - name: Fetch from GitHub
         run: |
           ./scripts/1-fetch/github_fetch.py \
             --enable-save --enable-git
-        env:
-          GIT_PYTHON_TRACE: full
