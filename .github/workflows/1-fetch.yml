@@ -34,7 +34,7 @@ jobs:
           # Default fetch-depth is 1, however that value results in errors
           # when GitPython attempts to push changes:
           # "failed to push some refs"
-          fetch-depth: 10
+          fetch-depth: 0
           token: ${{ secrets.BOT_TOKEN }}
 
       - name: Set up Python
