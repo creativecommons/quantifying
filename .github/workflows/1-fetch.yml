@@ -54,3 +54,5 @@ jobs:
         run: |
           ./scripts/1-fetch/gcs_fetch.py \
             --limit=100 --enable-save --enable-git
+          ./scripts/1-fetch/github_fetch.py \
+            --enable-save --enable-git

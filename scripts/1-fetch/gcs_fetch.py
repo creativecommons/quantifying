@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This file is dedicated to querying data from the Google Custom Search API.
+Fetch CC Legal Tool usage data from Google Custom Search (GCS) API.
 """
 # Standard library
 import argparse
@@ -53,19 +53,15 @@ LOGGER.info("Script execution started.")
 
 def parse_arguments():
     """
-    Parses command-line arguments, returns parsed arguments.
+    Parse command-line options, returns parsed argument namespace.
     """
-    LOGGER.info("Parsing command-line arguments")
-    parser = argparse.ArgumentParser(description="Google Custom Search Script")
+    LOGGER.info("Parsing command-line options")
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--dev",
-        action="store_true",
-        help="Development mode: avoid hitting API (generates fake data)",
-    )
-    parser.add_argument(
-        "--enable-git",
-        action="store_true",
-        help="Enable git actions (fetch, merge, add, commit, and push)",
+        "--limit",
+        type=int,
+        default=1,
+        help="Limit queries (default: 1)",
     )
     parser.add_argument(
         "--enable-save",
@@ -73,10 +69,14 @@ def parse_arguments():
         help="Enable saving results",
     )
     parser.add_argument(
-        "--limit",
-        type=int,
-        default=1,
-        help="Limit queries (default: 1)",
+        "--enable-git",
+        action="store_true",
+        help="Enable git actions (fetch, merge, add, commit, and push)",
+    )
+    parser.add_argument(
+        "--dev",
+        action="store_true",
+        help="Development mode: avoid hitting API (generate fake data)",
     )
     return parser.parse_args()
 
@@ -100,7 +100,10 @@ def initialize_data_file(file_path, header):
             writer.writeheader()
 
 
-def initialize_all_data_files():
+def initialize_all_data_files(args):
+    if not args.enable_save:
+        return
+
     # Create data directory for this phase
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
@@ -112,17 +115,20 @@ def initialize_all_data_files():
 def get_last_completed_plan_index():
     last_completed_plan_index = 0
     for file_path in [FILE1_COUNT, FILE2_LANGUAGE, FILE3_COUNTRY]:
-        with open(file_path, "r", newline="") as file_obj:
-            reader = csv.DictReader(file_obj, dialect="unix")
-            for row in reader:
-                pass  # skip through to last row
-            try:
-                last_completed_plan_index = max(
-                    last_completed_plan_index,
-                    int(row["PLAN_INDEX"]),
-                )
-            except UnboundLocalError:
-                pass
+        try:
+            with open(file_path, "r", newline="") as file_obj:
+                reader = csv.DictReader(file_obj, dialect="unix")
+                for row in reader:
+                    pass  # skip through to last row
+                try:
+                    last_completed_plan_index = max(
+                        last_completed_plan_index,
+                        int(row["PLAN_INDEX"]),
+                    )
+                except UnboundLocalError:
+                    pass  # Data row may not be found with --enable-save, etc.
+        except FileNotFoundError:
+            pass  # File may not be found without --enable-save, etc.
     LOGGER.info(f"Last completed plan index: {last_completed_plan_index}")
     return last_completed_plan_index
 
@@ -249,7 +255,7 @@ def main():
     args = parse_arguments()
     shared.log_paths(LOGGER, PATHS)
     service = get_search_service()
-    initialize_all_data_files()
+    initialize_all_data_files(args)
     last_completed_plan_index = get_last_completed_plan_index()
     if last_completed_plan_index == 2867:
         LOGGER.info(f"Data fetch completed for {QUARTER}")
@@ -260,7 +266,7 @@ def main():
         args,
         PATHS["repo"],
         PATHS["data_quarter"],
-        "Add and commit new Google Custom Search (GCS) data for" f" {QUARTER}",
+        f"Add and commit new Google Custom Search (GCS) data for {QUARTER}",
     )
     shared.git_push_changes(args, PATHS["repo"])
 
