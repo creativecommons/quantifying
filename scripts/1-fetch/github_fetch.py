@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This file is dedicated to querying data from the GitHub API.
+Fetch CC Legal Tool usage from GitHub API.
 """
 
 # Standard library
@@ -8,11 +8,15 @@ import argparse
 import csv
 import os
 import sys
+import textwrap
 import traceback
+import urllib.parse
 
 # Third-party
 import requests
-import yaml
+from pygments import highlight
+from pygments.formatters import TerminalFormatter
+from pygments.lexers import PythonTracebackLexer
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -25,174 +29,152 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
-# Log the start of the script execution
-LOGGER.info("Script execution started.")
+# Constants
+FILE1_COUNT = os.path.join(PATHS["data_phase"], "github_1_count.csv")
+GITHUB_RETRY_STATUS_FORCELIST = [
+    408,  # Request Timeout
+    422,  # Unprocessable Content
+    # (Validation failed, or the endpoint has been spammed)
+    429,  # Too Many Requests
+    500,  # Internal Server Error
+    502,  # Bad Gateway
+    503,  # Service Unavailable
+    504,  # Gateway Timeout
+]
+# Also see: https://en.wikipedia.org/wiki/Public-domain-equivalent_license
+GITHUB_TOOLS = [
+    {"TOOL_IDENTIFIER": "BSD Zero Clause License", "SPDX_IDENTIFIER": "0BSD"},
+    {"TOOL_IDENTIFIER": "CC0 1.0", "SPDX_IDENTIFIER": "CC0-1.0"},
+    {"TOOL_IDENTIFIER": "CC BY 4.0", "SPDX_IDENTIFIER": "CC-BY-4.0"},
+    {"TOOL_IDENTIFIER": "CC BY-SA 4.0", "SPDX_IDENTIFIER": "CC-BY-SA-4.0"},
+    {"TOOL_IDENTIFIER": "MIT No Attribution", "SPDX_IDENTIFIER": "MIT-0"},
+    {"TOOL_IDENTIFIER": "Unlicense", "SPDX_IDENTIFIER": "Unlicense"},
+    {"TOOL_IDENTIFIER": "Total public repositories", "SPDX_IDENTIFIER": "N/A"},
+]
+HEADER1_COUNT = ["TOOL_IDENTIFIER", "SPDX_IDENTIFIER", "COUNT"]
+QUARTER = os.path.basename(PATHS["data_quarter"])
 
 
 def parse_arguments():
     """
-    Parses command-line arguments, returns parsed arguments.
+    Parse command-line options, returns parsed argument namespace.
     """
-    LOGGER.info("Parsing command-line arguments")
-    parser = argparse.ArgumentParser(description="GitHub Data Fetching Script")
+    LOGGER.info("Parsing command-line options")
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--licenses", type=int, default=3, help="Number of licenses to query"
+        "--enable-save",
+        action="store_true",
+        help="Enable saving results",
+    )
+    parser.add_argument(
+        "--enable-git",
+        action="store_true",
+        help="Enable git actions (fetch, merge, add, commit, and push)",
     )
     return parser.parse_args()
 
 
-def set_up_data_file():
-    """
-    Sets up the data file for recording results.
-    """
-    LOGGER.info("Setting up the data file for recording results.")
-    header = "LICENSE_TYPE,Repository Count\n"
-    with open(
-        os.path.join(PATHS["data_phase"], "github_fetched.csv"), "w"
-    ) as f:
-        f.write(header)
-
-
-def get_response_elems(license_type):
-    """
-    Provides the metadata for a query of
-    specified license type from GitHub API.
-
-    Args:
-        license_type: A string representing the type of license.
-    Returns:
-        dict: A dictionary mapping metadata
-        to its value provided from the API query.
-    """
-    LOGGER.info(f"Querying metadata for license: {license_type}")
+def check_for_completion():
     try:
-        base_url = "https://api.github.com/search/repositories?q=license:"
-        request_url = f"{base_url}{license_type}"
-        max_retries = Retry(
-            total=5,
-            backoff_factor=10,
-            status_forcelist=[403, 408, 429, 500, 502, 503, 504],
-        )
-        session = requests.Session()
-        session.mount("https://", HTTPAdapter(max_retries=max_retries))
-        with session.get(request_url) as response:
-            response.raise_for_status()
-            search_data = response.json()
-        return {"totalResults": search_data["total_count"]}
-    except requests.HTTPError as e:
-        LOGGER.error(f"HTTP Error: {e}")
-        raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
-    except requests.RequestException as e:
-        LOGGER.error(f"Request Exception: {e}")
-        raise shared.QuantifyingException(f"Request Exception: {e}", 1)
-    except KeyError as e:
-        LOGGER.error(f"KeyError: {e}.")
-        raise shared.QuantifyingException(f"KeyError: {e}", 1)
+        with open(FILE1_COUNT, "r", newline="") as file_obj:
+            reader = csv.DictReader(file_obj, dialect="unix")
+            if len(list(reader)) == len(GITHUB_TOOLS):
+                raise shared.QuantifyingException(
+                    f"Data fetch completed for {QUARTER}", 0
+                )
+    except FileNotFoundError:
+        pass  # File may not be found without --enable-save, etc.
 
 
-def retrieve_license_data(args):
-    """
-    Retrieves the data of all license types specified.
-    """
-    LOGGER.info("Retrieving the data for all license types.")
-    licenses = ["CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0"][: args.licenses]
+def get_requests_session():
+    max_retries = Retry(
+        total=5,
+        backoff_factor=10,
+        status_forcelist=GITHUB_RETRY_STATUS_FORCELIST,
+    )
+    session = requests.Session()
+    session.mount("https://", HTTPAdapter(max_retries=max_retries))
+    session.headers.update({"Accept": "application/vnd.github+json"})
 
-    data = []
-    total_repos_retrieved = 0
-
-    for license_type in licenses:
-        data_dict = get_response_elems(license_type)
-        total_repos_retrieved += data_dict["totalResults"]
-        record_results(license_type, data_dict)
-
-    for row in data:
-        LOGGER.info(f"Collected data row: {row}")
-
-    return data
+    return session
 
 
-def record_results(license_type, data):
-    """
-    Records the data for a specific license type into the CSV file.
-    """
-    LOGGER.info(f"Recording data for license: {license_type}")
-    row = [license_type, data["totalResults"]]
-    with open(
-        os.path.join(PATHS["data_phase"], "github_fetched.csv"),
-        "a",
-        newline="",
-    ) as f:
-        writer = csv.writer(f, dialect="unix")
-        writer.writerow(row)
-
-
-def load_state():
-    """
-    Loads the state from a YAML file, returns the last recorded state.
-    """
-    if os.path.exists(PATHS["state"]):
-        with open(PATHS["state"], "r") as f:
-            return yaml.safe_load(f)
-    return {"total_records_retrieved (github)": 0}
-
-
-def save_state(state: dict):
-    """
-    Saves the state to a YAML file.
-    Parameters:
-        state_file: Path to the state file.
-        state: The state dictionary to save.
-    """
-    with open(PATHS["state"], "w") as f:
-        yaml.safe_dump(state, f)
-
-
-def main():
-
-    # Fetch and merge changes
-    shared.fetch_and_merge(PATHS["repo"])
-
-    args = parse_arguments()
-
-    state = load_state()
-    total_records_retrieved = state["total_records_retrieved (github)"]
-    LOGGER.info(f"Initial total_records_retrieved: {total_records_retrieved}")
-    goal_records = 1000  # Set goal number of records
-
-    if total_records_retrieved >= goal_records:
-        LOGGER.info(
-            f"Goal of {goal_records} records already achieved."
-            " No further action required."
-        )
-        return
-
-    # Log the paths being used
-    shared.log_paths(LOGGER, PATHS)
+def write_data(args, tool_data):
+    if not args.enable_save:
+        return args
 
     # Create data directory for this phase
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    if total_records_retrieved == 0:
-        set_up_data_file()
+    if len(tool_data) < len(GITHUB_TOOLS):
+        LOGGER.error("Unable to fetch all records. Aborting.")
+        return args
 
-    # Retrieve and record data
-    repos_retrieved = retrieve_license_data(args)
+    with open(FILE1_COUNT, "w", newline="") as file_obj:
+        writer = csv.DictWriter(
+            file_obj, fieldnames=HEADER1_COUNT, dialect="unix"
+        )
+        writer.writeheader()
+        for row in tool_data:
+            writer.writerow(row)
+    return args
 
-    # Update the state with the new count of retrieved records
-    total_records_retrieved += repos_retrieved
-    LOGGER.info(
-        f"Total records retrieved after fetching: {total_records_retrieved}"
+
+def query_github(args, session):
+    tool_data = []
+    for tool in GITHUB_TOOLS:
+        tool_identifier = tool["TOOL_IDENTIFIER"]
+        spdx_identifier = tool["SPDX_IDENTIFIER"]
+        LOGGER.info(f"Query: tool: {tool_identifier}, spdx: {spdx_identifier}")
+
+        base_url = "https://api.github.com/search/repositories?per_page=1&q="
+        search_parameters = "is:public"
+        if tool_identifier != "Total public repositories":
+            search_parameters = (
+                f"{search_parameters} license:{spdx_identifier.lower()}"
+            )
+        search_parameters = urllib.parse.quote(search_parameters, safe=":/")
+        request_url = f"{base_url}{search_parameters}"
+
+        try:
+            with session.get(request_url) as response:
+                response.raise_for_status()
+                search_data = response.json()
+                count = search_data["total_count"]
+            tool_data.append(
+                {
+                    "TOOL_IDENTIFIER": tool_identifier,
+                    "SPDX_IDENTIFIER": spdx_identifier,
+                    "COUNT": count,
+                }
+            )
+            LOGGER.info(f"count: {count}")
+        except requests.HTTPError as e:
+            LOGGER.error(f"HTTP Error: {e}")
+            raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
+        except requests.RequestException as e:
+            LOGGER.error(f"Request Exception: {e}")
+            raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+        except KeyError as e:
+            LOGGER.error(f"KeyError: {e}.")
+            raise shared.QuantifyingException(f"KeyError: {e}", 1)
+    return tool_data
+
+
+def main():
+    args = parse_arguments()
+    shared.log_paths(LOGGER, PATHS)
+    check_for_completion()
+    session = get_requests_session()
+    tool_data = query_github(args, session)
+    args = write_data(args, tool_data)
+    args = shared.git_add_and_commit(
+        args,
+        PATHS["repo"],
+        PATHS["data_quarter"],
+        f"Add and commit new GitHUB data for {QUARTER}",
     )
-    state["total_records_retrieved (github)"] = total_records_retrieved
-    save_state(state)
-
-    # Add and commit changes
-    shared.add_and_commit(
-        PATHS["repo"], PATHS["data_quarter"], "Add and commit GitHub data"
-    )
-
-    # Push changes
-    shared.push_changes(PATHS["repo"])
+    shared.git_push_changes(args, PATHS["repo"])
 
 
 if __name__ == "__main__":
@@ -211,5 +193,13 @@ if __name__ == "__main__":
         LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
+        traceback_formatted = textwrap.indent(
+            highlight(
+                traceback.format_exc(),
+                PythonTracebackLexer(),
+                TerminalFormatter(),
+            ),
+            "    ",
+        )
+        LOGGER.exception(f"(1) Unhandled exception:\n{traceback_formatted}")
         sys.exit(1)
