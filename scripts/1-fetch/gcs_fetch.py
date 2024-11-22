@@ -100,7 +100,10 @@ def initialize_data_file(file_path, header):
             writer.writeheader()
 
 
-def initialize_all_data_files():
+def initialize_all_data_files(args):
+    if not args.enable_save:
+        return
+
     # Create data directory for this phase
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
@@ -112,17 +115,20 @@ def initialize_all_data_files():
 def get_last_completed_plan_index():
     last_completed_plan_index = 0
     for file_path in [FILE1_COUNT, FILE2_LANGUAGE, FILE3_COUNTRY]:
-        with open(file_path, "r", newline="") as file_obj:
-            reader = csv.DictReader(file_obj, dialect="unix")
-            for row in reader:
-                pass  # skip through to last row
-            try:
-                last_completed_plan_index = max(
-                    last_completed_plan_index,
-                    int(row["PLAN_INDEX"]),
-                )
-            except UnboundLocalError:
-                pass
+        try:
+            with open(file_path, "r", newline="") as file_obj:
+                reader = csv.DictReader(file_obj, dialect="unix")
+                for row in reader:
+                    pass  # skip through to last row
+                try:
+                    last_completed_plan_index = max(
+                        last_completed_plan_index,
+                        int(row["PLAN_INDEX"]),
+                    )
+                except UnboundLocalError:
+                    pass  # Data row may not be found with --enable-save, etc.
+        except FileNotFoundError:
+            pass  # File may not be found without --enable-save, etc.
     LOGGER.info(f"Last completed plan index: {last_completed_plan_index}")
     return last_completed_plan_index
 
@@ -249,7 +255,7 @@ def main():
     args = parse_arguments()
     shared.log_paths(LOGGER, PATHS)
     service = get_search_service()
-    initialize_all_data_files()
+    initialize_all_data_files(args)
     last_completed_plan_index = get_last_completed_plan_index()
     if last_completed_plan_index == 2867:
         LOGGER.info(f"Data fetch completed for {QUARTER}")
