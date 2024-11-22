@@ -50,9 +50,14 @@ jobs:
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
 
-      - name: Run fetch script
+      # - name: Fetch from Google Custom Search (GCS)
+      #   run: |
+      #     ./scripts/1-fetch/gcs_fetch.py \
+      #       --limit=100 --enable-save --enable-git
+
+      - name: Fetch from GitHub
         run: |
-          ./scripts/1-fetch/gcs_fetch.py \
-            --limit=100 --enable-save --enable-git
           ./scripts/1-fetch/github_fetch.py \
             --enable-save --enable-git
+        env:
+          GIT_PYTHON_TRACE: full
