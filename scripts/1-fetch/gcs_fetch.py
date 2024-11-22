@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This file is dedicated to querying data from the Google Custom Search API.
+Fetch CC Legal Tool usage data from Google Custom Search (GCS) API.
 """
 # Standard library
 import argparse
@@ -53,19 +53,15 @@ LOGGER.info("Script execution started.")
 
 def parse_arguments():
     """
-    Parses command-line arguments, returns parsed arguments.
+    Parse command-line options, returns parsed argument namespace.
     """
-    LOGGER.info("Parsing command-line arguments")
-    parser = argparse.ArgumentParser(description="Google Custom Search Script")
+    LOGGER.info("Parsing command-line options")
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--dev",
-        action="store_true",
-        help="Development mode: avoid hitting API (generates fake data)",
-    )
-    parser.add_argument(
-        "--enable-git",
-        action="store_true",
-        help="Enable git actions (fetch, merge, add, commit, and push)",
+        "--limit",
+        type=int,
+        default=1,
+        help="Limit queries (default: 1)",
     )
     parser.add_argument(
         "--enable-save",
@@ -73,10 +69,14 @@ def parse_arguments():
         help="Enable saving results",
     )
     parser.add_argument(
-        "--limit",
-        type=int,
-        default=1,
-        help="Limit queries (default: 1)",
+        "--enable-git",
+        action="store_true",
+        help="Enable git actions (fetch, merge, add, commit, and push)",
+    )
+    parser.add_argument(
+        "--dev",
+        action="store_true",
+        help="Development mode: avoid hitting API (generate fake data)",
     )
     return parser.parse_args()
 
