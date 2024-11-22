@@ -65,3 +65,5 @@ jobs:
         run: |
           ./scripts/1-fetch/github_fetch.py \
             --enable-save --enable-git
+        env:
+          GH_TOKEN: ${{ secrets.BOT_TOKEN }}
