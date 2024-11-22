@@ -52,5 +52,5 @@ jobs:
 
       - name: Run fetch script
         run: |
-          ./scripts/1-fetch/gcs_fetched.py \
-            --enable-git --enable-save --limit=100
+          ./scripts/1-fetch/gcs_fetch.py \
+            --limit=100 --enable-save --enable-git
