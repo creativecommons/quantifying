@@ -2,8 +2,8 @@ name: Process Data
 
 on:
   schedule:
-    # at 01:15 on days 1-20 in second month of each quarter
-    - cron: '15 1 1-20 2,5,8,11 *'
+    # at 02:15 on days 15-28 in second month of each quarter
+    - cron: '15 2 15-28 2,5,8,11 *'
   workflow_dispatch:
 
 jobs:

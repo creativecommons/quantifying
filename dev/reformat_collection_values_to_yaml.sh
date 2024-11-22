@@ -51,11 +51,11 @@ cd "${DIR_REPO}"
 check_gsed
 
 print_header 'Convert cut & paste to YAML'
-COUNTRY_FILE=data/google_country_collection.yaml
+COUNTRY_FILE=data/gcs_country_collection.yaml
 url_part_1=https://developers.google.com/custom-search/docs/
 url_part_2=xml_results_appendices#country-collection-values
 COUNTRY_URL="${url_part_1}${url_part_2}"
-LANGUAGE_FILE=data/google_language_collection.yaml
+LANGUAGE_FILE=data/gcs_language_collection.yaml
 url_part_1=https://developers.google.com/custom-search/docs/
 url_part_2=xml_results_appendices#language-collection-values
 LANGUAGE_URL="${url_part_1}${url_part_2}"
@@ -106,8 +106,8 @@ gsed --in-place \
     "${LANGUAGE_FILE}"
 echo '  Reformat to YAML'
 gsed --in-place --regexp-extended \
-    -e's|^([A-Z])|- country: \1|' \
-    -e's| \t|\n  cr: |' \
+    -e's|^([A-Z])|- language: \1|' \
+    -e's| \t|\n  lr: |' \
     "${LANGUAGE_FILE}"
 echo '  Done.'
 echo
