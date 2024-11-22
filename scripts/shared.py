@@ -108,6 +108,7 @@ def git_add_and_commit(args, repo_path, add_path, message):
         raise QuantifyingException(f"No such path: {repo_path}", 3)
     except Exception as e:
         raise QuantifyingException(f"Error during add and commit: {e}", 1)
+    return args
 
 
 def git_push_changes(args, repo_path):
