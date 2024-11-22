@@ -260,7 +260,7 @@ def main():
         args,
         PATHS["repo"],
         PATHS["data_quarter"],
-        "Add and commit new Google Custom Search (GCS) data for" f" {QUARTER}",
+        "Add and commit new Google Custom Search (GCS) data for {QUARTER}",
     )
     shared.git_push_changes(args, PATHS["repo"])
 
