@@ -55,6 +55,10 @@ The Flickr Developer Guide](https://www.flickr.com/services/developer/))
 **Description:** The Custom Search JSON API allows user-defined detailed query
 and access towards related query data using a programmable search engine.
 
+**Admin links:**
+- [Programmable Search - All search engines][gsc-admin]
+- [APIs & Services – APIs & Services – Google Cloud console][google-api-admin]
+
 **API documentation links:**
 - [Custom Search JSON API Reference | Programmable Search Engine | Google
   Developers][google-json]
@@ -80,6 +84,8 @@ and access towards related query data using a programmable search engine.
   As an additional note, the order of precedence of license the collected
   data's first column is sorted due to intermediate data analysis progress.
 
+[gsc-admin]: https://programmablesearchengine.google.com/controlpanel/all
+[google-api-admin]: https://console.cloud.google.com/apis/dashboard
 [google-json]: https://developers.google.com/custom-search/v1/reference/rest
 [google-api-python]: https://github.com/googleapis/google-api-python-client
 [googleapiclient]: http://googleapis.github.io/google-api-python-client/docs/epy/index.html
