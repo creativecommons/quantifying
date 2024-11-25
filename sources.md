@@ -56,7 +56,7 @@ The Flickr Developer Guide](https://www.flickr.com/services/developer/))
 and access towards related query data using a programmable search engine.
 
 **Admin links:**
-- [Programmable Search - All search engines][gsc-admin]
+- [Programmable Search - All search engines][gcs-admin]
 - [APIs & Services – APIs & Services – Google Cloud console][google-api-admin]
 
 **API documentation links:**
@@ -84,7 +84,7 @@ and access towards related query data using a programmable search engine.
   As an additional note, the order of precedence of license the collected
   data's first column is sorted due to intermediate data analysis progress.
 
-[gsc-admin]: https://programmablesearchengine.google.com/controlpanel/all
+[gcs-admin]: https://programmablesearchengine.google.com/controlpanel/all
 [google-api-admin]: https://console.cloud.google.com/apis/dashboard
 [google-json]: https://developers.google.com/custom-search/v1/reference/rest
 [google-api-python]: https://github.com/googleapis/google-api-python-client
