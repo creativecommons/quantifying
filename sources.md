@@ -11,13 +11,16 @@ tool paths.
 
 **API documentation link:**
 - [`google_custom_search/legal-tool-paths.txt`][tools-paths]: a list of all
-  current CC legal tool paths by TimidRobot)
+  current Creative Commons (CC) legal tool paths
+- [`data/prioritized-tool-urls.txt`][prioritized-tool-urls]: a prioritized list
+  of all current CC legal tool URLs
 
 **API information:**
 - No API key required
 - No query limits
 
-[tools-paths]:google_custom_search/legal-tool-paths.txt
+[tools-paths]:data/legal-tool-paths.txt
+[prioritized-tool-urls]: data/prioritized-tool-urls.txt
 
 
 ## Flickr
