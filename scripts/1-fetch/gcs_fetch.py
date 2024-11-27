@@ -12,6 +12,7 @@ import textwrap
 import time
 import traceback
 import urllib.parse
+from copy import copy
 
 # Third-party
 import googleapiclient.discovery
@@ -34,14 +35,14 @@ LOGGER, PATHS = shared.setup(__file__)
 load_dotenv(PATHS["dotenv"])
 
 # Constants
-DEVELOPER_KEY = os.getenv("GCS_DEVELOPER_KEY")
-CX = os.getenv("GCS_CX")
 BASE_URL = "https://www.googleapis.com/customsearch/v1"
 FILE1_COUNT = os.path.join(PATHS["data_phase"], "gcs_1_count.csv")
 FILE2_LANGUAGE = os.path.join(
     PATHS["data_phase"], "gcs_2_count_by_language.csv"
 )
 FILE3_COUNTRY = os.path.join(PATHS["data_phase"], "gcs_3_count_by_country.csv")
+GCS_CX = os.getenv("GCS_CX")
+GCS_DEVELOPER_KEY = os.getenv("GCS_DEVELOPER_KEY")
 HEADER1_COUNT = ["PLAN_INDEX", "TOOL_IDENTIFIER", "COUNT"]
 HEADER2_LANGUAGE = ["PLAN_INDEX", "TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
 HEADER3_COUNTRY = ["PLAN_INDEX", "TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
@@ -87,7 +88,11 @@ def get_search_service():
     """
     LOGGER.info("Getting Google Custom Search API Service.")
     return googleapiclient.discovery.build(
-        "customsearch", "v1", developerKey=DEVELOPER_KEY, cache_discovery=False
+        "customsearch",
+        "v1",
+        developerKey=GCS_DEVELOPER_KEY,
+        cache_discovery=False,
+        num_retries=5,
     )
 
 
@@ -184,6 +189,7 @@ def query_gcs(args, service, last_completed_plan_index, plan):
 
     max_tries = 5
     initial_delay = 1  # in seconds
+    rate_delay = copy(initial_delay)  # query gently
     start = last_completed_plan_index + 1
     stop = start + args.limit
 
@@ -191,14 +197,7 @@ def query_gcs(args, service, last_completed_plan_index, plan):
         index = plan.index(plan_row)
         query_info = f"index: {index}, tool: {plan_row['TOOL_IDENTIFIER']}"
         encoded_tool_url = urllib.parse.quote(plan_row["TOOL_URL"], safe=":/")
-        query_params = {
-            "cx": CX,
-            # "num": records_per_query,
-            # "start": start_index,
-            # "cr": cr,
-            # "lr": lr,
-            "q": encoded_tool_url,
-        }
+        query_params = {"cx": GCS_CX, "q": encoded_tool_url}
         if plan_row["COUNTRY"]:
             query_info = f"{query_info}, country: {plan_row['COUNTRY']}"
             query_params["cr"] = plan_row["CR"]
@@ -222,6 +221,7 @@ def query_gcs(args, service, last_completed_plan_index, plan):
                     results.get("searchInformation", {}).get("totalResults", 0)
                 )
                 success = True
+                time.sleep(rate_delay)
                 break  # no need to try again
 
             except HttpError as e:
