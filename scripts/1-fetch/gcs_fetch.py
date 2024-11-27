@@ -230,7 +230,7 @@ def query_gcs(args, service, last_completed_plan_index, plan):
                         "Quota exceeded" in e.reason
                         and "Queries per day" in e.reason
                     ):
-                        LOGGER.warning(f"{e.status_code}: {e.reason}.")
+                        LOGGER.warning(f"{e.status_code}: {e.reason}")
                         return  # abort queries
                     else:
                         LOGGER.warning(
