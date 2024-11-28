@@ -189,12 +189,16 @@ def query_gcs(args, service, last_completed_plan_index, plan):
 
     max_tries = 5
     initial_delay = 1  # in seconds
-    rate_delay = copy(initial_delay)  # query gently
-    start = last_completed_plan_index + 1
+    if args.dev:
+        # query development "API" as fast as possible
+        rate_delay = 0
+    else:
+        # query production API gently
+        rate_delay = copy(initial_delay)
+    start = last_completed_plan_index
     stop = start + args.limit
-
     for plan_row in plan[start:stop]:  # noqa: E203
-        index = plan.index(plan_row)
+        index = plan.index(plan_row) + 1
         query_info = f"index: {index}, tool: {plan_row['TOOL_IDENTIFIER']}"
         encoded_tool_url = urllib.parse.quote(plan_row["TOOL_URL"], safe=":/")
         query_params = {"cx": GCS_CX, "q": encoded_tool_url}
@@ -257,7 +261,7 @@ def main():
     service = get_search_service()
     initialize_all_data_files(args)
     last_completed_plan_index = get_last_completed_plan_index()
-    if last_completed_plan_index == 2867:
+    if last_completed_plan_index == 2868:
         LOGGER.info(f"Data fetch completed for {QUARTER}")
         return
     plan = load_plan()
