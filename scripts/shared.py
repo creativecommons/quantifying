@@ -32,18 +32,18 @@ def setup(current_file):
     # Paths
     paths = {}
     paths["repo"] = os.path.dirname(path_join(__file__, ".."))
-    paths["dotenv"] = os.path.join(paths["repo"], ".env")
+    paths["dotenv"] = path_join(paths["repo"], ".env")
     paths["data"] = os.path.dirname(
         os.path.abspath(os.path.realpath(current_file))
     )
     current_phase = os.path.basename(
         os.path.dirname(os.path.abspath(os.path.realpath(current_file)))
     )
-    paths["data"] = os.path.join(paths["repo"], "data")
-    data_quarter = os.path.join(paths["data"], f"{quarter}")
+    paths["data"] = path_join(paths["repo"], "data")
+    data_quarter = path_join(paths["data"], f"{quarter}")
     for phase in ["1-fetch", "2-process", "3-report"]:
-        paths[f"data_{phase}"] = os.path.join(data_quarter, phase)
-    paths["data_phase"] = os.path.join(data_quarter, current_phase)
+        paths[f"data_{phase}"] = path_join(data_quarter, phase)
+    paths["data_phase"] = path_join(data_quarter, current_phase)
 
     paths["data_quarter"] = data_quarter
 
@@ -141,7 +141,7 @@ def update_readme(
     """
     Update the README.md file with the generated images and descriptions.
     """
-    readme_path = os.path.join(paths["data"], args.quarter, "README.md")
+    readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
     section_marker_start = f"<!-- {data_source} Start -->"
