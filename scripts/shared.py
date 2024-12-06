@@ -127,6 +127,10 @@ def git_push_changes(args, repo_path):
         raise QuantifyingException(f"Error during push changes: {e}", 1)
 
 
+def path_join(*paths):
+    return os.path.abspath(os.path.realpath(os.path.join(*paths)))
+
+
 def update_readme(
     paths, image_path, data_source, description, section_title, args
 ):
