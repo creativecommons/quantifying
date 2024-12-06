@@ -31,20 +31,20 @@ def setup(current_file):
 
     # Paths
     paths = {}
-    paths["repo"] = os.path.dirname(
-        os.path.abspath(os.path.realpath(os.path.join(__file__, "..")))
-    )
+    paths["repo"] = os.path.dirname(path_join(__file__, ".."))
     paths["dotenv"] = os.path.join(paths["repo"], ".env")
     paths["data"] = os.path.dirname(
         os.path.abspath(os.path.realpath(current_file))
     )
-    phase = os.path.basename(
+    current_phase = os.path.basename(
         os.path.dirname(os.path.abspath(os.path.realpath(current_file)))
     )
     paths["data"] = os.path.join(paths["repo"], "data")
     data_quarter = os.path.join(paths["data"], f"{quarter}")
     paths["state"] = os.path.join(data_quarter, "state.yaml")
-    paths["data_phase"] = os.path.join(data_quarter, phase)
+    for phase in ["1-fetch", "2-process", "3-report"]:
+        paths[f"data_{phase}"] = os.path.join(data_quarter, phase)
+    paths["data_phase"] = os.path.join(data_quarter, current_phase)
 
     paths["data_quarter"] = data_quarter
 
@@ -55,7 +55,7 @@ def log_paths(logger, paths):
     paths_list = []
     for label, path in paths.items():
         label = f"{label}:"
-        paths_list.append(f"\n{' ' * 12}{label:<11} {path}")
+        paths_list.append(f"\n{' ' * 4}{label:<11} {path}")
     paths_list = "".join(paths_list)
     logger.info(f"PATHS:{paths_list}")
 
