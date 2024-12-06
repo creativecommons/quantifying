@@ -252,5 +252,5 @@ if __name__ == "__main__":
             ),
             "    ",
         )
-        LOGGER.exception(f"(1) Unhandled exception:\n{traceback_formatted}")
+        LOGGER.critical(f"(1) Unhandled exception:\n{traceback_formatted}")
         sys.exit(1)

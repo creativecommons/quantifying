@@ -36,16 +36,19 @@ load_dotenv(PATHS["dotenv"])
 
 # Constants
 BASE_URL = "https://www.googleapis.com/customsearch/v1"
-FILE1_COUNT = os.path.join(PATHS["data_phase"], "gcs_1_count.csv")
-FILE2_LANGUAGE = os.path.join(
+FILE1_COUNT = shared.path_join(PATHS["data_phase"], "gcs_1_count.csv")
+FILE2_LANGUAGE = shared.path_join(
     PATHS["data_phase"], "gcs_2_count_by_language.csv"
 )
-FILE3_COUNTRY = os.path.join(PATHS["data_phase"], "gcs_3_count_by_country.csv")
+FILE3_COUNTRY = shared.path_join(
+    PATHS["data_phase"], "gcs_3_count_by_country.csv"
+)
 GCS_CX = os.getenv("GCS_CX")
 GCS_DEVELOPER_KEY = os.getenv("GCS_DEVELOPER_KEY")
 HEADER1_COUNT = ["PLAN_INDEX", "TOOL_IDENTIFIER", "COUNT"]
 HEADER2_LANGUAGE = ["PLAN_INDEX", "TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
 HEADER3_COUNTRY = ["PLAN_INDEX", "TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
+PLAN_COMPLETED_INDEX = 2868
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
 # Log the start of the script execution
@@ -139,11 +142,11 @@ def get_last_completed_plan_index():
 
 
 def load_plan():
-    path = []
+    plan = []
     file_path = os.path.join(PATHS["data"], "gcs_query_plan.csv")
     with open(file_path, "r", newline="") as file_obj:
-        path = list(csv.DictReader(file_obj, dialect="unix"))
-    return path
+        plan = list(csv.DictReader(file_obj, dialect="unix"))
+    return plan
 
 
 def append_data(args, plan_row, index, count):
@@ -259,9 +262,10 @@ def main():
     args = parse_arguments()
     shared.log_paths(LOGGER, PATHS)
     service = get_search_service()
+    shared.git_fetch_and_merge(args, PATHS["repo"])
     initialize_all_data_files(args)
     last_completed_plan_index = get_last_completed_plan_index()
-    if last_completed_plan_index == 2868:
+    if last_completed_plan_index == PLAN_COMPLETED_INDEX:
         LOGGER.info(f"Data fetch completed for {QUARTER}")
         return
     plan = load_plan()
@@ -299,5 +303,5 @@ if __name__ == "__main__":
             ),
             "    ",
         )
-        LOGGER.exception(f"(1) Unhandled exception:\n{traceback_formatted}")
+        LOGGER.critical(f"(1) Unhandled exception:\n{traceback_formatted}")
         sys.exit(1)
