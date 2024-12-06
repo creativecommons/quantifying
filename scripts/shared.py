@@ -41,7 +41,6 @@ def setup(current_file):
     )
     paths["data"] = os.path.join(paths["repo"], "data")
     data_quarter = os.path.join(paths["data"], f"{quarter}")
-    paths["state"] = os.path.join(data_quarter, "state.yaml")
     for phase in ["1-fetch", "2-process", "3-report"]:
         paths[f"data_{phase}"] = os.path.join(data_quarter, phase)
     paths["data_phase"] = os.path.join(data_quarter, current_phase)
@@ -53,9 +52,14 @@ def setup(current_file):
 
 def log_paths(logger, paths):
     paths_list = []
+    repo_path = paths["repo"]
     for label, path in paths.items():
         label = f"{label}:"
-        paths_list.append(f"\n{' ' * 4}{label:<11} {path}")
+        if label == "repo:":
+            paths_list.append(f"\n{' ' * 4}{label} {path}")
+        else:
+            path_new = path.replace(repo_path, ".")
+            paths_list.append(f"\n{' ' * 8}{label:<15} {path_new}")
     paths_list = "".join(paths_list)
     logger.info(f"PATHS:{paths_list}")
 
