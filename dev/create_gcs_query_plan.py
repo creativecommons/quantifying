@@ -116,7 +116,7 @@ def sort_tools(url):
 
 def get_tool_urls():
     LOGGER.info("Loading CC Legal Tool paths and adding prefix")
-    file_path = os.path.join(PATHS["data"], "legal-tool-paths.txt")
+    file_path = shared.path_join(PATHS["data"], "legal-tool-paths.txt")
     prefix = "//creativecommons.org/"
     tool_urls = []
     with open(file_path, "r") as file_obj:
@@ -128,14 +128,14 @@ def get_tool_urls():
 
 
 def load_countries():
-    file_path = os.path.join(PATHS["data"], "gcs_country_collection.yaml")
+    file_path = shared.path_join(PATHS["data"], "gcs_country_collection.yaml")
     with open(file_path, "r") as file_obj:
         countries = yaml.safe_load(file_obj)
     return countries
 
 
 def load_languages():
-    file_path = os.path.join(PATHS["data"], "gcs_language_collection.yaml")
+    file_path = shared.path_join(PATHS["data"], "gcs_language_collection.yaml")
     with open(file_path, "r") as file_obj:
         languages = yaml.safe_load(file_obj)
     return languages
@@ -202,7 +202,7 @@ def create_query_plan(tool_urls, countries, languages):
 
 def save_plan(plan):
     LOGGER.info("Saving Google query plan to CSV")
-    file_path = os.path.join(PATHS["data"], "gcs_query_plan.csv")
+    file_path = shared.path_join(PATHS["data"], "gcs_query_plan.csv")
     fieldnames = [
         "TOOL_URL",
         "TOOL_IDENTIFIER",

@@ -143,7 +143,7 @@ def get_last_completed_plan_index():
 
 def load_plan():
     plan = []
-    file_path = os.path.join(PATHS["data"], "gcs_query_plan.csv")
+    file_path = shared.path_join(PATHS["data"], "gcs_query_plan.csv")
     with open(file_path, "r", newline="") as file_obj:
         plan = list(csv.DictReader(file_obj, dialect="unix"))
     return plan
