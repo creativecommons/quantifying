@@ -31,20 +31,19 @@ def setup(current_file):
 
     # Paths
     paths = {}
-    paths["repo"] = os.path.dirname(
-        os.path.abspath(os.path.realpath(os.path.join(__file__, "..")))
-    )
-    paths["dotenv"] = os.path.join(paths["repo"], ".env")
+    paths["repo"] = os.path.dirname(path_join(__file__, ".."))
+    paths["dotenv"] = path_join(paths["repo"], ".env")
     paths["data"] = os.path.dirname(
         os.path.abspath(os.path.realpath(current_file))
     )
-    phase = os.path.basename(
+    current_phase = os.path.basename(
         os.path.dirname(os.path.abspath(os.path.realpath(current_file)))
     )
-    paths["data"] = os.path.join(paths["repo"], "data")
-    data_quarter = os.path.join(paths["data"], f"{quarter}")
-    paths["state"] = os.path.join(data_quarter, "state.yaml")
-    paths["data_phase"] = os.path.join(data_quarter, phase)
+    paths["data"] = path_join(paths["repo"], "data")
+    data_quarter = path_join(paths["data"], f"{quarter}")
+    for phase in ["1-fetch", "2-process", "3-report"]:
+        paths[f"data_{phase}"] = path_join(data_quarter, phase)
+    paths["data_phase"] = path_join(data_quarter, current_phase)
 
     paths["data_quarter"] = data_quarter
 
@@ -53,9 +52,14 @@ def setup(current_file):
 
 def log_paths(logger, paths):
     paths_list = []
+    repo_path = paths["repo"]
     for label, path in paths.items():
         label = f"{label}:"
-        paths_list.append(f"\n{' ' * 12}{label:<11} {path}")
+        if label == "repo:":
+            paths_list.append(f"\n{' ' * 4}{label} {path}")
+        else:
+            path_new = path.replace(repo_path, ".")
+            paths_list.append(f"\n{' ' * 8}{label:<15} {path_new}")
     paths_list = "".join(paths_list)
     logger.info(f"PATHS:{paths_list}")
 
@@ -137,7 +141,7 @@ def update_readme(
     """
     Update the README.md file with the generated images and descriptions.
     """
-    readme_path = os.path.join(paths["data"], args.quarter, "README.md")
+    readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
     section_marker_start = f"<!-- {data_source} Start -->"

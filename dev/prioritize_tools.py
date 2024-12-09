@@ -39,7 +39,7 @@ LOGGER.info("Script execution started")
 
 def get_tool_urls():
     LOGGER.info("Loading CC Legal Tool paths and adding prefix")
-    file_path = os.path.join(PATHS["data"], "legal-tool-paths.txt")
+    file_path = shared.path_join(PATHS["data"], "legal-tool-paths.txt")
     prefix = "//creativecommons.org/"
     tool_urls = []
     with open(file_path, "r") as file_obj:
@@ -110,7 +110,7 @@ def sort_tools(path):
 
 def save_tools_list(tool_urls):
     LOGGER.info("Saving prioritized CC Legal Tool URLs")
-    file_path = os.path.join(PATHS["data"], "prioritized-tool-urls.txt")
+    file_path = shared.path_join(PATHS["data"], "prioritized-tool-urls.txt")
     tool_urls.append("")  # ensure file has end of file newline
     with open(file_path, "w") as file_obj:
         file_obj.writelines("\n".join(tool_urls))
