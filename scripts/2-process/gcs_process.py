@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
-This file is dedicated to processing Google Custom Search data
-for analysis and comparison between quarters.
+Process Google Custom Search (GCS) data.
 """
 # Standard library
 import argparse
@@ -205,7 +204,7 @@ def data_to_csv(args, data, file_path):
 
 
 def process_top_25_tools(args, count_data):
-    LOGGER.info("Processing top 25 tools")
+    LOGGER.info("Processing count data: top 25 tools")
     data = count_data.sort_values("COUNT", ascending=False)
     data.reset_index(drop=True, inplace=True)
     data = data.iloc[:25]
@@ -218,7 +217,7 @@ def process_top_25_tools(args, count_data):
 
 
 def process_totals_by_product(args, count_data):
-    LOGGER.info("Processing totals by product")
+    LOGGER.info("Processing count data: totals by product")
     data = {
         "Licenses version 4.0": 0,
         "Licenses version 3.0": 0,
@@ -259,7 +258,7 @@ def process_totals_by_product(args, count_data):
 
 
 def process_totals_by_unit(args, count_data):
-    LOGGER.info("Processing totals by unit")
+    LOGGER.info("Processing count data: totals by unit")
     data = {}
     for row in count_data.itertuples(index=False):
         tool = row[0]
@@ -287,11 +286,14 @@ def process_totals_by_unit(args, count_data):
     data_to_csv(args, data, file_path)
 
 
+# https://creativecommons.org/public-domain/freeworks/
 def process_totals_by_free_cultural(args, count_data):
-    LOGGER.info("Processing totals by Approved for Free Cultural Works")
+    LOGGER.info(
+        "Processing count data: totals by Approved for Free Cultural Works"
+    )
     data = {
         "Approved for Free Cultural Works": 0,
-        "Limited uses": 0,
+        "Limited use": 0,
     }
     for row in count_data.itertuples(index=False):
         tool = row[0]
@@ -304,7 +306,7 @@ def process_totals_by_free_cultural(args, count_data):
             if unit in ["by-sa", "by", "sa", "sampling+"]:
                 key = "Approved for Free Cultural Works"
             else:
-                key = "Limited uses"
+                key = "Limited use"
         data[key] += count
 
     data = pd.DataFrame(data.items(), columns=["Category", "Count"])
@@ -317,22 +319,27 @@ def process_totals_by_free_cultural(args, count_data):
 
 
 def process_totals_by_restrictions(args, count_data):
-    LOGGER.info("Processing totals by restriction")
-    data = {"level 0": 0, "level 1": 0, "level 2": 0, "level 3": 0}
+    LOGGER.info("Processing count data: totals by restriction")
+    data = {
+        "level 0 - unrestricted": 0,
+        "level 1 - few restrictions": 0,
+        "level 2 - some restrictions": 0,
+        "level 3 - many restrictions": 0,
+    }
     for row in count_data.itertuples(index=False):
         tool = row[0]
         count = row[1]
         if tool.startswith("PDM") or "CC0" in tool or "PUBLICDOMAIN" in tool:
-            key = "level 0"
+            key = "level 0 - unrestricted"
         else:
             parts = tool.split()
             unit = parts[1].lower()
             if unit in ["by-sa", "by", "sa", "sampling+"]:
-                key = "level 1"
+                key = "level 1 - few restrictions"
             elif unit in ["by-nc", "by-nc-sa", "sampling", "nc", "nc-sa"]:
-                key = "level 2"
+                key = "level 2 - some restrictions"
             else:
-                key = "level 3"
+                key = "level 3 - many restrictions"
         data[key] += count
 
     data = pd.DataFrame(data.items(), columns=["Category", "Count"])
@@ -340,6 +347,64 @@ def process_totals_by_restrictions(args, count_data):
         PATHS["data_phase"], "gcs_totals_by_restrictions.csv"
     )
     data_to_csv(args, data, file_path)
+
+
+def process_totals_by_langauage(args, data):
+    LOGGER.info("Processing language data: totals by language")
+    data = data.groupby(["LANGUAGE"], as_index=False)["COUNT"].sum()
+    data = data.sort_values("COUNT", ascending=False)
+    data.reset_index(drop=True, inplace=True)
+    data.rename(
+        columns={
+            "LANGUAGE": "Language",
+            "COUNT": "Count",
+        },
+        inplace=True,
+    )
+    file_path = shared.path_join(
+        PATHS["data_phase"], "gcs_totals_by_langauage.csv"
+    )
+    data_to_csv(args, data, file_path)
+
+
+def process_totals_by_country(args, data):
+    LOGGER.info("Processing country data: totals by country")
+    data = data.groupby(["COUNTRY"], as_index=False)["COUNT"].sum()
+    data = data.sort_values("COUNT", ascending=False)
+    data.reset_index(drop=True, inplace=True)
+    data.rename(
+        columns={
+            "COUNTRY": "Country",
+            "COUNT": "Count",
+        },
+        inplace=True,
+    )
+    file_path = shared.path_join(
+        PATHS["data_phase"], "gcs_totals_by_country.csv"
+    )
+    data_to_csv(args, data, file_path)
+
+
+# Data is already limited to licenses 4.0, CC0, and PDM
+#
+# def process_license_40_totals_by_langauage(args, data):
+#     LOGGER.info("Processing language data: top 25 languages")
+#     data = data[data["TOOL_IDENTIFIER"].str.contains("CC BY")]
+#     data = data[data["TOOL_IDENTIFIER"].str.contains("4.0")]
+#     data = data.groupby(["LANGUAGE"], as_index=False)['COUNT'].sum()
+#     data = data.sort_values("COUNT", ascending=False)
+#     data.reset_index(drop=True, inplace=True)
+#     data.rename(
+#         columns={
+#             "LANGUAGE": "Language",
+#             "COUNT": "Count",
+#         },
+#         inplace=True,
+#     )
+#     file_path = shared.path_join(
+#         PATHS["data_phase"], "gcs_license_40_totals_by_langauage.csv"
+#     )
+#     data_to_csv(args, data, file_path)
 
 
 def main():
@@ -355,15 +420,18 @@ def main():
     process_totals_by_free_cultural(args, count_data)
     process_totals_by_restrictions(args, count_data)
 
-    # # Langauge data
-    # langauge_data = pd.read_csv(
-    #     FILE2_LANGUAGE, usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
-    # )
+    # Langauge data
+    language_data = pd.read_csv(
+        FILE2_LANGUAGE, usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
+    )
+    process_totals_by_langauage(args, language_data)
+    # process_license_40_totals_by_langauage(args, language_data)
 
-    # # Country data
-    # country_data = pd.read_csv(
-    #     FILE3_COUNTRY, usecols=["TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
-    # )
+    # Country data
+    country_data = pd.read_csv(
+        FILE3_COUNTRY, usecols=["TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
+    )
+    process_totals_by_country(args, country_data)
 
     args = shared.git_add_and_commit(
         args,
