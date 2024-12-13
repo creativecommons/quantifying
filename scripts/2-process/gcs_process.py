@@ -52,7 +52,10 @@ def parse_arguments():
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.enable_save and args.enable_git:
+        parser.error("--enable-git requires --enable-save")
+    return args
 
 
 # def load_quarter_data(quarter):
@@ -452,8 +455,9 @@ if __name__ == "__main__":
             LOGGER.error(e.message)
         sys.exit(e.exit_code)
     except SystemExit as e:
-        LOGGER.error(f"System exit with code: {e.exit_code}")
-        sys.exit(e.exit_code)
+        if e.code != 0:
+            LOGGER.error(f"System exit with code: {e.code}")
+        sys.exit(e.code)
     except KeyboardInterrupt:
         LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
