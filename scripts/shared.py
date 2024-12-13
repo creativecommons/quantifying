@@ -141,6 +141,10 @@ def update_readme(
     """
     Update the README.md file with the generated images and descriptions.
     """
+    if not args.enable_save:
+        return
+    LOGGER = args.logger
+
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
@@ -220,9 +224,9 @@ def update_readme(
     with open(readme_path, "w") as f:
         f.writelines(lines)
 
-    logging.info(
-        f"Updated {readme_path} with new image and"
-        f"description for {section_title}."
+    LOGGER.info(f"README path: {readme_path.replace(paths['repo'], '.')}")
+    LOGGER.info(
+        f"Updated README with new image and description for {section_title}."
     )
 
 
