@@ -64,7 +64,7 @@ def parse_arguments():
     return args
 
 
-def visualize_top_25_tools(args):
+def plot_top_25_tools(args):
     """
     Create a bar chart for the top 25 legal tools
     """
@@ -125,7 +125,81 @@ def visualize_top_25_tools(args):
     LOGGER.info("Visualization by license type created.")
 
 
-# def visualize_by_country(data, args):
+def plot_totals_by_product(args):
+    """
+    Create a bar chart of the totals by product
+    """
+    file_path = shared.path_join(
+        PATHS["data_2-process"], "gcs_totals_by_product.csv"
+    )
+    LOGGER.info(__doc__)
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    data = pd.read_csv(file_path)
+
+    plt.figure(figsize=(10, 5))
+    y_column = "CC legal tool product"
+    ax = sns.barplot(
+        data,
+        x="Count",
+        y=y_column,
+        hue=y_column,
+        palette="pastel",
+        legend=False,
+    )
+    for index, row in data.iterrows():
+        ax.annotate(
+            f"{row['Count']:>15,d}",
+            (0 + 80, index),
+            xycoords=("axes points", "data"),
+            color="black",
+            fontsize="x-small",
+            horizontalalignment="right",
+            verticalalignment="center",
+        )
+    plt.title(f"Totals by product ({args.quarter})")
+    plt.ylabel("Creative Commons (CC) legal tool product")
+    plt.xscale("log")
+    plt.xlabel("Number of references")
+
+    # Use the millions formatter for x-axis
+    def millions_formatter(x, pos):
+        """
+        The two args are the value and tick position
+        """
+        return f"{x * 1e-6:,.0f}M"
+
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(millions_formatter))
+
+    plt.tight_layout()
+    if args.show_plots:
+        plt.show()
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "gcs_totals_by_product.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path)
+
+    shared.update_readme(
+        PATHS,
+        image_path,
+        "Google Custom Search",
+        "Bar chart showing how many documents there are for each Creative"
+        " Commons (CC) legal tool. **There are a total of"
+        f" {data['Count'].sum():,d} documents that are either CC licensed"
+        " or put in the public domain using a CC legal tool.**",
+        "Totals by product",
+        args,
+    )
+
+    LOGGER.info("Visualization by license type created.")
+
+
+# def plot_by_country(data, args):
 #    """
 #    Create a bar chart for the number of webpages licensed by country.
 #    """
@@ -202,7 +276,7 @@ def visualize_top_25_tools(args):
 #    LOGGER.info("Visualization by country created.")
 #
 #
-# def visualize_by_language(data, args):
+# def plot_by_language(data, args)data/2024Q4/README.md:
 #    """
 #    Create a bar chart for the number of webpages licensed by language.
 #    """
@@ -286,9 +360,10 @@ def main():
     shared.log_paths(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
 
-    # visualize_by_country(data, args)
-    visualize_top_25_tools(args)
-    # visualize_by_language(data, args)
+    plot_top_25_tools(args)
+    plot_totals_by_product(args)
+    # plot_by_country(data, args)
+    # plot_by_language(data, args)
 
     args = shared.git_add_and_commit(
         args,
