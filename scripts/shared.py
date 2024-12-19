@@ -133,7 +133,14 @@ def path_join(*paths):
     return os.path.abspath(os.path.realpath(os.path.join(*paths)))
 
 
-def update_readme(args, data_source, entry_title, image_path, description):
+def update_readme(
+    args,
+    section_title,
+    entry_title,
+    image_path,
+    image_caption,
+    entry_text=None,
+):
     """
     Update the README.md file with the generated images and descriptions.
     """
@@ -141,14 +148,16 @@ def update_readme(args, data_source, entry_title, image_path, description):
         return
     logger = args.logger
     paths = args.paths
+    if entry_text is None:
+        entry_text = image_caption
 
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
-    section_start_line = f"<!-- {data_source} Start -->\n"
-    section_end_line = f"<!-- {data_source} End -->\n"
+    section_start_line = f"<!-- {section_title} Start -->\n"
+    section_end_line = f"<!-- {section_title} End -->\n"
 
-    # Define specific section markers for each report type
+    # Define entry markers for each plot (optional) and description
     entry_start_line = f"<!-- {entry_title} Start -->\n"
     entry_end_line = f"<!-- {entry_title} End -->\n"
 
@@ -175,7 +184,7 @@ def update_readme(args, data_source, entry_title, image_path, description):
                 f"{section_start_line}",
                 "\n",
                 "\n",
-                f"## Data Source: {data_source}\n",
+                f"## {section_title}\n",
                 "\n",
                 "\n",
                 f"{section_end_line}",
@@ -201,7 +210,7 @@ def update_readme(args, data_source, entry_title, image_path, description):
         relative_image_path = os.path.relpath(
             image_path, os.path.dirname(readme_path)
         )
-        image_line = f"![{description}]({relative_image_path})\n"
+        image_line = f"![{image_caption}]({relative_image_path})\n"
     else:
         image_line = ""
     entry_lines = [
@@ -211,7 +220,7 @@ def update_readme(args, data_source, entry_title, image_path, description):
         "\n",
         image_line,
         "\n",
-        f"{description}\n",
+        f"{entry_text}\n",
         "\n",
         f"{entry_end_line}",
         "\n",
