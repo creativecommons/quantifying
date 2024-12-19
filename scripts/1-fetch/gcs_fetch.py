@@ -206,8 +206,16 @@ def query_gcs(args, service, last_completed_plan_index, plan):
     for plan_row in plan[start:stop]:  # noqa: E203
         index = plan.index(plan_row) + 1
         query_info = f"index: {index}, tool: {plan_row['TOOL_IDENTIFIER']}"
-        encoded_tool_url = urllib.parse.quote(plan_row["TOOL_URL"], safe=":/")
-        query_params = {"cx": GCS_CX, "q": encoded_tool_url}
+        # Note that the URL is quoted, which improves accuracy
+        # https://blog.google/products/search/how-were-improving-search-results-when-you-use-quotes/
+        encoded_tool_url = urllib.parse.quote(
+            f'"{plan_row["TOOL_URL"]}"', safe=":/"
+        )
+        query_params = {
+            "cx": GCS_CX,
+            "linkSite": plan_row["TOOL_URL"].lstrip("/"),
+            "q": encoded_tool_url,
+        }
         if plan_row["COUNTRY"]:
             query_info = f"{query_info}, country: {plan_row['COUNTRY']}"
             query_params["cr"] = plan_row["CR"]
