@@ -1,6 +1,4 @@
 # Standard library
-# import argparse
-# Standard library
 import logging
 import os
 from datetime import datetime, timezone
@@ -135,28 +133,24 @@ def path_join(*paths):
     return os.path.abspath(os.path.realpath(os.path.join(*paths)))
 
 
-def update_readme(
-    paths, image_path, data_source, description, section_title, args
-):
+def update_readme(args, data_source, entry_title, image_path, description):
     """
     Update the README.md file with the generated images and descriptions.
     """
     if not args.enable_save:
         return
-    LOGGER = args.logger
+    logger = args.logger
+    paths = args.paths
 
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
-    section_marker_start = f"<!-- {data_source} Start -->"
-    section_marker_end = f"<!-- {data_source} End -->"
+    section_start_line = f"<!-- {data_source} Start -->\n"
+    section_end_line = f"<!-- {data_source} End -->\n"
 
     # Define specific section markers for each report type
-    specific_section_start = f"<!-- {section_title} Start -->"
-    specific_section_end = f"<!-- {section_title} End -->"
-
-    # Convert image path to a relative path
-    rel_image_path = os.path.relpath(image_path, os.path.dirname(readme_path))
+    entry_start_line = f"<!-- {entry_title} Start -->\n"
+    entry_end_line = f"<!-- {entry_title} End -->\n"
 
     if os.path.exists(readme_path):
         with open(readme_path, "r") as f:
@@ -164,104 +158,84 @@ def update_readme(
     else:
         lines = []
 
-    # Ensure the title is at the top
-    title_line = f"# {args.quarter} Quantifying the Commons\n"
-
+    title_line = f"# Quantifying the Commons {args.quarter}\n"
     if not lines or lines[0].strip() != title_line.strip():
-        # Add title if not present or incorrect
-        lines = [title_line] + lines
+        # Add the title if it is not present or is incorrect
+        lines.insert(0, title_line)
+        lines.insert(1, "\n")
 
-    # Locate or create the data source section
-    section_start = section_end = None
-    for i, line in enumerate(lines):
-        if section_marker_start in line:
-            section_start = i
-        if section_marker_end in line:
-            section_end = i
-
-    if section_start is None or section_end is None:
-        # If the data source section is not present, add it
+    # We only need to know the position of the end to append new entries
+    if section_start_line in lines:
+        # Locate the data source section if it is already present
+        section_end_index = lines.index(section_end_line)
+    else:
+        # Add the data source section if it is absent
         lines.extend(
             [
+                f"{section_start_line}",
+                "\n",
+                "\n",
                 f"## Data Source: {data_source}\n",
-                f"{section_marker_start}\n",
-                f"{section_marker_end}\n",
+                "\n",
+                "\n",
+                f"{section_end_line}",
+                "\n",
             ]
         )
-        section_start = len(lines) - 2
-        section_end = len(lines) - 1
+        section_end_index = lines.index(section_end_line)
 
-    # Locate or create the specific section within the data source section
-    specific_start = specific_end = None
-    for i in range(section_start, section_end):
-        if specific_section_start in lines[i]:
-            specific_start = i
-        if specific_section_end in lines[i]:
-            specific_end = i
+    # Locate the entry if it is already present
+    if entry_start_line in lines:
+        entry_start_index = lines.index(entry_start_line)
+        entry_end_index = lines.index(entry_end_line)
+        # Include any trailing empty/whitespace-only lines
+        while not lines[entry_end_index + 1].strip():
+            entry_end_index += 1
+    # Initalize variables of entry is not present
+    else:
+        entry_start_index = None
+        entry_end_index = None
 
-    # Prepare the new content for this specific section
-    new_content = [
-        f"{specific_section_start}\n",
-        f"### {section_title}\n",
-        f"![{description}]({rel_image_path})\n",
+    # Create entry markdown content
+    if image_path:
+        relative_image_path = os.path.relpath(
+            image_path, os.path.dirname(readme_path)
+        )
+        image_line = f"![{description}]({relative_image_path})\n"
+    else:
+        image_line = ""
+    entry_lines = [
+        f"{entry_start_line}",
+        "\n",
+        f"### {entry_title}\n",
+        "\n",
+        image_line,
+        "\n",
         f"{description}\n",
-        f"{specific_section_end}\n",
+        "\n",
+        f"{entry_end_line}",
+        "\n",
+        "\n",
     ]
 
-    # Replace or add the specific section content
-    if specific_start is not None and specific_end is not None:
-        # Replace the content between the specific markers
+    if entry_start_index is None:
+        # Add entry to end of section
         lines = (
-            lines[:specific_start]
-            + new_content
-            + lines[specific_end + 1 :]  # noqa: E203
+            lines[:section_end_index] + entry_lines + lines[section_end_index:]
         )
     else:
-        # Add new specific section before the end of the data source section
-        lines = lines[:section_end] + new_content + lines[section_end:]
+        # Replace entry
+        lines = (
+            lines[:entry_start_index]
+            + entry_lines
+            + lines[entry_end_index + 1 :]  # noqa: E203
+        )
 
     # Write back to the README.md file
     with open(readme_path, "w") as f:
         f.writelines(lines)
 
-    LOGGER.info(f"README path: {readme_path.replace(paths['repo'], '.')}")
-    LOGGER.info(
-        f"Updated README with new image and description for {section_title}."
+    logger.info(f"README path: {readme_path.replace(paths['repo'], '.')}")
+    logger.info(
+        f"Updated README with new image and description for {entry_title}."
     )
-
-
-# def main():
-#     parser = argparse.ArgumentParser(description="Git operations script")
-#     parser.add_argument(
-#         "--operation",
-#         type=str,
-#         required=True,
-#         help="Operation to perform: fetch_and_merge, add_and_commit, push",
-#     )
-#     parser.add_argument("--message", type=str, help="Commit message")
-#     parser.add_argument(
-#         "--branch",
-#         type=str,
-#         default="refine-automation",
-#         help="Branch to fetch and merge from",
-#     )
-#     args = parser.parse_args()
-
-#     repo_path = os.getcwd() # Assuming the script runs in repo root
-
-#     if args.operation == "fetch_and_merge":
-#         fetch_and_merge(repo_path, args.branch)
-#     elif args.operation == "add_and_commit":
-#         if not args.message:
-#             raise ValueError(
-#                 "Commit message is required for add_and_commit operation"
-#             )
-#         add_and_commit(repo_path, args.message)
-#     elif args.operation == "push":
-#         push_changes(repo_path)
-#     else:
-#         raise ValueError("Unsupported operation")
-
-
-# if __name__ == "__main__":
-#     main()
