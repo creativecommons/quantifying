@@ -30,6 +30,7 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
+SECTION = "Google Custom Search (GCS)"
 
 
 def parse_arguments():
@@ -61,34 +62,73 @@ def parse_arguments():
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
+    args.logger = LOGGER
+    args.paths = PATHS
     return args
+
+
+def gcs_intro(args):
+    """
+    Write Google Custom Search (GCS) introduction.
+    """
+    LOGGER.info(plot_totals_by_product.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"], "gcs_totals_by_product.csv"
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    data = pd.read_csv(file_path)
+    shared.update_readme(
+        args,
+        SECTION,
+        "Overview",
+        None,
+        None,
+        "Google Custom Search (GCS) data uses the `totalResults` returned by"
+        " API for search queries of the legal tool URLs (quoted and using"
+        " `linkSite` for accuracy), countries codes, and language codes.\n"
+        "\n"
+        f"**The results show there are a total of {data['Count'].sum():,d}"
+        " online documents in the commons--documents that are licensed or put"
+        " in the public domain using a Creative Commons (CC) legal tool.**\n"
+        "\n"
+        "Thank you Google for providing the Programable Search Engine: Custom"
+        " Search JSON API!\n",
+    )
 
 
 def plot_top_25_tools(args):
     """
     Create a bar chart for the top 25 legal tools
     """
+    LOGGER.info(plot_totals_by_product.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"], "gcs_top_25_tools.csv"
     )
-    LOGGER.info("Create a bar chart for the top 25 legal tools")
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     data = pd.read_csv(file_path)
 
     plt.figure(figsize=(10, 10))
-    ax = sns.barplot(data, x="Count", y="CC legal tool")
+    y_column = "CC legal tool"
+    ax = sns.barplot(
+        data,
+        x="Count",
+        y=y_column,
+        hue=y_column,
+        palette="pastel",
+        legend=False,
+    )
     for index, row in data.iterrows():
         ax.annotate(
             f"{row['Count']:,d}",
-            (4, index),
+            (4 + 80, index),
             xycoords=("axes points", "data"),
-            color="white",
-            fontsize="x-small",
-            horizontalalignment="left",
+            color="black",
+            fontsize="small",
+            horizontalalignment="right",
             verticalalignment="center",
         )
     plt.title(f"Top 25 legal tools ({args.quarter})")
-    plt.xlabel("Number of references")
+    plt.xlabel("Number of works")
     plt.ylabel("Creative Commons (CC) legal tool")
 
     # Use the millions formatter for x-axis
@@ -113,13 +153,11 @@ def plot_top_25_tools(args):
         plt.savefig(image_path)
 
     shared.update_readme(
-        PATHS,
-        image_path,
-        "Google Custom Search",
-        "Bar chart showing the top 25 legal tools based on the count of"
-        " search results for each legal tool's URL.",
-        "Top 25 legal tools",
         args,
+        SECTION,
+        "Top 25 legal tools",
+        image_path,
+        "Bar chart showing the top 25 individual legal tools.",
     )
 
     LOGGER.info("Visualization by license type created.")
@@ -129,10 +167,10 @@ def plot_totals_by_product(args):
     """
     Create a bar chart of the totals by product
     """
+    LOGGER.info(plot_totals_by_product.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"], "gcs_totals_by_product.csv"
     )
-    LOGGER.info(__doc__)
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     data = pd.read_csv(file_path)
 
@@ -152,14 +190,14 @@ def plot_totals_by_product(args):
             (0 + 80, index),
             xycoords=("axes points", "data"),
             color="black",
-            fontsize="x-small",
+            fontsize="small",
             horizontalalignment="right",
             verticalalignment="center",
         )
     plt.title(f"Totals by product ({args.quarter})")
     plt.ylabel("Creative Commons (CC) legal tool product")
     plt.xscale("log")
-    plt.xlabel("Number of references")
+    plt.xlabel("Number of works")
 
     # Use the millions formatter for x-axis
     def millions_formatter(x, pos):
@@ -185,15 +223,12 @@ def plot_totals_by_product(args):
         plt.savefig(image_path)
 
     shared.update_readme(
-        PATHS,
-        image_path,
-        "Google Custom Search",
-        "Bar chart showing how many documents there are for each Creative"
-        " Commons (CC) legal tool. **There are a total of"
-        f" {data['Count'].sum():,d} documents that are either CC licensed"
-        " or put in the public domain using a CC legal tool.**",
-        "Totals by product",
         args,
+        SECTION,
+        "Totals by product",
+        image_path,
+        "Bar chart showing how many documents there are for each Creative"
+        " Commons (CC) legal tool product.",
     )
 
     LOGGER.info("Visualization by license type created.")
@@ -234,7 +269,7 @@ def plot_totals_by_product(args):
 #    plt.xticks(rotation=45)
 #
 #    # Add value numbers to the top of each bar
-#    for p in ax.patches:
+#    for p in ax.patcplot_totals_by_producthes:
 #        ax.annotate(
 #            format(p.get_height(), ",.0f"),
 #            (p.get_x() + p.get_width() / 2.0, p.get_height()),
@@ -265,12 +300,11 @@ def plot_totals_by_product(args):
 #        plt.show()
 #
 #    shared.update_readme(
-#        PATHS,
-#        image_path,
-#        "Google Custom Search",
-#        "Number of Google Webpages Licensed by Country",
-#        "Country Report",
 #        args,
+#        SECTION,
+#        "Country Report",
+#        image_path,
+#        "Number of Google Webpages Licensed by Country",
 #    )
 #
 #    LOGGER.info("Visualization by country created.")
@@ -343,12 +377,11 @@ def plot_totals_by_product(args):
 #        plt.show()
 #
 #    shared.update_readme(
-#        PATHS,
-#        image_path,
-#        "Google Custom Search",
-#        "Number of Google Webpages Licensed by Language",
-#        "Language Report",
 #        args,
+#        SECTION,
+#        "Language Report",
+#        image_path,
+#        "Number of Google Webpages Licensed by Language",
 #    )
 #
 #    LOGGER.info("Visualization by language created.")
@@ -356,12 +389,12 @@ def plot_totals_by_product(args):
 
 def main():
     args = parse_arguments()
-    args.logger = LOGGER
     shared.log_paths(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
 
-    plot_top_25_tools(args)
+    gcs_intro(args)
     plot_totals_by_product(args)
+    plot_top_25_tools(args)
     # plot_by_country(data, args)
     # plot_by_language(data, args)
 
