@@ -71,9 +71,9 @@ def gcs_intro(args):
     """
     Write Google Custom Search (GCS) introduction.
     """
-    LOGGER.info(plot_totals_by_product.__doc__.strip())
+    LOGGER.info(gcs_intro.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_totals_by_product.csv"
+        PATHS["data_2-process"], "gcs_product_totals.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     data = pd.read_csv(file_path)
@@ -96,142 +96,330 @@ def gcs_intro(args):
     )
 
 
-def plot_top_25_tools(args):
+def millions_formatter(x, pos):
     """
-    Create a bar chart for the top 25 legal tools
+    Use the millions formatter for x-axis
+
+    The two args are the value (x) and tick position (pos)
     """
-    LOGGER.info(plot_totals_by_product.__doc__.strip())
-    file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_top_25_tools.csv"
-    )
-    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
-    data = pd.read_csv(file_path)
-
-    plt.figure(figsize=(10, 10))
-    y_column = "CC legal tool"
-    ax = sns.barplot(
-        data,
-        x="Count",
-        y=y_column,
-        hue=y_column,
-        palette="pastel",
-        legend=False,
-    )
-    for index, row in data.iterrows():
-        ax.annotate(
-            f"{row['Count']:,d}",
-            (4 + 80, index),
-            xycoords=("axes points", "data"),
-            color="black",
-            fontsize="small",
-            horizontalalignment="right",
-            verticalalignment="center",
-        )
-    plt.title(f"Top 25 legal tools ({args.quarter})")
-    plt.xlabel("Number of works")
-    plt.ylabel("Creative Commons (CC) legal tool")
-
-    # Use the millions formatter for x-axis
-    def millions_formatter(x, pos):
-        """
-        The two args are the value and tick position
-        """
-        return f"{x * 1e-6:.0f}M"
-
-    ax.xaxis.set_major_formatter(ticker.FuncFormatter(millions_formatter))
-
-    plt.tight_layout()
-    if args.show_plots:
-        plt.show()
-
-    image_path = shared.path_join(PATHS["data_phase"], "gcs_top_25_tools.png")
-    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
-
-    if args.enable_save:
-        # Create the directory if it does not exist
-        os.makedirs(PATHS["data_phase"], exist_ok=True)
-        plt.savefig(image_path)
-
-    shared.update_readme(
-        args,
-        SECTION,
-        "Top 25 legal tools",
-        image_path,
-        "Bar chart showing the top 25 individual legal tools.",
-    )
-
-    LOGGER.info("Visualization by license type created.")
+    return f"{x * 1e-6:,.0f}M"
 
 
-def plot_totals_by_product(args):
-    """
-    Create a bar chart of the totals by product
-    """
-    LOGGER.info(plot_totals_by_product.__doc__.strip())
-    file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_totals_by_product.csv"
-    )
-    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
-    data = pd.read_csv(file_path)
-
-    plt.figure(figsize=(10, 5))
-    y_column = "CC legal tool product"
-    ax = sns.barplot(
-        data,
-        x="Count",
-        y=y_column,
-        hue=y_column,
-        palette="pastel",
-        legend=False,
-    )
+def annotate_count(ax, data, x, colors):
+    # annotate totals
+    i = 0
     for index, row in data.iterrows():
         ax.annotate(
             f"{row['Count']:>15,d}",
-            (0 + 80, index),
+            (80, i),
             xycoords=("axes points", "data"),
             color="black",
             fontsize="small",
+            fontfamily="monospace",
             horizontalalignment="right",
             verticalalignment="center",
         )
-    plt.title(f"Totals by product ({args.quarter})")
-    plt.ylabel("Creative Commons (CC) legal tool product")
-    plt.xscale("log")
-    plt.xlabel("Number of works")
+        i += 1
+    # annotate percentages
+    i = 0
+    c = 0
+    for index, row in data.iterrows():
+        if c > len(colors):
+            c = 0
+        percent = row[x] / data[x].sum() * 100
+        ax.annotate(
+            f"{percent:5.2f}%",
+            (1.02, i),
+            xycoords=("axes fraction", "data"),
+            backgroundcolor=colors[c],
+            color="black",
+            fontsize="x-small",
+            fontfamily="monospace",
+            horizontalalignment="left",
+            verticalalignment="center",
+        )
+        i += 1
+        c += 1
+    return ax
 
-    # Use the millions formatter for x-axis
-    def millions_formatter(x, pos):
-        """
-        The two args are the value and tick position
-        """
-        return f"{x * 1e-6:,.0f}M"
 
-    ax.xaxis.set_major_formatter(ticker.FuncFormatter(millions_formatter))
+def combined_plot(args, data, title, x, y, bar_xscale=None, bar_ylabel=None):
 
+    height = 1 + len(data) * 0.25
+    if height < 2.5:
+        height = 2.5
+    fig, (ax1, ax2) = plt.subplots(
+        1, 2, figsize=(8, height), width_ratios=(4, 1)
+    )
+
+    colors = sns.color_palette("pastel")
+
+    # 1st axes: horizontal barplot of counts
+    data.plot.barh(ax=ax1, y=x, width=0.8, color=colors, legend=False)
+    ax1 = annotate_count(ax1, data, x, colors)
+    if bar_xscale is None:
+        bar_xscale = "linear"
+    ax1.set_xscale(bar_xscale)
+    if bar_ylabel is None:
+        ax1.set_ylabel("CC legal tool unit")
+    else:
+        ax1.set_ylabel(bar_ylabel)
+    ax1.set_xlabel("Number of works")
+    ax1.xaxis.set_major_formatter(ticker.FuncFormatter(millions_formatter))
+
+    # 2nd axes: pie chart of percentages
+    data.plot.pie(
+        ax=ax2,
+        y=x,
+        colors=colors,
+        labels=None,
+        legend=False,
+        radius=2,
+    )
+    ax2.set_aspect("equal")
+    ax2.set_ylabel("Percent", labelpad=30)
+
+    # plot
+    plt.suptitle(title)
+    plt.annotate(
+        f"Creative Commons (CC)\nbar x scale: {bar_xscale}, plot generated"
+        f" {QUARTER}",
+        (0.95, 5),
+        xycoords=("figure fraction", "figure points"),
+        color="gray",
+        fontsize="x-small",
+        horizontalalignment="right",
+    )
+    # For default values, see:
+    # https://matplotlib.org/stable/users/explain/customizing.html#matplotlibrc-sample
+    plt.subplots_adjust(right=0.95, wspace=0.25)
+    # plt.subplots_adjust(right=0.95, bottom=0.25, wspace=0.25)
     plt.tight_layout()
+
     if args.show_plots:
         plt.show()
 
+    return plt
+
+
+def plot_products(args):
+    """
+    Create plots for CC legal tool product totals and percentages
+    """
+    LOGGER.info(plot_products.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"], "gcs_product_totals.csv"
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    y = "CC legal tool product"
+    data = pd.read_csv(file_path, index_col=y)
+
+    title = "Products totals and percentages "
+    plt = combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        x="Count",
+        y=y,
+        bar_xscale="log",
+        bar_ylabel="CC legal tool products",
+    )
+
     image_path = shared.path_join(
-        PATHS["data_phase"], "gcs_totals_by_product.png"
+        PATHS["data_phase"], "gcs_product_totals.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
     if args.enable_save:
         # Create the directory if it does not exist
         os.makedirs(PATHS["data_phase"], exist_ok=True)
-        plt.savefig(image_path)
+        plt.savefig(image_path, dpi=300)
 
     shared.update_readme(
         args,
         SECTION,
-        "Totals by product",
+        title,
         image_path,
-        "Bar chart showing how many documents there are for each Creative"
-        " Commons (CC) legal tool product.",
+        "Plots showing Creative Commons (CC) legal tool product totals and"
+        " percentages.",
     )
 
-    LOGGER.info("Visualization by license type created.")
+
+def plot_tool_status(args):
+    """
+    Create plots for the CC legal tool status totals and percentages
+    """
+    LOGGER.info(plot_tool_status.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"], "gcs_status_combined_totals.csv"
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    y = "CC legal tool"
+    data = pd.read_csv(file_path, index_col=y)
+    data.sort_values(y, ascending=False, inplace=True)
+
+    title = "CC legal tools status"
+    plt = combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        x="Count",
+        y=y,
+        bar_xscale="log",
+        bar_ylabel="CC legal tool status",
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "gcs_status_tool_percentage.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path, dpi=300)
+
+    shared.update_readme(
+        args,
+        SECTION,
+        title,
+        image_path,
+        "Plots showing Creative Commons (CC) legal tool status totals and"
+        " percentages.",
+    )
+
+
+def plot_current_tools(args):
+    """
+    Create plots for current CC legal tool totals and percentages
+    """
+    LOGGER.info(plot_current_tools.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"], "gcs_status_current_totals.csv"
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    y = "CC legal tool"
+    data = pd.read_csv(file_path, index_col=y)
+    data.sort_values(y, ascending=False, inplace=True)
+
+    title = "Current CC legal tool totals"
+    plt = combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        x="Count",
+        y=y,
+        bar_xscale="log",
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "gcs_status_current_totals.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path, dpi=300)
+
+    shared.update_readme(
+        args,
+        SECTION,
+        title,
+        image_path,
+        "Plots showing current Creative Commons (CC) legal tool totals and"
+        " percentages.",
+    )
+
+
+def plot_old_tools(args):
+    """
+    Create plots for old CC legal tool totals and percentages
+    """
+    LOGGER.info(plot_old_tools.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"], "gcs_status_old_totals.csv"
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    y = "CC legal tool"
+    data = pd.read_csv(file_path, index_col=y)
+    data.sort_values(y, ascending=False, inplace=True)
+
+    title = "Old CC legal tool totals"
+    plt = combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        x="Count",
+        y="CC legal tool",
+        bar_xscale="log",
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "gcs_status_old_totals.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path, dpi=300)
+
+    shared.update_readme(
+        args,
+        SECTION,
+        title,
+        image_path,
+        "Plots showing old Creative Commons (CC) legal tool totals and"
+        " percentages.",
+        "The unit names have been normalized (~~`CC BY-ND-NC`~~ =>"
+        " `CC BY-NC-ND`).",
+    )
+
+
+def plot_retired_tools(args):
+    """
+    Create plots for retired CC legal tool totals and percentages
+    """
+    LOGGER.info(plot_retired_tools.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"], "gcs_status_retired_totals.csv"
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    y = "CC legal tool"
+    data = pd.read_csv(file_path, index_col=y)
+    data.sort_values(y, ascending=False, inplace=True)
+
+    title = "Retired CC legal tools"
+    plt = combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        x="Count",
+        y="CC legal tool",
+        bar_xscale="log",
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "gcs_status_retired_totals.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path, dpi=300)
+
+    shared.update_readme(
+        args,
+        SECTION,
+        title,
+        image_path,
+        "Plots showing retired Creative Commons (CC) legal tools total and"
+        " percentages.",
+        "For more information on retired legal tools, see [Retired Legal Tools"
+        " - Creative Commons](https://creativecommons.org/retiredlicenses/).",
+    )
 
 
 # def plot_by_country(data, args):
@@ -250,7 +438,7 @@ def plot_totals_by_product(args):
 #    start_index = columns.index("United States")
 #    end_index = columns.index("Japan") + 1
 #
-#    countries = columns[start_index:end_index]
+#    countries = columns[start_indeax.margins(x=0)x:end_index]
 #
 #    data.columns = data.columns.str.strip()
 #
@@ -294,7 +482,7 @@ def plot_totals_by_product(args):
 #    # Create the directory if it does not exist
 #    os.makedirs(output_directory, exist_ok=True)
 #    image_path = os.path.join(output_directory, "gcs_country_report.png")
-#    plt.savefig(image_path)
+#    plt.savefig(image_path, dpi=300)
 #
 #    if args.show_plots:
 #        plt.show()
@@ -371,7 +559,7 @@ def plot_totals_by_product(args):
 #    # Create the directory if it does not exist
 #    os.makedirs(output_directory, exist_ok=True)
 #    image_path = os.path.join(output_directory, "gcs_language_report.png")
-#    plt.savefig(image_path)
+#    plt.savefig(image_path, dpi=300)
 #
 #    if args.show_plots:
 #        plt.show()
@@ -393,8 +581,11 @@ def main():
     shared.git_fetch_and_merge(args, PATHS["repo"])
 
     gcs_intro(args)
-    plot_totals_by_product(args)
-    plot_top_25_tools(args)
+    # plot_products(args)
+    # plot_tool_status(args)
+    plot_current_tools(args)
+    # plot_old_tools(args)
+    # plot_retired_tools(args)
     # plot_by_country(data, args)
     # plot_by_language(data, args)
 

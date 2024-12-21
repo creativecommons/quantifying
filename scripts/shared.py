@@ -146,10 +146,19 @@ def update_readme(
     """
     if not args.enable_save:
         return
+    if image_path and not image_caption:
+        raise QuantifyingException(
+            "The update_readme function requires an image caption if an image"
+            " path is provided"
+        )
+    if not image_path and image_caption:
+        raise QuantifyingException(
+            "The update_readme function requires an image path if an image"
+            " caption is provided"
+        )
+
     logger = args.logger
     paths = args.paths
-    if entry_text is None:
-        entry_text = image_caption
 
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
@@ -210,17 +219,23 @@ def update_readme(
         relative_image_path = os.path.relpath(
             image_path, os.path.dirname(readme_path)
         )
-        image_line = f"![{image_caption}]({relative_image_path})\n"
+        image = f"\n![{image_caption}]({relative_image_path})\n"
     else:
-        image_line = ""
+        image = ""
+    if entry_text and image_caption:
+        text = f"\n{image_caption}\n\n{entry_text}\n"
+    elif entry_text:
+        text = f"\n{entry_text}\n"
+    elif image_caption:
+        text = f"\n{image_caption}\n"
+    else:
+        text = ""
     entry_lines = [
         f"{entry_start_line}",
         "\n",
         f"### {entry_title}\n",
-        "\n",
-        image_line,
-        "\n",
-        f"{entry_text}\n",
+        image,
+        text,
         "\n",
         f"{entry_end_line}",
         "\n",
