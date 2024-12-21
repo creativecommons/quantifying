@@ -581,11 +581,11 @@ def main():
     shared.git_fetch_and_merge(args, PATHS["repo"])
 
     gcs_intro(args)
-    # plot_products(args)
-    # plot_tool_status(args)
+    plot_products(args)
+    plot_tool_status(args)
     plot_current_tools(args)
-    # plot_old_tools(args)
-    # plot_retired_tools(args)
+    plot_old_tools(args)
+    plot_retired_tools(args)
     # plot_by_country(data, args)
     # plot_by_language(data, args)
 
