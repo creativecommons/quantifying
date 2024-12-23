@@ -260,11 +260,11 @@ def process_totals_by_restrictions(args, count_data):
     data_to_csv(args, data, file_path)
 
 
-def process_totals_by_langauage(args, data):
+def process_totals_by_language(args, data):
     """
     Processing language data: totals by language
     """
-    LOGGER.info(process_totals_by_langauage.__doc__.strip())
+    LOGGER.info(process_totals_by_language.__doc__.strip())
     data = data.groupby(["LANGUAGE"], as_index=False)["COUNT"].sum()
     data = data.sort_values("COUNT", ascending=False)
     data.reset_index(drop=True, inplace=True)
@@ -276,7 +276,7 @@ def process_totals_by_langauage(args, data):
         inplace=True,
     )
     file_path = shared.path_join(
-        PATHS["data_phase"], "gcs_totals_by_langauage.csv"
+        PATHS["data_phase"], "gcs_totals_by_language.csv"
     )
     data_to_csv(args, data, file_path)
 
@@ -300,28 +300,6 @@ def process_totals_by_country(args, data):
         PATHS["data_phase"], "gcs_totals_by_country.csv"
     )
     data_to_csv(args, data, file_path)
-
-
-# Data is already limited to licenses 4.0, CC0, and PDM
-#
-# def process_license_40_totals_by_langauage(args, data):
-#     LOGGER.info("Processing language data: top 25 languages")
-#     data = data[data["TOOL_IDENTIFIER"].str.contains("CC BY")]
-#     data = data[data["TOOL_IDENTIFIER"].str.contains("4.0")]
-#     data = data.groupby(["LANGUAGE"], as_index=False)['COUNT'].sum()
-#     data = data.sort_values("COUNT", ascending=False)
-#     data.reset_index(drop=True, inplace=True)
-#     data.rename(
-#         columns={
-#             "LANGUAGE": "Language",
-#             "COUNT": "Count",
-#         },
-#         inplace=True,
-#     )
-#     file_path = shared.path_join(
-#         PATHS["data_phase"], "gcs_license_40_totals_by_langauage.csv"
-#     )
-#     data_to_csv(args, data, file_path)
 
 
 # def load_quarter_data(quarter):
@@ -348,7 +326,7 @@ def process_totals_by_country(args, data):
 
 #     # Process the data to compare by country
 #     compare_by_country(current_data, previous_data,
-#   current_quarter, previous_quarter)
+#     current_quarter, previous_quarter)
 
 #     # Process the data to compare by license
 #     compare_by_license(current_data, previous_data,
@@ -360,7 +338,7 @@ def process_totals_by_country(args, data):
 
 
 # def compare_by_country(current_data, previous_data,
-#       current_quarter, previous_quarter):
+#         current_quarter, previous_quarter):
 #     """
 #     Compare the number of webpages licensed by country between two quarters.
 #     """
@@ -460,8 +438,7 @@ def main():
     language_data = pd.read_csv(
         FILE2_LANGUAGE, usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
     )
-    process_totals_by_langauage(args, language_data)
-    # process_license_40_totals_by_langauage(args, language_data)
+    process_totals_by_language(args, language_data)
 
     # Country data
     country_data = pd.read_csv(
