@@ -155,6 +155,7 @@ def combined_plot(
     if bar_xscale == "log":
         log = True
     else:
+        bar_xscale = "linear"
         log = False
     ax1.barh(y=tick_labels, width=data[data_label], color=colors, log=log)
     ax1.tick_params(axis="x", which="major", labelrotation=45)
@@ -202,10 +203,12 @@ def gcs_intro(args):
     """
     LOGGER.info(gcs_intro.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_product_totals.csv"
+        PATHS["data"], args.quarter, "2-process", "gcs_product_totals.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
-    data = pd.read_csv(file_path)
+    name_label = "CC legal tool product"
+    data = pd.read_csv(file_path, index_col=name_label)
+    total_count = f"{data['Count'].sum():,d}"
     shared.update_readme(
         args,
         SECTION,
@@ -216,9 +219,9 @@ def gcs_intro(args):
         " API for search queries of the legal tool URLs (quoted and using"
         " `linkSite` for accuracy), countries codes, and language codes.\n"
         "\n"
-        f"**The results show there are a total of {data['Count'].sum():,d}"
-        " online documents in the commons--documents that are licensed or put"
-        " in the public domain using a Creative Commons (CC) legal tool.**\n"
+        f"**The results indicate there are a total of {total_count} online"
+        " works in the commons--documents that are licensed or put in the"
+        " public domain using a Creative Commons (CC) legal tool.**\n"
         "\n"
         "Thank you Google for providing the Programable Search Engine: Custom"
         " Search JSON API!\n",
@@ -231,12 +234,12 @@ def plot_products(args):
     """
     LOGGER.info(plot_products.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_product_totals.csv"
+        PATHS["data"], args.quarter, "2-process", "gcs_product_totals.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
     data = pd.read_csv(file_path, index_col=name_label)
-    data = data[::-1]  # reverse index
+    data = data[::-1]  # reverse order
 
     title = "Products totals and percentages "
     plt = combined_plot(
@@ -275,7 +278,10 @@ def plot_tool_status(args):
     """
     LOGGER.info(plot_tool_status.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_status_combined_totals.csv"
+        PATHS["data"],
+        args.quarter,
+        "2-process",
+        "gcs_status_combined_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
@@ -293,9 +299,7 @@ def plot_tool_status(args):
         bar_ylabel="CC legal tool status",
     )
 
-    image_path = shared.path_join(
-        PATHS["data_phase"], "gcs_status_tool_percentage.png"
-    )
+    image_path = shared.path_join(PATHS["data_phase"], "gcs_tool_status.png")
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
     if args.enable_save:
@@ -319,7 +323,10 @@ def plot_current_tools(args):
     """
     LOGGER.info(plot_current_tools.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_status_current_totals.csv"
+        PATHS["data"],
+        args.quarter,
+        "2-process",
+        "gcs_status_current_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
@@ -333,11 +340,10 @@ def plot_current_tools(args):
         title=title,
         name_label=name_label,
         data_label="Count",
-        bar_xscale="log",
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "gcs_status_current_totals.png"
+        PATHS["data_phase"], "gcs_status_current_tools.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
@@ -362,7 +368,7 @@ def plot_old_tools(args):
     """
     LOGGER.info(plot_old_tools.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_status_old_totals.csv"
+        PATHS["data"], args.quarter, "2-process", "gcs_status_old_totals.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
@@ -376,11 +382,10 @@ def plot_old_tools(args):
         title=title,
         name_label=name_label,
         data_label="Count",
-        bar_xscale="log",
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "gcs_status_old_totals.png"
+        PATHS["data_phase"], "gcs_status_old_tools.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
@@ -407,7 +412,10 @@ def plot_retired_tools(args):
     """
     LOGGER.info(plot_retired_tools.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_status_retired_totals.csv"
+        PATHS["data"],
+        args.quarter,
+        "2-process",
+        "gcs_status_retired_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
@@ -425,7 +433,7 @@ def plot_retired_tools(args):
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "gcs_status_retired_totals.png"
+        PATHS["data_phase"], "gcs_status_retired_tools.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
@@ -446,157 +454,155 @@ def plot_retired_tools(args):
     )
 
 
-# def plot_by_country(data, args):
-#    """
-#    Create a bar chart for the number of webpages licensed by country.
-#    """
-#    LOGGER.info(
-#        "Creating a bar chart for the number of webpages licensed by country."
-#    )
-#
-#    selected_quarter = args.quarter
-#
-#    # Get the list of country columns dynamically
-#    columns = [col.strip() for col in data.columns.tolist()]
-#
-#    start_index = columns.index("United States")
-#    end_index = columns.index("Japan") + 1
-#
-#    countries = columns[start_indeax.margins(x=0)x:end_index]
-#
-#    data.columns = data.columns.str.strip()
-#
-#    LOGGER.info(f"Cleaned Columns: {data.columns.tolist()}")
-#
-#    # Aggregate the data by summing the counts for each country
-#    country_data = data[countries].sum()
-#
-#    plt.figure(figsize=(12, 8))
-#    ax = sns.barplot(x=country_data.index, y=country_data.values)
-#    plt.title(
-#        f"Number of Google Webpages Licensed by Country ({selected_quarter})"
-#    )
-#    plt.xlabel("Country")
-#    plt.ylabel("Number of Webpages")
-#    plt.xticks(rotation=45)
-#
-#    # Add value numbers to the top of each bar
-#    for p in ax.patcplot_totals_by_producthes:
-#        ax.annotate(
-#            format(p.get_height(), ",.0f"),
-#            (p.get_x() + p.get_width() / 2.0, p.get_height()),
-#            ha="center",
-#            va="center",
-#            xytext=(0, 9),
-#            textcoords="offset points",
-#        )
-#
-#    # Format the y-axis to display numbers without scientific notation
-#    ax.get_yaxis().get_major_formatter().set_scientific(False)
-#    ax.get_yaxis().set_major_formatter(
-#        plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x)))
-#    )
-#
-#    output_directory = os.path.join(
-#        PATHS["data"], f"{selected_quarter}", "3-report"
-#    )
-#
-#    LOGGER.info(f"Output directory: {output_directory}")
-#
-#    # Create the directory if it does not exist
-#    os.makedirs(output_directory, exist_ok=True)
-#    image_path = os.path.join(output_directory, "gcs_country_report.png")
-#    plt.savefig(image_path)
-#
-#    if args.show_plots:
-#        plt.show()
-#
-#    shared.update_readme(
-#        args,
-#        SECTION,
-#        "Country Report",
-#        image_path,
-#        "Number of Google Webpages Licensed by Country",
-#    )
-#
-#    LOGGER.info("Visualization by country created.")
-#
-#
-# def plot_by_language(data, args)data/2024Q4/README.md:
-#    """
-#    Create a bar chart for the number of webpages licensed by language.
-#    """
-#    LOGGER.info(
-#        "Creating a bar chart for the number of webpages licensed by"
-#        " language."
-#    )
-#
-#    selected_quarter = args.quarter
-#
-#    # Get the list of country columns dynamically
-#    columns = [col.strip() for col in data.columns.tolist()]
-#
-#    start_index = columns.index("English")
-#    end_index = columns.index("Indonesian") + 1
-#
-#    languages = columns[start_index:end_index]
-#
-#    data.columns = data.columns.str.strip()
-#
-#    LOGGER.info(f"Cleaned Columns: {data.columns.tolist()}")
-#
-#    # Aggregate the data by summing the counts for each country
-#    language_data = data[languages].sum()
-#
-#    plt.figure(figsize=(12, 8))
-#    ax = sns.barplot(x=language_data.index, y=language_data.values)
-#    plt.title(
-#        f"Number of Google Webpages Licensed by Language ({selected_quarter})"
-#    )
-#    plt.xlabel("Language")
-#    plt.ylabel("Number of Webpages")
-#    plt.xticks(rotation=45)
-#
-#    # Add value numbers to the top of each bar
-#    for p in ax.patches:
-#        ax.annotate(
-#            format(p.get_height(), ",.0f"),
-#            (p.get_x() + p.get_width() / 2.0, p.get_height()),
-#            ha="center",
-#            va="center",
-#            xytext=(0, 9),
-#            textcoords="offset points",
-#        )
-#
-#    # Format the y-axis to display numbers without scientific notation
-#    ax.get_yaxis().get_major_formatter().set_scientific(False)
-#    ax.get_yaxis().set_major_formatter(
-#        plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x)))
-#    )
-#
-#    output_directory = os.path.join(
-#        PATHS["data"], f"{selected_quarter}", "3-report"
-#    )
-#
-#    LOGGER.info(f"Output directory: {output_directory}")
-#
-#    # Create the directory if it does not exist
-#    os.makedirs(output_directory, exist_ok=True)
-#    image_path = os.path.join(output_directory, "gcs_language_report.png")
-#    plt.savefig(image_path)
-#
-#    if args.show_plots:
-#        plt.show()
-#
-#    shared.update_readme(
-#        args,
-#        SECTION,
-#        "Language Report",
-#        image_path,
-#        "Number of Google Webpages Licensed by Language",
-#    )
-#
-#    LOGGER.info("Visualization by language created.")
+def plot_countries_highest_usage(args):
+    """
+    Create plots for the countries with highest usage of current tools
+    """
+    LOGGER.info(plot_countries_highest_usage.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data"], args.quarter, "2-process", "gcs_totals_by_country.csv"
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    name_label = "Country"
+    data_label = "Count"
+    data = pd.read_csv(file_path, index_col=name_label)
+    total_count = f"{data['Count'].sum():,d}"
+    data.sort_values(data_label, ascending=False, inplace=True)
+    data = data[:10]  # limit to highest 10
+    data = data[::-1]  # reverse order
+
+    title = "Countries with highest usage of current tools"
+    plt = combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        name_label=name_label,
+        data_label=data_label,
+        bar_xscale="log",
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "gcs_countries_highest_usage_current_tools.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path)
+
+    shared.update_readme(
+        args,
+        SECTION,
+        title,
+        image_path,
+        "Plots showing countries with the highest useage of the current"
+        " Creative Commons (CC) legal tools.",
+        "The current tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
+        " 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0),"
+        " CC0 1.0, and the Public Domain Mark (PDM 1.0).\n"
+        "\n"
+        f"The complete data set indicates there are a total of {total_count}"
+        " online works using a current CC legal tool.",
+    )
+
+
+def plot_languages_highest_usage(args):
+    """
+    Create plots for the languages with highest usage of current tools
+    """
+    LOGGER.info(plot_languages_highest_usage.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data"], args.quarter, "2-process", "gcs_totals_by_language.csv"
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    name_label = "Language"
+    data_label = "Count"
+    data = pd.read_csv(file_path, index_col=name_label)
+    total_count = f"{data['Count'].sum():,d}"
+    data.sort_values(data_label, ascending=False, inplace=True)
+    data = data[:10]  # limit to highest 10
+    data = data[::-1]  # reverse order
+
+    title = "Languages with highest usage of current tools"
+    plt = combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        name_label=name_label,
+        data_label=data_label,
+        bar_xscale="log",
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "gcs_languages_highest_usage_current_tools.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path)
+
+    shared.update_readme(
+        args,
+        SECTION,
+        title,
+        image_path,
+        "Plots showing languages with the highest useage of the current"
+        " Creative Commons (CC) legal tools.",
+        "The current tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
+        " 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0),"
+        " CC0 1.0, and the Public Domain Mark (PDM 1.0).\n"
+        "\n"
+        f"The complete data set indicates there are a total of {total_count}"
+        " online works using a current CC legal tool.",
+    )
+
+
+def plot_free_culture(args):
+    """
+    Create plots for the languages with highest usage of current tools
+    """
+    LOGGER.info(plot_free_culture.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data"],
+        args.quarter,
+        "2-process",
+        "gcs_totals_by_free_cultural.csv",
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    name_label = "Category"
+    data_label = "Count"
+    data = pd.read_csv(file_path, index_col=name_label)
+
+    title = "Approved for Free Cultural Works"
+    plt = combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        name_label=name_label,
+        data_label=data_label,
+    )
+
+    image_path = shared.path_join(PATHS["data_phase"], "gcs_free_culture.png")
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path)
+
+    shared.update_readme(
+        args,
+        SECTION,
+        title,
+        image_path,
+        "Plots showing Approved for Free Cultural Works legal tool usage.",
+        "For more information on retired legal tools, see [Understanding Free"
+        " Cultural Works - Creative"
+        " Commons](https://creativecommons.org/public-domain/freeworks/).",
+    )
 
 
 def main():
@@ -610,8 +616,9 @@ def main():
     plot_current_tools(args)
     plot_old_tools(args)
     plot_retired_tools(args)
-    # plot_by_country(data, args)
-    # plot_by_language(data, args)
+    plot_countries_highest_usage(args)
+    plot_languages_highest_usage(args)
+    plot_free_culture(args)
 
     args = shared.git_add_and_commit(
         args,
