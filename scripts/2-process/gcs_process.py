@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
-This file is dedicated to processing Google Custom Search data
-for analysis and comparison between quarters.
+Process Google Custom Search (GCS) data.
 """
 # Standard library
 import argparse
@@ -53,7 +52,254 @@ def parse_arguments():
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.enable_save and args.enable_git:
+        parser.error("--enable-git requires --enable-save")
+    args.logger = LOGGER
+    args.paths = PATHS
+    return args
+
+
+def data_to_csv(args, data, file_path):
+    if not args.enable_save:
+        return
+    os.makedirs(PATHS["data_phase"], exist_ok=True)
+    # emulate csv.unix_dialect
+    data.to_csv(
+        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
+    )
+
+
+def process_product_totals(args, count_data):
+    """
+    Processing count data: totals by product
+    """
+    LOGGER.info(process_product_totals.__doc__.strip())
+    data = {
+        "Licenses version 4.0": 0,
+        "Licenses version 3.0": 0,
+        "Licenses version 2.x": 0,
+        "Licenses version 1.0": 0,
+        "CC0 1.0": 0,
+        "Public Domain Mark 1.0": 0,
+        "Certification 1.0 US": 0,
+    }
+    for row in count_data.itertuples(index=False):
+        tool = row[0]
+        count = row[1]
+        if tool.startswith("PDM"):
+            key = "Public Domain Mark 1.0"
+        elif "CC0" in tool:
+            key = "CC0 1.0"
+        elif "PUBLICDOMAIN" in tool:
+            key = "Certification 1.0 US"
+        elif "4.0" in tool:
+            key = "Licenses version 4.0"
+        elif "3.0" in tool:
+            key = "Licenses version 3.0"
+        elif "2." in tool:
+            key = "Licenses version 2.x"
+        elif "1.0" in tool:
+            key = "Licenses version 1.0"
+        else:
+            raise shared.QuantifyingException("Invalid TOOL_IDENTIFIER")
+        data[key] += count
+
+    data = pd.DataFrame(
+        data.items(), columns=["CC legal tool product", "Count"]
+    )
+    file_path = shared.path_join(PATHS["data_phase"], "gcs_product_totals.csv")
+    data_to_csv(args, data, file_path)
+
+
+def process_current_old_retired_totals(args, count_data):
+    """
+    Process count data: totals by unit in three categories: current, old,
+    and retired
+    """
+    LOGGER.info(process_current_old_retired_totals.__doc__.strip())
+    # https://creativecommons.org/retiredlicenses/
+    retired = [
+        # DevNations,
+        "CC DEVNATIONS ",
+        # NoDerivs
+        "CC ND ",
+        # NoDerivs-NonCommercial
+        "CC ND-NC ",
+        # NonCommercial
+        "CC NC ",
+        # NonCommercial-Sampling+
+        "CC NC-SAMPLING+",
+        # NonCommercial-ShareAlike
+        "CC NC-SA ",
+        # Public Domain Dedication and Certification
+        "CC PUBLICDOMAIN",
+        # Sampling
+        "CC SAMPLING ",
+        # Sampling+
+        "CC SAMPLING+ ",
+        # ShareAlike
+        "CC SA ",
+    ]
+    data = {"current": {}, "old": {}, "retired": {}}
+    status = {"Current": 0, "Old": 0, "Retired": 0}
+    for row in count_data.itertuples(index=False):
+        tool = row[0]
+        count = row[1]
+        tool_begin = False
+        for version in ["1.0", "2.0", "2.1", "2.5", "3.0", "4.0"]:
+            if version in tool:
+                separator = tool.index(version)
+                # everything before version (including space)
+                tool_begin = tool[:separator]
+        if not tool_begin:
+            tool_begin = tool
+        # Current
+        if (
+            ("BY" in tool and "4.0" in tool)
+            or tool.startswith("CC0")
+            or tool.startswith("PDM")
+        ):
+            try:
+                data["current"][tool] += count
+            except KeyError:
+                data["current"][tool] = count
+            status["Current"] += count
+        # Old
+        elif "BY" in tool and tool_begin not in retired:
+            if "ND-NC" in tool_begin:
+                tool_begin = tool_begin.replace("ND-NC", "NC-ND")
+            try:
+                data["old"][tool_begin.strip()] += count
+            except KeyError:
+                data["old"][tool_begin.strip()] = count
+            status["Old"] += count
+        # Retired
+        else:
+            try:
+                data["retired"][tool_begin.strip()] += count
+            except KeyError:
+                data["retired"][tool_begin.strip()] = count
+            status["Retired"] += count
+    data["combined"] = status
+
+    for key, value_data in data.items():
+        dataframe = pd.DataFrame(
+            value_data.items(), columns=["CC legal tool", "Count"]
+        )
+        file_path = shared.path_join(
+            PATHS["data_phase"], f"gcs_status_{key}_totals.csv"
+        )
+        data_to_csv(args, dataframe, file_path)
+
+
+def process_totals_by_free_cultural(args, count_data):
+    """
+    Processing count data: totals by Approved for Free Cultural Works
+    """
+    # https://creativecommons.org/public-domain/freeworks/
+    LOGGER.info(process_totals_by_free_cultural.__doc__.strip())
+    data = {
+        "Approved for Free Cultural Works": 0,
+        "Limited use": 0,
+    }
+    for row in count_data.itertuples(index=False):
+        tool = row[0]
+        count = row[1]
+        if tool.startswith("PDM") or "CC0" in tool or "PUBLICDOMAIN" in tool:
+            key = "Approved for Free Cultural Works"
+        else:
+            parts = tool.split()
+            unit = parts[1].lower()
+            if unit in ["by-sa", "by", "sa", "sampling+"]:
+                key = "Approved for Free Cultural Works"
+            else:
+                key = "Limited use"
+        data[key] += count
+
+    data = pd.DataFrame(data.items(), columns=["Category", "Count"])
+    data.sort_values("Count", ascending=False, inplace=True)
+    data.reset_index(drop=True, inplace=True)
+    file_path = shared.path_join(
+        PATHS["data_phase"], "gcs_totals_by_free_cultural.csv"
+    )
+    data_to_csv(args, data, file_path)
+
+
+def process_totals_by_restrictions(args, count_data):
+    """
+    Processing count data: totals by restriction
+    """
+    LOGGER.info(process_totals_by_restrictions.__doc__.strip())
+    data = {
+        "level 0 - unrestricted": 0,
+        "level 1 - few restrictions": 0,
+        "level 2 - some restrictions": 0,
+        "level 3 - many restrictions": 0,
+    }
+    for row in count_data.itertuples(index=False):
+        tool = row[0]
+        count = row[1]
+        if tool.startswith("PDM") or "CC0" in tool or "PUBLICDOMAIN" in tool:
+            key = "level 0 - unrestricted"
+        else:
+            parts = tool.split()
+            unit = parts[1].lower()
+            if unit in ["by-sa", "by", "sa", "sampling+"]:
+                key = "level 1 - few restrictions"
+            elif unit in ["by-nc", "by-nc-sa", "sampling", "nc", "nc-sa"]:
+                key = "level 2 - some restrictions"
+            else:
+                key = "level 3 - many restrictions"
+        data[key] += count
+
+    data = pd.DataFrame(data.items(), columns=["Category", "Count"])
+    file_path = shared.path_join(
+        PATHS["data_phase"], "gcs_totals_by_restrictions.csv"
+    )
+    data_to_csv(args, data, file_path)
+
+
+def process_totals_by_language(args, data):
+    """
+    Processing language data: totals by language
+    """
+    LOGGER.info(process_totals_by_language.__doc__.strip())
+    data = data.groupby(["LANGUAGE"], as_index=False)["COUNT"].sum()
+    data = data.sort_values("COUNT", ascending=False)
+    data.reset_index(drop=True, inplace=True)
+    data.rename(
+        columns={
+            "LANGUAGE": "Language",
+            "COUNT": "Count",
+        },
+        inplace=True,
+    )
+    file_path = shared.path_join(
+        PATHS["data_phase"], "gcs_totals_by_language.csv"
+    )
+    data_to_csv(args, data, file_path)
+
+
+def process_totals_by_country(args, data):
+    """
+    Processing country data: totals by country
+    """
+    LOGGER.info(process_totals_by_country.__doc__.strip())
+    data = data.groupby(["COUNTRY"], as_index=False)["COUNT"].sum()
+    data = data.sort_values("COUNT", ascending=False)
+    data.reset_index(drop=True, inplace=True)
+    data.rename(
+        columns={
+            "COUNTRY": "Country",
+            "COUNT": "Count",
+        },
+        inplace=True,
+    )
+    file_path = shared.path_join(
+        PATHS["data_phase"], "gcs_totals_by_country.csv"
+    )
+    data_to_csv(args, data, file_path)
 
 
 # def load_quarter_data(quarter):
@@ -80,7 +326,7 @@ def parse_arguments():
 
 #     # Process the data to compare by country
 #     compare_by_country(current_data, previous_data,
-#   current_quarter, previous_quarter)
+#     current_quarter, previous_quarter)
 
 #     # Process the data to compare by license
 #     compare_by_license(current_data, previous_data,
@@ -92,7 +338,7 @@ def parse_arguments():
 
 
 # def compare_by_country(current_data, previous_data,
-#       current_quarter, previous_quarter):
+#         current_quarter, previous_quarter):
 #     """
 #     Compare the number of webpages licensed by country between two quarters.
 #     """
@@ -176,172 +422,6 @@ def parse_arguments():
 #     LOGGER.info(f"Language comparison:\n{comparison}")
 
 
-# def parse_arguments():
-#     """
-#     Parses command-line arguments, returns parsed arguments.
-#     """
-#     LOGGER.info("Parsing command-line arguments")
-#     parser = argparse.ArgumentParser(
-#       description="Google Custom Search Comparison Report")
-#     parser.add_argument(
-#         "--current_quarter", type=str, required=True,
-#       help="Current quarter for comparison (e.g., 2024Q3)"
-#     )
-#     parser.add_argument(
-#         "--previous_quarter", type=str, required=True,
-#           help="Previous quarter for comparison (e.g., 2024Q2)"
-#     )
-#     return parser.parse_args()
-
-
-def data_to_csv(args, data, file_path):
-    if not args.enable_save:
-        return
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-    # emulate csv.unix_dialect
-    data.to_csv(
-        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
-    )
-
-
-def process_top_25_tools(args, count_data):
-    LOGGER.info("Processing top 25 tools")
-    data = count_data.sort_values("COUNT", ascending=False)
-    data.reset_index(drop=True, inplace=True)
-    data = data.iloc[:25]
-    data.rename(
-        columns={"TOOL_IDENTIFIER": "CC legal tool", "COUNT": "Count"},
-        inplace=True,
-    )
-    file_path = shared.path_join(PATHS["data_phase"], "gcs_top_25_tools.csv")
-    data_to_csv(args, data, file_path)
-
-
-def process_totals_by_product(args, count_data):
-    LOGGER.info("Processing totals by product")
-    data = {
-        "Licenses version 4.0": 0,
-        "Licenses version 3.0": 0,
-        "Licenses version 2.x": 0,
-        "Licenses version 1.0": 0,
-        "CC0 1.0": 0,
-        "Public Domain Mark 1.0": 0,
-        "Certification 1.0 US": 0,
-    }
-    for row in count_data.itertuples(index=False):
-        tool = row[0]
-        count = row[1]
-        if tool.startswith("PDM"):
-            key = "Public Domain Mark 1.0"
-        elif "CC0" in tool:
-            key = "CC0 1.0"
-        elif "PUBLICDOMAIN" in tool:
-            key = "Certification 1.0 US"
-        elif "4.0" in tool:
-            key = "Licenses version 4.0"
-        elif "3.0" in tool:
-            key = "Licenses version 3.0"
-        elif "2." in tool:
-            key = "Licenses version 2.x"
-        elif "1.0" in tool:
-            key = "Licenses version 1.0"
-        else:
-            raise shared.QuantifyingException("Invalid TOOL_IDENTIFIER")
-        data[key] += count
-
-    data = pd.DataFrame(
-        data.items(), columns=["CC legal tool product", "Count"]
-    )
-    file_path = shared.path_join(
-        PATHS["data_phase"], "gcs_totals_by_product.csv"
-    )
-    data_to_csv(args, data, file_path)
-
-
-def process_totals_by_unit(args, count_data):
-    LOGGER.info("Processing totals by unit")
-    data = {}
-    for row in count_data.itertuples(index=False):
-        tool = row[0]
-        count = row[1]
-        if tool.startswith("PDM"):
-            key = "mark"
-        elif "CC0" in tool:
-            key = "cc0"
-        elif "PUBLICDOMAIN" in tool:
-            key = "certification"
-        else:
-            parts = tool.split()
-            key = parts[1].lower()
-            if key == "by-nd-nc":
-                key = "by-nc-nd"
-        if key not in data.keys():
-            data[key] = count
-        else:
-            data[key] += count
-
-    data = pd.DataFrame(data.items(), columns=["Legal Tool Unit", "Count"])
-    data.sort_values("Count", ascending=False, inplace=True)
-    data.reset_index(drop=True, inplace=True)
-    file_path = shared.path_join(PATHS["data_phase"], "gcs_totals_by_unit.csv")
-    data_to_csv(args, data, file_path)
-
-
-def process_totals_by_free_cultural(args, count_data):
-    LOGGER.info("Processing totals by Approved for Free Cultural Works")
-    data = {
-        "Approved for Free Cultural Works": 0,
-        "Limited uses": 0,
-    }
-    for row in count_data.itertuples(index=False):
-        tool = row[0]
-        count = row[1]
-        if tool.startswith("PDM") or "CC0" in tool or "PUBLICDOMAIN" in tool:
-            key = "Approved for Free Cultural Works"
-        else:
-            parts = tool.split()
-            unit = parts[1].lower()
-            if unit in ["by-sa", "by", "sa", "sampling+"]:
-                key = "Approved for Free Cultural Works"
-            else:
-                key = "Limited uses"
-        data[key] += count
-
-    data = pd.DataFrame(data.items(), columns=["Category", "Count"])
-    data.sort_values("Count", ascending=False, inplace=True)
-    data.reset_index(drop=True, inplace=True)
-    file_path = shared.path_join(
-        PATHS["data_phase"], "gcs_totals_by_free_cultural.csv"
-    )
-    data_to_csv(args, data, file_path)
-
-
-def process_totals_by_restrictions(args, count_data):
-    LOGGER.info("Processing totals by restriction")
-    data = {"level 0": 0, "level 1": 0, "level 2": 0, "level 3": 0}
-    for row in count_data.itertuples(index=False):
-        tool = row[0]
-        count = row[1]
-        if tool.startswith("PDM") or "CC0" in tool or "PUBLICDOMAIN" in tool:
-            key = "level 0"
-        else:
-            parts = tool.split()
-            unit = parts[1].lower()
-            if unit in ["by-sa", "by", "sa", "sampling+"]:
-                key = "level 1"
-            elif unit in ["by-nc", "by-nc-sa", "sampling", "nc", "nc-sa"]:
-                key = "level 2"
-            else:
-                key = "level 3"
-        data[key] += count
-
-    data = pd.DataFrame(data.items(), columns=["Category", "Count"])
-    file_path = shared.path_join(
-        PATHS["data_phase"], "gcs_totals_by_restrictions.csv"
-    )
-    data_to_csv(args, data, file_path)
-
-
 def main():
     args = parse_arguments()
     shared.log_paths(LOGGER, PATHS)
@@ -349,21 +429,22 @@ def main():
 
     # Count data
     count_data = pd.read_csv(FILE1_COUNT, usecols=["TOOL_IDENTIFIER", "COUNT"])
-    process_top_25_tools(args, count_data)
-    process_totals_by_product(args, count_data)
-    process_totals_by_unit(args, count_data)
+    process_product_totals(args, count_data)
+    process_current_old_retired_totals(args, count_data)
     process_totals_by_free_cultural(args, count_data)
     process_totals_by_restrictions(args, count_data)
 
-    # # Langauge data
-    # langauge_data = pd.read_csv(
-    #     FILE2_LANGUAGE, usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
-    # )
+    # Langauge data
+    language_data = pd.read_csv(
+        FILE2_LANGUAGE, usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
+    )
+    process_totals_by_language(args, language_data)
 
-    # # Country data
-    # country_data = pd.read_csv(
-    #     FILE3_COUNTRY, usecols=["TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
-    # )
+    # Country data
+    country_data = pd.read_csv(
+        FILE3_COUNTRY, usecols=["TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
+    )
+    process_totals_by_country(args, country_data)
 
     args = shared.git_add_and_commit(
         args,
@@ -384,8 +465,9 @@ if __name__ == "__main__":
             LOGGER.error(e.message)
         sys.exit(e.exit_code)
     except SystemExit as e:
-        LOGGER.error(f"System exit with code: {e.exit_code}")
-        sys.exit(e.exit_code)
+        if e.code != 0:
+            LOGGER.error(f"System exit with code: {e.code}")
+        sys.exit(e.code)
     except KeyboardInterrupt:
         LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
