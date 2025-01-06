@@ -25,7 +25,7 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "References"
+SECTION = "Notes"
 
 
 def parse_arguments():
@@ -37,26 +37,30 @@ def parse_arguments():
     parser.add_argument(
         "--quarter",
         default=QUARTER,
-        help="Data quarter in format YYYYQx, e.g., 2024Q2",
+        help=f"Data quarter in format YYYYQx (default: {QUARTER})",
     )
     parser.add_argument(
         "--show-plots",
         action="store_true",
-        help="Show generated plots (in addition to saving them)",
+        help="Show generated plots (default: False)",
     )
     parser.add_argument(
         "--enable-save",
         action="store_true",
-        help="Enable saving results",
+        help="Enable saving results (default: False)",
     )
     parser.add_argument(
         "--enable-git",
         action="store_true",
-        help="Enable git actions (fetch, merge, add, commit, and push)",
+        help="Enable git actions such as fetch, merge, add, commit, and push"
+        " (default: False)",
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
+    if args.quarter != QUARTER:
+        global PATHS
+        PATHS = shared.update_paths(LOGGER, PATHS, QUARTER, args.quarter)
     args.logger = LOGGER
     args.paths = PATHS
     return args
@@ -77,7 +81,7 @@ def data_locations(args):
         "**[creativecommons/quantifying][repo]:** *quantify the size and"
         " diversity of the commons--the collection of works that are openly"
         " licensed or in the public domain*\n"
-        "\nThe data used to generate this report is avaiable in that"
+        "\nThe data used to generate this report is available in that"
         " repository at the following locations:\n"
         "\n"
         " | Resource        | Location |\n"
@@ -90,12 +94,45 @@ def data_locations(args):
     )
 
 
+def usage(args):
+    """
+    Write copyright
+    """
+    shared.update_readme(
+        args,
+        SECTION,
+        "Usage",
+        None,
+        None,
+        "The Creative Commons (CC) icons, images, and logos are for use under"
+        " the Creative Commons Trademark Policy (see [Policies - Creative"
+        " Commons][ccpolicies]). **They *aren't* licensed under a Creative"
+        " Commons license** (also see [Could I use a CC license to share my"
+        " logo or trademark? - Frequently Asked Questions - Creative"
+        " Commons][tmfaq]).\n"
+        "\n"
+        "[![CC0 1.0 Universal (CC0 1.0) Public Domain Dedication"
+        "button][cc-zero-png]][cc-zero]\n"
+        "Otherwise, this report is dedicated to the public domain under the"
+        " [CC0 1.0 Universal (CC0 1.0) Public Domain Dedication][cc-zero].\n"
+        "\n"
+        "[ccpolicies]: https://creativecommons.org/policies\n"
+        "[tmfaq]: https://creativecommons.org/faq/"
+        "#could-i-use-a-cc-license-to-share-my-logo-or-trademark\n"
+        "[cc-zero-png]: https://licensebuttons.net/l/zero/1.0/88x31.png"
+        ' "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication button"\n'
+        "[cc-zero]: https://creativecommons.org/publicdomain/zero/1.0/"
+        ' "Creative Commons — CC0 1.0 Universal"',
+    )
+
+
 def main():
     args = parse_arguments()
     shared.log_paths(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
 
     data_locations(args)
+    usage(args)
 
     args = shared.git_add_and_commit(
         args,
