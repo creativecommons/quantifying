@@ -15,66 +15,6 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
-def setup(current_file):
-    # Set up logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(module)s - %(message)s",
-    )
-    logger = logging.getLogger(__name__)
-
-    # Datetime
-    datetime_today = datetime.now(timezone.utc)
-    quarter = PeriodIndex([datetime_today.date()], freq="Q")[0]
-
-    # Paths
-    paths = {}
-    paths["repo"] = os.path.dirname(path_join(__file__, ".."))
-    paths["dotenv"] = path_join(paths["repo"], ".env")
-    paths["data"] = os.path.dirname(
-        os.path.abspath(os.path.realpath(current_file))
-    )
-    current_phase = os.path.basename(
-        os.path.dirname(os.path.abspath(os.path.realpath(current_file)))
-    )
-    paths["data"] = path_join(paths["repo"], "data")
-    data_quarter = path_join(paths["data"], f"{quarter}")
-    for phase in ["1-fetch", "2-process", "3-report"]:
-        paths[f"data_{phase}"] = path_join(data_quarter, phase)
-    paths["data_phase"] = path_join(data_quarter, current_phase)
-
-    paths["data_quarter"] = data_quarter
-
-    return logger, paths
-
-
-def paths_update(logger, paths, old_quarter, new_quarter):
-    logger.info(f"Updating paths: replacing {old_quarter} with {new_quarter}")
-    for label in [
-        "data_1-fetch",
-        "data_2-process",
-        "data_3-report",
-        "data_phase",
-        "data_quarter",
-    ]:
-        paths[label] = paths[label].replace(old_quarter, new_quarter)
-    return paths
-
-
-def paths_log(logger, paths):
-    paths_list = []
-    repo_path = paths["repo"]
-    for label, path in paths.items():
-        label = f"{label}:"
-        if label == "repo:":
-            paths_list.append(f"\n{' ' * 4}{label} {path}")
-        else:
-            path_new = path.replace(repo_path, ".")
-            paths_list.append(f"\n{' ' * 8}{label:<15} {path_new}")
-    paths_list = "".join(paths_list)
-    logger.info(f"PATHS:{paths_list}")
-
-
 def git_fetch_and_merge(args, repo_path, branch=None):
     if not args.enable_git:
         return
@@ -144,6 +84,66 @@ def git_push_changes(args, repo_path):
 
 def path_join(*paths):
     return os.path.abspath(os.path.realpath(os.path.join(*paths)))
+
+
+def paths_log(logger, paths):
+    paths_list = []
+    repo_path = paths["repo"]
+    for label, path in paths.items():
+        label = f"{label}:"
+        if label == "repo:":
+            paths_list.append(f"\n{' ' * 4}{label} {path}")
+        else:
+            path_new = path.replace(repo_path, ".")
+            paths_list.append(f"\n{' ' * 8}{label:<15} {path_new}")
+    paths_list = "".join(paths_list)
+    logger.info(f"PATHS:{paths_list}")
+
+
+def paths_update(logger, paths, old_quarter, new_quarter):
+    logger.info(f"Updating paths: replacing {old_quarter} with {new_quarter}")
+    for label in [
+        "data_1-fetch",
+        "data_2-process",
+        "data_3-report",
+        "data_phase",
+        "data_quarter",
+    ]:
+        paths[label] = paths[label].replace(old_quarter, new_quarter)
+    return paths
+
+
+def setup(current_file):
+    # Set up logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(module)s - %(message)s",
+    )
+    logger = logging.getLogger(__name__)
+
+    # Datetime
+    datetime_today = datetime.now(timezone.utc)
+    quarter = PeriodIndex([datetime_today.date()], freq="Q")[0]
+
+    # Paths
+    paths = {}
+    paths["repo"] = os.path.dirname(path_join(__file__, ".."))
+    paths["dotenv"] = path_join(paths["repo"], ".env")
+    paths["data"] = os.path.dirname(
+        os.path.abspath(os.path.realpath(current_file))
+    )
+    current_phase = os.path.basename(
+        os.path.dirname(os.path.abspath(os.path.realpath(current_file)))
+    )
+    paths["data"] = path_join(paths["repo"], "data")
+    data_quarter = path_join(paths["data"], f"{quarter}")
+    for phase in ["1-fetch", "2-process", "3-report"]:
+        paths[f"data_{phase}"] = path_join(data_quarter, phase)
+    paths["data_phase"] = path_join(data_quarter, current_phase)
+
+    paths["data_quarter"] = data_quarter
+
+    return logger, paths
 
 
 def update_readme(
