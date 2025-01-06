@@ -42,26 +42,30 @@ def parse_arguments():
     parser.add_argument(
         "--quarter",
         default=QUARTER,
-        help="Data quarter in format YYYYQx, e.g., 2024Q2",
+        help=f"Data quarter in format YYYYQx (default: {QUARTER})",
     )
     parser.add_argument(
         "--show-plots",
         action="store_true",
-        help="Show generated plots (in addition to saving them)",
+        help="Show generated plots (default: False)",
     )
     parser.add_argument(
         "--enable-save",
         action="store_true",
-        help="Enable saving results",
+        help="Enable saving results (default: False)",
     )
     parser.add_argument(
         "--enable-git",
         action="store_true",
-        help="Enable git actions (fetch, merge, add, commit, and push)",
+        help="Enable git actions such as fetch, merge, add, commit, and push"
+        " (default: False)",
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
+    if args.quarter != QUARTER:
+        global PATHS
+        PATHS = shared.update_paths(LOGGER, PATHS, QUARTER, args.quarter)
     args.logger = LOGGER
     args.paths = PATHS
     return args
@@ -203,7 +207,8 @@ def gcs_intro(args):
     """
     LOGGER.info(gcs_intro.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data"], args.quarter, "2-process", "gcs_product_totals.csv"
+        PATHS["data_2-process"],
+        "gcs_product_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
@@ -234,7 +239,7 @@ def plot_products(args):
     """
     LOGGER.info(plot_products.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data"], args.quarter, "2-process", "gcs_product_totals.csv"
+        PATHS["data_2-process"], "gcs_product_totals.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
@@ -278,9 +283,7 @@ def plot_tool_status(args):
     """
     LOGGER.info(plot_tool_status.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data"],
-        args.quarter,
-        "2-process",
+        PATHS["data_2-process"],
         "gcs_status_combined_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
@@ -323,9 +326,7 @@ def plot_current_tools(args):
     """
     LOGGER.info(plot_current_tools.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data"],
-        args.quarter,
-        "2-process",
+        PATHS["data_2-process"],
         "gcs_status_current_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
@@ -368,7 +369,7 @@ def plot_old_tools(args):
     """
     LOGGER.info(plot_old_tools.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data"], args.quarter, "2-process", "gcs_status_old_totals.csv"
+        PATHS["data_2-process"], "gcs_status_old_totals.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
@@ -412,9 +413,7 @@ def plot_retired_tools(args):
     """
     LOGGER.info(plot_retired_tools.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data"],
-        args.quarter,
-        "2-process",
+        PATHS["data_2-process"],
         "gcs_status_retired_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
@@ -460,7 +459,7 @@ def plot_countries_highest_usage(args):
     """
     LOGGER.info(plot_countries_highest_usage.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data"], args.quarter, "2-process", "gcs_totals_by_country.csv"
+        PATHS["data_2-process"], "gcs_totals_by_country.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Country"
@@ -513,7 +512,7 @@ def plot_languages_highest_usage(args):
     """
     LOGGER.info(plot_languages_highest_usage.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data"], args.quarter, "2-process", "gcs_totals_by_language.csv"
+        PATHS["data_2-process"], "gcs_totals_by_language.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Language"
@@ -566,9 +565,7 @@ def plot_free_culture(args):
     """
     LOGGER.info(plot_free_culture.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data"],
-        args.quarter,
-        "2-process",
+        PATHS["data_2-process"],
         "gcs_totals_by_free_cultural.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")

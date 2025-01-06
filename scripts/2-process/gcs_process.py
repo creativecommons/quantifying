@@ -26,13 +26,6 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
-FILE1_COUNT = shared.path_join(PATHS["data_1-fetch"], "gcs_1_count.csv")
-FILE2_LANGUAGE = shared.path_join(
-    PATHS["data_1-fetch"], "gcs_2_count_by_language.csv"
-)
-FILE3_COUNTRY = shared.path_join(
-    PATHS["data_1-fetch"], "gcs_3_count_by_country.csv"
-)
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
 
@@ -43,18 +36,27 @@ def parse_arguments():
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--quarter",
+        default=QUARTER,
+        help=f"Data quarter in format YYYYQx (default: {QUARTER})",
+    )
+    parser.add_argument(
         "--enable-save",
         action="store_true",
-        help="Enable saving results",
+        help="Enable saving results (default: False)",
     )
     parser.add_argument(
         "--enable-git",
         action="store_true",
-        help="Enable git actions (fetch, merge, add, commit, and push)",
+        help="Enable git actions such as fetch, merge, add, commit, and push"
+        " (default: False)",
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
+    if args.quarter != QUARTER:
+        global PATHS
+        PATHS = shared.update_paths(LOGGER, PATHS, QUARTER, args.quarter)
     args.logger = LOGGER
     args.paths = PATHS
     return args
@@ -302,149 +304,38 @@ def process_totals_by_country(args, data):
     data_to_csv(args, data, file_path)
 
 
-# def load_quarter_data(quarter):
-#     """
-#     Load data for a specific quarter.
-#     """
-#     file_path = os.path.join(PATHS["data"], f"{quarter}",
-#       "1-fetch", "gcs_fetched.csv")
-#     if not os.path.exists(file_path):
-#         LOGGER.error(f"Data file for quarter {quarter} not found.")
-#         return None
-#     return pd.read_csv(file_path)
-
-
-# def compare_data(current_quarter, previous_quarter):
-#     """
-#     Compare data between two quarters.
-#     """
-#     current_data = load_quarter_data(current_quarter)
-#     previous_data = load_quarter_data(previous_quarter)
-
-#     if current_data is None or previous_data is None:
-#         return
-
-#     # Process the data to compare by country
-#     compare_by_country(current_data, previous_data,
-#     current_quarter, previous_quarter)
-
-#     # Process the data to compare by license
-#     compare_by_license(current_data, previous_data,
-#       current_quarter, previous_quarter)
-
-#     # Process the data to compare by language
-#     compare_by_language(current_data, previous_data,
-#       current_quarter, previous_quarter)
-
-
-# def compare_by_country(current_data, previous_data,
-#         current_quarter, previous_quarter):
-#     """
-#     Compare the number of webpages licensed by country between two quarters.
-#     """
-#     LOGGER.info(f"Comparing data by country between
-#       {current_quarter} and {previous_quarter}.")
-
-#     # Get the list of country columns dynamically
-#     columns = [col.strip() for col in current_data.columns.tolist()]
-#     start_index = columns.index("United States")
-#     end_index = columns.index("Japan") + 1
-
-#     countries = columns[start_index:end_index]
-
-#     current_country_data = current_data[countries].sum()
-#     previous_country_data = previous_data[countries].sum()
-
-#     comparison = pd.DataFrame({
-#         'Country': countries,
-#         f'{current_quarter}': current_country_data.values,
-#         f'{previous_quarter}': previous_country_data.values,
-#         'Difference': current_country_data.values
-#            - previous_country_data.values
-#     })
-
-#     LOGGER.info(f"Country comparison:\n{comparison}")
-
-#     # Visualization code to be added here
-
-
-# def compare_by_license(current_data, previous_data,
-#   current_quarter, previous_quarter):
-#     """
-#     Compare the number of webpages licensed by license type
-#   between two quarters.
-#     """
-#     LOGGER.info(f"Comparing data by license type
-#       between {current_quarter} and {previous_quarter}.")
-
-#     current_license_data =
-#       current_data.groupby('LICENSE TYPE').sum().sum(axis=1)
-#     previous_license_data =
-#       previous_data.groupby('LICENSE TYPE').sum().sum(axis=1)
-
-#     comparison = pd.DataFrame({
-#         'License Type': current_license_data.index,
-#         f'{current_quarter}': current_license_data.values,
-#         f'{previous_quarter}': previous_license_data.values,
-#         'Difference': current_license_data.values
-#           - previous_license_data.values
-#     })
-
-#     LOGGER.info(f"License type comparison:\n{comparison}")
-
-#     # Visualization code to be added here
-
-
-# def compare_by_language(current_data, previous_data,
-#           current_quarter, previous_quarter):
-#     """
-#     Compare the number of webpages licensed by language between two quarters.
-#     """
-#     LOGGER.info(f"Comparing data by language between
-#                   {current_quarter} and {previous_quarter}.")
-
-#     # Get the list of language columns dynamically
-#     columns = [col.strip() for col in current_data.columns.tolist()]
-#     start_index = columns.index("English")
-#     languages = columns[start_index:]
-
-#     current_language_data = current_data[languages].sum()
-#     previous_language_data = previous_data[languages].sum()
-
-#     comparison = pd.DataFrame({
-#         'Language': languages,
-#         f'{current_quarter}': current_language_data.values,
-#         f'{previous_quarter}': previous_language_data.values,
-#         'Difference': current_language_data.values
-#           - previous_language_data.values
-#     })
-
-#     LOGGER.info(f"Language comparison:\n{comparison}")
-
-
 def main():
     args = parse_arguments()
     shared.log_paths(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
 
     # Count data
-    count_data = pd.read_csv(FILE1_COUNT, usecols=["TOOL_IDENTIFIER", "COUNT"])
+    file1_count = shared.path_join(PATHS["data_1-fetch"], "gcs_1_count.csv")
+    count_data = pd.read_csv(file1_count, usecols=["TOOL_IDENTIFIER", "COUNT"])
     process_product_totals(args, count_data)
     process_current_old_retired_totals(args, count_data)
     process_totals_by_free_cultural(args, count_data)
     process_totals_by_restrictions(args, count_data)
 
     # Langauge data
+    file2_language = shared.path_join(
+        PATHS["data_1-fetch"], "gcs_2_count_by_language.csv"
+    )
     language_data = pd.read_csv(
-        FILE2_LANGUAGE, usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
+        file2_language, usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
     )
     process_totals_by_language(args, language_data)
 
     # Country data
+    file3_country = shared.path_join(
+        PATHS["data_1-fetch"], "gcs_3_count_by_country.csv"
+    )
     country_data = pd.read_csv(
-        FILE3_COUNTRY, usecols=["TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
+        file3_country, usecols=["TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
     )
     process_totals_by_country(args, country_data)
+
+    # TODO: compare with previous quarter, previous year
 
     args = shared.git_add_and_commit(
         args,
