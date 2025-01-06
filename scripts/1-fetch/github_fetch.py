@@ -169,7 +169,7 @@ def query_github(args, session):
 
 def main():
     args = parse_arguments()
-    shared.log_paths(LOGGER, PATHS)
+    shared.paths_log(LOGGER, PATHS)
     check_for_completion()
     session = get_requests_session()
     tool_data = query_github(args, session)

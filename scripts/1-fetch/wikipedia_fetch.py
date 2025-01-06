@@ -198,7 +198,7 @@ def main():
         return
 
     # Log the paths being used
-    shared.log_paths(LOGGER, PATHS)
+    shared.paths_log(LOGGER, PATHS)
 
     # Create data directory for this phase
     os.makedirs(PATHS["data_phase"], exist_ok=True)

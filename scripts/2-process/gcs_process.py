@@ -56,7 +56,7 @@ def parse_arguments():
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
         global PATHS
-        PATHS = shared.update_paths(LOGGER, PATHS, QUARTER, args.quarter)
+        PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
     args.logger = LOGGER
     args.paths = PATHS
     return args
@@ -306,7 +306,7 @@ def process_totals_by_country(args, data):
 
 def main():
     args = parse_arguments()
-    shared.log_paths(LOGGER, PATHS)
+    shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
 
     # Count data

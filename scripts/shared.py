@@ -48,7 +48,7 @@ def setup(current_file):
     return logger, paths
 
 
-def update_paths(logger, paths, old_quarter, new_quarter):
+def paths_update(logger, paths, old_quarter, new_quarter):
     logger.info(f"Updating paths: replacing {old_quarter} with {new_quarter}")
     for label in [
         "data_1-fetch",
@@ -61,7 +61,7 @@ def update_paths(logger, paths, old_quarter, new_quarter):
     return paths
 
 
-def log_paths(logger, paths):
+def paths_log(logger, paths):
     paths_list = []
     repo_path = paths["repo"]
     for label, path in paths.items():

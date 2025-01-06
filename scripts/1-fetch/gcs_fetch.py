@@ -271,7 +271,7 @@ def query_gcs(args, service, last_completed_plan_index, plan):
 
 def main():
     args = parse_arguments()
-    shared.log_paths(LOGGER, PATHS)
+    shared.paths_log(LOGGER, PATHS)
     service = get_search_service()
     shared.git_fetch_and_merge(args, PATHS["repo"])
     initialize_all_data_files(args)
