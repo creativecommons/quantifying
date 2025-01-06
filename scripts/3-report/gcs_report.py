@@ -114,7 +114,7 @@ def plot_products(args):
     data = pd.read_csv(file_path, index_col=name_label)
     data = data[::-1]  # reverse order
 
-    title = "Products totals and percentages "
+    title = "Products totals and percentages"
     plt = plot.combined_plot(
         args=args,
         data=data,
