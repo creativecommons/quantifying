@@ -86,9 +86,9 @@ def data_locations(args):
         "\n"
         " | Resource        | Location |\n"
         " | --------------- | -------- |\n"
-        " | Fetched data:   | [`../1-fetch/`](../1-fetch) |\n"
-        " | Processed data: | [`../2-process/`](../2-process) |\n"
-        " | Report data:    | [`../2-report/`](../2-report) |\n"
+        " | Fetched data:   | [`1-fetch/`](1-fetch) |\n"
+        " | Processed data: | [`2-process/`](2-process) |\n"
+        " | Report data:    | [`3-report/`](3-report) |\n"
         "\n"
         "[repo]: https://github.com/creativecommons/quantifying\n",
     )

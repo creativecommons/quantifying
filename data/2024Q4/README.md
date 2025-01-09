@@ -144,9 +144,9 @@ The data used to generate this report is available in that repository at the fol
 
  | Resource        | Location |
  | --------------- | -------- |
- | Fetched data:   | [`../1-fetch/`](../1-fetch) |
- | Processed data: | [`../2-process/`](../2-process) |
- | Report data:    | [`../2-report/`](../2-report) |
+ | Fetched data:   | [`1-fetch/`](1-fetch) |
+ | Processed data: | [`2-process/`](2-process) |
+ | Report data:    | [`3-report/`](3-report) |
 
 [repo]: https://github.com/creativecommons/quantifying
 
