@@ -117,7 +117,9 @@ The complete data set indicates there are a total of 970,145,024 online works us
 
 Plots showing Approved for Free Cultural Works legal tool usage.
 
-For more information on retired legal tools, see [Understanding Free Cultural Works - Creative Commons](https://creativecommons.org/public-domain/freeworks/).
+[Understanding Free Cultural Works - Creative Commons](https://creativecommons.org/public-domain/freeworks/):
+
+> Using [the Freedom Defined definition of a "Free Cultural Work"], material licensed under CC BY or BY-SA is a free cultural work. (So is anything in the worldwide public domain marked with CC0 or the Public Domain Mark.) CC’s other licenses– BY-NC, BY-ND, BY-NC-SA, and BY-NC-ND–only allow more limited uses, and material under these licenses is not considered a free cultural work.
 
 <!-- Approved for Free Cultural Works End -->
 
