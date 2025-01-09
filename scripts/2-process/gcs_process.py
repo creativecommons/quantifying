@@ -114,12 +114,12 @@ def process_product_totals(args, count_data):
     data_to_csv(args, data, file_path)
 
 
-def process_current_old_retired_totals(args, count_data):
+def process_latest_prior_retired_totals(args, count_data):
     """
-    Process count data: totals by unit in three categories: current, old,
+    Process count data: totals by unit in three categories: latest, prior,
     and retired
     """
-    LOGGER.info(process_current_old_retired_totals.__doc__.strip())
+    LOGGER.info(process_latest_prior_retired_totals.__doc__.strip())
     # https://creativecommons.org/retiredlicenses/
     retired = [
         # DevNations,
@@ -143,8 +143,8 @@ def process_current_old_retired_totals(args, count_data):
         # ShareAlike
         "CC SA ",
     ]
-    data = {"current": {}, "old": {}, "retired": {}}
-    status = {"Current": 0, "Old": 0, "Retired": 0}
+    data = {"latest": {}, "prior": {}, "retired": {}}
+    status = {"Latest": 0, "Prior": 0, "Retired": 0}
     for row in count_data.itertuples(index=False):
         tool = row[0]
         count = row[1]
@@ -156,26 +156,26 @@ def process_current_old_retired_totals(args, count_data):
                 tool_begin = tool[:separator]
         if not tool_begin:
             tool_begin = tool
-        # Current
+        # Latest
         if (
             ("BY" in tool and "4.0" in tool)
             or tool.startswith("CC0")
             or tool.startswith("PDM")
         ):
             try:
-                data["current"][tool] += count
+                data["latest"][tool] += count
             except KeyError:
-                data["current"][tool] = count
-            status["Current"] += count
-        # Old
+                data["latest"][tool] = count
+            status["Latest"] += count
+        # Prior
         elif "BY" in tool and tool_begin not in retired:
             if "ND-NC" in tool_begin:
                 tool_begin = tool_begin.replace("ND-NC", "NC-ND")
             try:
-                data["old"][tool_begin.strip()] += count
+                data["prior"][tool_begin.strip()] += count
             except KeyError:
-                data["old"][tool_begin.strip()] = count
-            status["Old"] += count
+                data["prior"][tool_begin.strip()] = count
+            status["Prior"] += count
         # Retired
         else:
             try:
@@ -313,7 +313,7 @@ def main():
     file1_count = shared.path_join(PATHS["data_1-fetch"], "gcs_1_count.csv")
     count_data = pd.read_csv(file1_count, usecols=["TOOL_IDENTIFIER", "COUNT"])
     process_product_totals(args, count_data)
-    process_current_old_retired_totals(args, count_data)
+    process_latest_prior_retired_totals(args, count_data)
     process_totals_by_free_cultural(args, count_data)
     process_totals_by_restrictions(args, count_data)
 

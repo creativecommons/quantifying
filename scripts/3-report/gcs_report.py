@@ -188,21 +188,21 @@ def plot_tool_status(args):
     )
 
 
-def plot_current_tools(args):
+def plot_latest_tools(args):
     """
-    Create plots for current CC legal tool totals and percentages
+    Create plots for latest CC legal tool totals and percentages
     """
-    LOGGER.info(plot_current_tools.__doc__.strip())
+    LOGGER.info(plot_latest_tools.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"],
-        "gcs_status_current_totals.csv",
+        "gcs_status_latest_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
     data = pd.read_csv(file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
-    title = "Current CC legal tools"
+    title = "Latest CC legal tools"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -212,7 +212,7 @@ def plot_current_tools(args):
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "gcs_status_current_tools.png"
+        PATHS["data_phase"], "gcs_status_latest_tools.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
@@ -226,25 +226,25 @@ def plot_current_tools(args):
         SECTION,
         title,
         image_path,
-        "Plots showing current Creative Commons (CC) legal tool totals and"
+        "Plots showing latest Creative Commons (CC) legal tool totals and"
         " percentages.",
     )
 
 
-def plot_old_tools(args):
+def plot_prior_tools(args):
     """
-    Create plots for old CC legal tool totals and percentages
+    Create plots for prior CC legal tool totals and percentages
     """
-    LOGGER.info(plot_old_tools.__doc__.strip())
+    LOGGER.info(plot_prior_tools.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data_2-process"], "gcs_status_old_totals.csv"
+        PATHS["data_2-process"], "gcs_status_prior_totals.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
     data = pd.read_csv(file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
-    title = "Old CC legal tools"
+    title = "Prior CC legal tools"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -254,7 +254,7 @@ def plot_old_tools(args):
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "gcs_status_old_tools.png"
+        PATHS["data_phase"], "gcs_status_prior_tools.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
@@ -268,7 +268,7 @@ def plot_old_tools(args):
         SECTION,
         title,
         image_path,
-        "Plots showing old Creative Commons (CC) legal tool totals and"
+        "Plots showing prior Creative Commons (CC) legal tool totals and"
         " percentages.",
         "The unit names have been normalized (~~`CC BY-ND-NC`~~ =>"
         " `CC BY-NC-ND`).",
@@ -323,7 +323,7 @@ def plot_retired_tools(args):
 
 def plot_countries_highest_usage(args):
     """
-    Create plots for the countries with highest usage of current tools
+    Create plots for the countries with highest usage of latest tools
     """
     LOGGER.info(plot_countries_highest_usage.__doc__.strip())
     file_path = shared.path_join(
@@ -338,7 +338,7 @@ def plot_countries_highest_usage(args):
     data = data[:10]  # limit to highest 10
     data = data[::-1]  # reverse order
 
-    title = "Countries with highest usage of current tools"
+    title = "Countries with highest usage of latest tools"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -349,7 +349,7 @@ def plot_countries_highest_usage(args):
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "gcs_countries_highest_usage_current_tools.png"
+        PATHS["data_phase"], "gcs_countries_highest_usage_latest_tools.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
@@ -363,20 +363,20 @@ def plot_countries_highest_usage(args):
         SECTION,
         title,
         image_path,
-        "Plots showing countries with the highest useage of the current"
+        "Plots showing countries with the highest useage of the latest"
         " Creative Commons (CC) legal tools.",
-        "The current tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
+        "The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
         " 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0),"
         " CC0 1.0, and the Public Domain Mark (PDM 1.0).\n"
         "\n"
         f"The complete data set indicates there are a total of {total_count}"
-        " online works using a current CC legal tool.",
+        " online works using a latest CC legal tool.",
     )
 
 
 def plot_languages_highest_usage(args):
     """
-    Create plots for the languages with highest usage of current tools
+    Create plots for the languages with highest usage of latest tools
     """
     LOGGER.info(plot_languages_highest_usage.__doc__.strip())
     file_path = shared.path_join(
@@ -391,7 +391,7 @@ def plot_languages_highest_usage(args):
     data = data[:10]  # limit to highest 10
     data = data[::-1]  # reverse order
 
-    title = "Languages with highest usage of current tools"
+    title = "Languages with highest usage of latest tools"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -402,7 +402,7 @@ def plot_languages_highest_usage(args):
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "gcs_languages_highest_usage_current_tools.png"
+        PATHS["data_phase"], "gcs_languages_highest_usage_latest_tools.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
@@ -416,20 +416,20 @@ def plot_languages_highest_usage(args):
         SECTION,
         title,
         image_path,
-        "Plots showing languages with the highest useage of the current"
+        "Plots showing languages with the highest useage of the latest"
         " Creative Commons (CC) legal tools.",
-        "The current tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
+        "The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
         " 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0),"
         " CC0 1.0, and the Public Domain Mark (PDM 1.0).\n"
         "\n"
         f"The complete data set indicates there are a total of {total_count}"
-        " online works using a current CC legal tool.",
+        " online works using a latest CC legal tool.",
     )
 
 
 def plot_free_culture(args):
     """
-    Create plots for the languages with highest usage of current tools
+    Create plots for the languages with highest usage of latest tools
     """
     LOGGER.info(plot_free_culture.__doc__.strip())
     file_path = shared.path_join(
@@ -478,8 +478,8 @@ def main():
     gcs_intro(args)
     plot_products(args)
     plot_tool_status(args)
-    plot_current_tools(args)
-    plot_old_tools(args)
+    plot_latest_tools(args)
+    plot_prior_tools(args)
     plot_retired_tools(args)
     plot_countries_highest_usage(args)
     plot_languages_highest_usage(args)

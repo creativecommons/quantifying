@@ -104,8 +104,8 @@ def usage(args):
         "Usage",
         None,
         None,
-        "The Creative Commons (CC) icons, images, and logos are for use under"
-        " the Creative Commons Trademark Policy (see [Policies - Creative"
+        "The Creative Commons (CC) icons and logos are for use under the"
+        " Creative Commons Trademark Policy (see [Policies - Creative"
         " Commons][ccpolicies]). **They *aren't* licensed under a Creative"
         " Commons license** (also see [Could I use a CC license to share my"
         " logo or trademark? - Frequently Asked Questions - Creative"
@@ -113,8 +113,9 @@ def usage(args):
         "\n"
         "[![CC0 1.0 Universal (CC0 1.0) Public Domain Dedication"
         "button][cc-zero-png]][cc-zero]\n"
-        "Otherwise, this report is dedicated to the public domain under the"
-        " [CC0 1.0 Universal (CC0 1.0) Public Domain Dedication][cc-zero].\n"
+        "Otherwise, this report (including the plot images) is dedicated to"
+        " the public domain under the [CC0 1.0 Universal (CC0 1.0) Public"
+        " Domain Dedication][cc-zero].\n"
         "\n"
         "[ccpolicies]: https://creativecommons.org/policies\n"
         "[tmfaq]: https://creativecommons.org/faq/"
