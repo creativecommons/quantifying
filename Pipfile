@@ -7,6 +7,7 @@ name = "pypi"
 flickrapi = "*"
 GitPython = "*"
 google-api-python-client = "*"
+h11 = ">=0.16.0"  # Ensure dependency is secure
 internetarchive = "*"
 jupyterlab = ">=3.6.7"
 matplotlib = "*"

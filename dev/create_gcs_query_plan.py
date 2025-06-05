@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-"""
-"""
 # Standard library
 import csv
 import os
