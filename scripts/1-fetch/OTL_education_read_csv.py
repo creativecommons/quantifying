@@ -18,11 +18,9 @@ from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
 
-# First-party/Local
-import shared
-
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))  # noqa: E402
-
+# First-party/Local
+import shared  # noqa:E402
 
 LOGGER, PATHS = shared.setup(__file__)
 
