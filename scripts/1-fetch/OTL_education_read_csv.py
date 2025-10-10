@@ -6,8 +6,10 @@ Read from pre/automation OTL.csv file
 # Standard library
 import argparse  # for parsing command line arguments
 import csv  # for R/W csv viles
+
+# library
 import os
-import sys  # for
+import sys
 import textwrap
 import traceback  # for inspecting exceptions in the script
 
@@ -16,11 +18,11 @@ from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
 
-# Path setup for local imports
+# First-party/Local
+import shared
+
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))  # noqa: E402
 
-# First-party/Local
-import shared  # noqa: E402
 
 LOGGER, PATHS = shared.setup(__file__)
 
