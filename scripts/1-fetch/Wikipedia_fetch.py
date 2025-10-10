@@ -10,6 +10,7 @@ import os
 import sys
 import textwrap
 import traceback
+import urllib.parse
 import random
 # Third-party
 import requests
@@ -96,12 +97,12 @@ def write_data(args, tool_data):
 
 
 def query_wikipedia(args, session):
-    LOGGER.info("Fetching Wikipedia rightsinfo + article count")
+    LOGGER.info("Beginning to fetch results from Wikipedia API")
     tool_data = []
 
     try:
         if args.dev:
-            license_name = "Creative Commons (DEV)"
+            license_name = "Creative Commons Attribution-ShareAlike 4.0"
             article_count = random.randint(100000, 5000000)
         else:
             params = {
@@ -118,7 +119,6 @@ def query_wikipedia(args, session):
             rights = data["query"]["rightsinfo"]
 
             license_name = rights.get("text", "")
-            license_url = rights.get("url", "")
             article_count = stats.get("articles", 0)
 
         tool_data.append({
