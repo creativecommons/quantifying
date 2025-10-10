@@ -105,10 +105,9 @@ modules:
 [homebrew]: https://brew.sh/
 
 
-### Running scripts that require client credentials
+### Managing client credentials
 
-To successfully run scripts that require client credentials, you will need to
-follow these steps:
+Client credentials should be stored in an environment file:
 1. Copy the contents of the `env.example` file in the script's directory to
    `.env`:
     ```shell
@@ -121,8 +120,22 @@ follow these steps:
     GCS_CX = your_pse_id
     ```
 3. Save the changes to the `.env` file.
-4. You should now be able to run scripts that require client credentials
-   without any issues.
+
+You should now be able to run scripts that require client credentials without
+any issues. The `.env` file is ignored by git to help ensure sensitive data is
+not distributed.
+
+
+### Running the scripts
+
+All of the scripts should be run from the root of the repository using pipenv. For example:
+```bash
+pipenv run ./scripts/1-fetch/github_fetch.py -h
+```
+
+When run this way, the shared library (`scripts/shared.py`) provides easy access
+to all of the necessary paths and all of the modules managed by pipenv are
+available.
 
 
 ### Static analysis
