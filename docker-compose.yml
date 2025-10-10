@@ -1,0 +1,81 @@
+services:
+  fetch:
+    build:
+      context: .
+      dockerfile: docker/1-fetch/Dockerfile.fetch
+      args:
+        - LIMIT=${LIMIT:-1}
+        - ENABLE_SAVE=${ENABLE_SAVE:-true}
+        - ENABLE_GIT=${ENABLE_GIT:-true}
+        - DEV=${DEV:-false}
+    container_name: gcs-fetch
+    environment:
+      - GCS_DEVELOPER_KEY=${GCS_DEVELOPER_KEY}
+      - GCS_CX=${GCS_CX}
+      - LIMIT=${LIMIT:-1}
+      - ENABLE_SAVE=${ENABLE_SAVE:-true}
+      - ENABLE_GIT=${ENABLE_GIT:-true}
+      - DEV=${DEV:-false}
+      #- GH_TOKEN=${GH_TOKEN}
+      #- FLICKR_API_KEY=${FLICKR_API_KEY}
+      #- FLICKR_API_SECRET=${FLICKR_API_SECRET}
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    networks:
+      - quantifying-network
+    profiles:
+      - fetch
+      - all
+
+  process:
+    build:
+      context: .
+      dockerfile: docker/2-process/Dockerfile.process
+      args:
+        - QUARTER=${QUARTER:-2025Q4}
+        - ENABLE_SAVE=${ENABLE_SAVE:-true}
+        - ENABLE_GIT=${ENABLE_GIT:-true}
+    container_name: gcs-process
+    environment:
+      - QUARTER=${QUARTER:-2025Q4}
+      - ENABLE_SAVE=${ENABLE_SAVE:-true}
+      - ENABLE_GIT=${ENABLE_GIT:-true}
+    volumes:
+      - ./data:/app/data
+    networks:
+      - quantifying-network
+    depends_on:
+      - fetch
+    profiles:
+      - process
+      - all
+
+  report:
+    build:
+      context: .
+      dockerfile: docker/3-report/Dockerfile.report
+      args:
+        - ENABLE_SAVE=${ENABLE_SAVE:-true}
+        - SHOW_PLOTS=${SHOW_PLOTS:-true}
+    container_name: gcs-report
+    environment:
+      - ENABLE_SAVE=${ENABLE_SAVE:-true}
+      - SHOW_PLOTS=${SHOW_PLOTS:-true}
+    volumes:
+      - ./data:/app/data
+    networks:
+      - quantifying-network
+    depends_on:
+      - process
+    profiles:
+      - report
+      - all
+
+networks:
+  quantifying-network:
+    driver: bridge
+
+volumes:
+  quantifying-data:
+    driver: local

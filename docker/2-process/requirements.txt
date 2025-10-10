@@ -1,0 +1,5 @@
+pandas
+matplotlib
+seaborn
+pygments
+GitPython  # For shared.py git operations
