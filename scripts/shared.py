@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 # Third-party
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
-from pandas import PeriodIndex
+from pandas import
 
 
 class QuantifyingException(Exception):

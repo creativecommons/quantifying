@@ -1,5 +1,3 @@
-# scripts/wikipedia_fetch.py
-
 import requests
 from typing import Dict
 
@@ -18,86 +16,72 @@ def get_site_statistics() -> Dict[str, int]:
     Returns:
         dict: Dictionary containing:
             - articles: number of articles
-            - pages: total number of pages
-            - edits: total number of edits
-            - users: total number of users
-            - images: total number of images
+            - pages: number of pages
+            - edits: number of edits
+            - users: number of users
+            - images: number of images
     """
     params = {
         "action": "query",
         "meta": "siteinfo",
-        "siprop": "statistics",
+        "siprop": "statistics|rightsinfo",
         "format": "json"
     }
-    try:
-        response = requests.get(WIKI_API, params=params, headers=HEADERS, timeout=10)
-        response.raise_for_status()
-        stats = response.json()['query']['statistics']
-        return {
-            "articles": stats.get("articles", 0),
-            "pages": stats.get("pages", 0),
-            "edits": stats.get("edits", 0),
-            "users": stats.get("users", 0),
-            "images": stats.get("images", 0)
-        }
-    except requests.RequestException as e:
-        print(f"Error fetching Wikipedia site statistics: {e}")
-        return {"articles": 0, "pages": 0, "edits": 0, "users": 0, "images": 0}
+
+    response = requests.get(WIKI_API, headers=HEADERS, params=params)
+    response.raise_for_status()
+    data = response.json()
+
+    stats = data.get("query", {}).get("statistics", {})
+
+    return {
+        "articles": stats.get("articles", 0),
+        "pages": stats.get("pages", 0),
+        "edits": stats.get("edits", 0),
+        "users": stats.get("users", 0),
+        "images": stats.get("images", 0)
+    }
 
 
-def search_articles_count(keyword: str) -> int:
+def search_articles_by_license(license_keyword: str, limit: int = 10) -> Dict[str, int]:
     """
-    Count the number of Wikipedia articles containing a specific keyword.
+    Search Wikipedia articles containing a specific Creative Commons license keyword.
 
     Args:
-        keyword (str): Keyword or phrase to search for.
+        license_keyword (str): e.g., "CC BY-SA 4.0"
+        limit (int): Number of results to fetch
 
     Returns:
-        int: Total number of search hits/articles.
+        dict: Dictionary with count and sample articles
     """
     params = {
         "action": "query",
         "list": "search",
-        "srsearch": keyword,
+        "srsearch": license_keyword,
+        "srlimit": limit,
         "format": "json"
     }
-    try:
-        response = requests.get(WIKI_API, params=params, headers=HEADERS, timeout=10)
-        response.raise_for_status()
-        return response.json()['query']['searchinfo']['totalhits']
-    except requests.RequestException as e:
-        print(f"Error searching Wikipedia articles for '{keyword}': {e}")
-        return 0
 
+    response = requests.get(WIKI_API, headers=HEADERS, params=params)
+    response.raise_for_status()
+    data = response.json()
 
-def fetch_cc_related_statistics() -> Dict[str, int]:
-    """
-    Fetch statistics related to Creative Commons on Wikipedia.
-
-    Returns:
-        dict: Dictionary containing counts of articles referencing CC licenses.
-    """
-    keywords = [
-        "Creative Commons",
-        "CC BY",
-        "CC BY-SA",
-        "CC BY-ND",
-        "CC BY-NC",
-        "CC BY-NC-SA",
-        "CC BY-NC-ND"
-    ]
-    results = {}
-    for kw in keywords:
-        results[kw] = search_articles_count(kw)
-    return results
+    search_results = data.get("query", {}).get("search", [])
+    return {
+        "count": len(search_results),
+        "sample_titles": [item["title"] for item in search_results]
+    }
 
 
 if __name__ == "__main__":
     print("Wikipedia Site Statistics:")
-    print(get_site_statistics())
+    stats = get_site_statistics()
+    print(stats)
 
-    print("\nCreative Commons Related Articles Count:")
-    cc_stats = fetch_cc_related_statistics()
-    for k, v in cc_stats.items():
-        print(f"{k}: {v}")
+    license_query = "Creative Commons"
+    print(f"\nArticles mentioning '{license_query}':")
+    results = search_articles_by_license(license_query, limit=5)
+    print(results)
+
+
 
