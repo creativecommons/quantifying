@@ -116,6 +116,7 @@ def query_wikipedia_languages(session):
                         {
                             "lang": lang_code,
                             "name": lang_name,
+                            "url": site["url"],
                         }
                     )
 
