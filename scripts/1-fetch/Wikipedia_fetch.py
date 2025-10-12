@@ -10,8 +10,7 @@ import os
 import sys
 import textwrap
 import traceback
-import urllib.parse
-import random
+
 # Third-party
 import requests
 from pygments import highlight
@@ -22,15 +21,17 @@ from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-WIKI_BASE_URL = "https://en.wikipedia.org/w/api.php"
 # First-party/Local
 import shared  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
-FILE1_COUNT = os.path.join(PATHS["data_phase"], "wiki_1_count.csv")
-HEADER1_COUNT = ["PLAN_INDEX", "TOOL_IDENTIFIER", "COUNT"]
+FILE_LANGUAGES = os.path.join(
+    PATHS["data_phase"], "wikipedia_count_by_languages.csv"
+)
+HEADER_LANGUAGES = ["LANGUAGE_CODE", "LANGUAGE_NAME", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
+WIKIPEDIA_BASE_URL = "https://en.wikipedia.org/w/api.php"
 WIKIPEDIA_RETRY_STATUS_FORCELIST = [
     408,  # Request Timeout
     422,  # Unprocessable Content (Validation failed, or endpoint spammed)
@@ -40,6 +41,7 @@ WIKIPEDIA_RETRY_STATUS_FORCELIST = [
     503,  # Service Unavailable
     504,  # Gateway Timeout
 ]
+
 
 def parse_arguments():
     """
@@ -57,15 +59,11 @@ def parse_arguments():
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
     )
-    parser.add_argument(
-        "--dev",
-        action="store_true",
-        help="Development mode: avoid hitting API (generate fake data)",
-    )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     return args
+
 
 def get_requests_session():
     max_retries = Retry(
@@ -75,20 +73,21 @@ def get_requests_session():
     )
     session = requests.Session()
     session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    session.headers.update({"User-Agent": "quantifying-wikipedia-fetch/1.0 (contact@example.com)"})
+    session.headers.update(
+        {"User-Agent": "quantifying-wikipedia-fetch/1.0 (contact@example.com)"}
+    )
     return session
 
 
 def write_data(args, tool_data):
     if not args.enable_save:
         return args
-
-    # Create data directory for this phase
+    LOGGER.info("Saving fetched data")
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    with open(FILE1_COUNT, "w", newline="") as file_obj:
+    with open(FILE_LANGUAGES, "w", newline="", encoding="utf-8") as file_obj:
         writer = csv.DictWriter(
-            file_obj, fieldnames=HEADER1_COUNT, dialect="unix"
+            file_obj, fieldnames=HEADER_LANGUAGES, dialect="unix"
         )
         writer.writeheader()
         for row in tool_data:
@@ -96,53 +95,78 @@ def write_data(args, tool_data):
     return args
 
 
-def query_wikipedia(args, session):
-    LOGGER.info("Beginning to fetch results from Wikipedia API")
+def query_wikipedia_languages(session):
+    LOGGER.info("Fetching article counts from all language Wikipedias")
     tool_data = []
 
-    try:
-        if args.dev:
-            license_name = "Creative Commons Attribution-ShareAlike 4.0"
-            article_count = random.randint(100000, 5000000)
-        else:
-            params = {
-                "action": "query",
-                "meta": "siteinfo",
-                "siprop": "general|statistics|rightsinfo",
-                "format": "json",
-            }
-            r = session.get(WIKI_BASE_URL, params=params, timeout=30)
+    # Get all language wikipedias
+    site_matrix_url = "https://meta.wikimedia.org/w/api.php"
+    params = {"action": "sitematrix", "format": "json"}
+    r = session.get(site_matrix_url, params=params, timeout=30)
+    data = r.json()["sitematrix"]
+
+    langs = []
+    for key, val in data.items():
+        if key.isdigit():
+            lang_code = val.get("code")
+            lang_name = val.get("name")
+            for site in val.get("site", []):
+                if "wikipedia.org" in site["url"]:
+                    langs.append(
+                        {
+                            "lang": lang_code,
+                            "name": lang_name,
+                        }
+                    )
+
+    # For each language wikipedia, fetch statistics.
+    for site in langs:
+        base_url = f"{site['url']}/w/api.php"
+        params = {
+            "action": "query",
+            "meta": "siteinfo",
+            "siprop": "statistics",
+            "format": "json",
+        }
+        try:
+            r = session.get(base_url, params=params, timeout=30)
             r.raise_for_status()
             data = r.json()
-
             stats = data["query"]["statistics"]
-            rights = data["query"]["rightsinfo"]
 
-            license_name = rights.get("text", "")
             article_count = stats.get("articles", 0)
 
-        tool_data.append({
-            "PLAN_INDEX": 1,
-            "TOOL_IDENTIFIER": f"{license_name}",
-            "COUNT": article_count
-        })
+            tool_data.append(
+                {
+                    "LANGUAGE_CODE": site["lang"],
+                    "LANGUAGE_NAME": site["name"],
+                    "COUNT": article_count,
+                }
+            )
+            LOGGER.info(f"{site['lang']} ({site['name']}): {article_count}")
 
-        LOGGER.info(f"License: {license_name} -> Articles: {article_count}")
-
-    except requests.RequestException as e:
-        LOGGER.error(f"Request error while fetching Wikipedia rightsinfo: {e}")
-        raise shared.QuantifyingException(f"Request error: {e}", 1)
+        except Exception as e:
+            LOGGER.warning(
+                f"Failed to fetch for {site['lang']} ({site['name']}): {e}"
+            )
 
     return tool_data
+
 
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    tool_data = query_wikipedia(args, get_requests_session())
+    tool_data = query_wikipedia_languages(get_requests_session())
     args = write_data(args, tool_data)
-    args = shared.git_add_and_commit(args, PATHS["repo"], PATHS["data_quarter"], f"Add and commit new Wikipedia data for {QUARTER}")
+    args = shared.git_add_and_commit(
+        args,
+        PATHS["repo"],
+        PATHS["data_quarter"],
+        f"Add and commit new Wikipedia data for {QUARTER}",
+    )
     shared.git_push_changes(args, PATHS["repo"])
+
 
 if __name__ == "__main__":
     try:
