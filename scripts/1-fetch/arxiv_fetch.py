@@ -11,12 +11,13 @@ import textwrap
 import time
 import traceback
 import urllib.parse
-import urllib.request
 from collections import defaultdict
-from copy import copy
 
 # Third-party
 import feedparser
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -43,10 +44,10 @@ FILE_ARXIV_AUTHOR = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_count.csv"
 )
 
-HEADER_COUNT = ["PLAN_INDEX", "TOOL_IDENTIFIER", "COUNT"]
-HEADER_CATEGORY = ["PLAN_INDEX", "TOOL_IDENTIFIER", "CATEGORY", "COUNT"]
-HEADER_YEAR = ["PLAN_INDEX", "TOOL_IDENTIFIER", "YEAR", "COUNT"]
-HEADER_AUTHOR = ["PLAN_INDEX", "TOOL_IDENTIFIER", "AUTHOR_COUNT", "COUNT"]
+HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
+HEADER_CATEGORY = ["TOOL_IDENTIFIER", "CATEGORY", "COUNT"]
+HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
+HEADER_AUTHOR = ["TOOL_IDENTIFIER", "AUTHOR_COUNT", "COUNT"]
 
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
@@ -108,43 +109,47 @@ def extract_license_info(entry):
 
     # Check for license in rights field
     if hasattr(entry, "rights") and entry.rights:
-        rights = entry.rights.lower()
-        if "cc0" in rights or "cc 0" in rights:
+        license_info = entry.rights.upper()
+        if "CC0" in license_info or "CC 0" in license_info:
             license_info = "CC0"
-        elif "cc by-nc-nd" in rights:
+        elif "CC BY-NC-ND" in license_info:
             license_info = "CC BY-NC-ND"
-        elif "cc by-nc-sa" in rights:
+        elif "CC BY-NC-SA" in license_info:
             license_info = "CC BY-NC-SA"
-        elif "cc by-nd" in rights:
+        elif "CC BY-ND" in license_info:
             license_info = "CC BY-ND"
-        elif "cc by-sa" in rights:
+        elif "CC BY-SA" in license_info:
             license_info = "CC BY-SA"
-        elif "cc by-nc" in rights:
+        elif "CC BY-NC" in license_info:
             license_info = "CC BY-NC"
-        elif "cc by" in rights:
+        elif "CC BY" in license_info:
             license_info = "CC BY"
-        elif "creative commons" in rights:
+        elif "CREATIVE COMMONS" in license_info:
             license_info = "Creative Commons"
+        else:
+            license_info = "Unknown"
 
     # Check for license in summary/abstract
     if license_info == "Unknown" and hasattr(entry, "summary"):
-        summary = entry.summary.lower()
-        if "cc0" in summary or "cc 0" in summary:
+        license_info = entry.summary.upper()
+        if "CC0" in license_info or "CC 0" in license_info:
             license_info = "CC0"
-        elif "cc by-nc-nd" in summary:
+        elif "CC BY-NC-ND" in license_info:
             license_info = "CC BY-NC-ND"
-        elif "cc by-nc-sa" in summary:
+        elif "CC BY-NC-SA" in license_info:
             license_info = "CC BY-NC-SA"
-        elif "cc by-nd" in summary:
+        elif "CC BY-ND" in license_info:
             license_info = "CC BY-ND"
-        elif "cc by-sa" in summary:
+        elif "CC BY-SA" in license_info:
             license_info = "CC BY-SA"
-        elif "cc by-nc" in summary:
+        elif "CC BY-NC" in license_info:
             license_info = "CC BY-NC"
-        elif "cc by" in summary:
+        elif "CC BY" in license_info:
             license_info = "CC BY"
-        elif "creative commons" in summary:
+        elif "CREATIVE COMMONS" in license_info:
             license_info = "Creative Commons"
+        else:
+            license_info = "Unknown"
 
     return license_info
 
@@ -183,14 +188,24 @@ def extract_author_count_from_entry(entry):
     return "Unknown"
 
 
+def get_requests_session():
+    """Create requests session with retry logic."""
+    retry_strategy = Retry(
+        total=5,
+        backoff_factor=3,
+        status_forcelist=[408, 429, 500, 502, 503, 504],
+    )
+    session = requests.Session()
+    session.mount("http://", HTTPAdapter(max_retries=retry_strategy))
+    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
+    return session
+
+
 def query_arxiv(args):
     """Query ArXiv API for papers with potential CC licenses."""
     LOGGER.info("Beginning to fetch results from ArXiv API")
 
-    # Rate limiting parameters
-    max_tries = 5
-    initial_delay = 3
-    rate_delay = copy(initial_delay)
+    session = get_requests_session()
     results_per_iteration = 50
 
     search_queries = [
@@ -228,62 +243,53 @@ def query_arxiv(args):
                 f"&max_results={results_per_iteration}"
             )
 
-            success = False
             papers_found_in_batch = 0
 
-            for attempt in range(max_tries):
-                try:
-                    LOGGER.info(
-                        f"Fetching results {start} - "
-                        f"{start + results_per_iteration}"
-                    )
-                    response = urllib.request.urlopen(BASE_URL + query).read()
-                    feed = feedparser.parse(response)
+            try:
+                LOGGER.info(
+                    f"Fetching results {start} - "
+                    f"{start + results_per_iteration}"
+                )
+                response = session.get(BASE_URL + query, timeout=30)
+                response.raise_for_status()
+                feed = feedparser.parse(response.content)
 
-                    for entry in feed.entries:
-                        if total_fetched >= args.limit:
-                            break
+                for entry in feed.entries:
+                    if total_fetched >= args.limit:
+                        break
 
-                        license_info = extract_license_info(entry)
+                    license_info = extract_license_info(entry)
 
-                        if license_info != "Unknown":
-                            category = extract_category_from_entry(entry)
-                            year = extract_year_from_entry(entry)
-                            author_count = extract_author_count_from_entry(
-                                entry
-                            )
+                    if license_info != "Unknown":
+                        category = extract_category_from_entry(entry)
+                        year = extract_year_from_entry(entry)
+                        author_count = extract_author_count_from_entry(entry)
 
-                            # Count by license
-                            license_counts[license_info] += 1
+                        # Count by license
+                        license_counts[license_info] += 1
 
-                            # Count by category and license
-                            category_counts[license_info][category] += 1
+                        # Count by category and license
+                        category_counts[license_info][category] += 1
 
-                            # Count by year and license
-                            year_counts[license_info][year] += 1
+                        # Count by year and license
+                        year_counts[license_info][year] += 1
 
-                            # Count by author count and license
-                            author_counts[license_info][author_count] += 1
+                        # Count by author count and license
+                        author_counts[license_info][author_count] += 1
 
-                            total_fetched += 1
-                            papers_found_in_batch += 1
+                        total_fetched += 1
+                        papers_found_in_batch += 1
 
-                            LOGGER.info(
-                                f"Found CC licensed paper: {license_info} - "
-                                f"{category} - {year}"
-                            )
+                        LOGGER.info(
+                            f"Found CC licensed paper: {license_info} - "
+                            f"{category} - {year}"
+                        )
 
-                    success = True
-                    time.sleep(rate_delay)
-                    break
+                # ArXiv recommends 3-second delay between calls
+                time.sleep(3)
 
-                except Exception as e:
-                    LOGGER.warning(f"Attempt {attempt + 1} failed: {e}")
-                    if attempt < max_tries - 1:
-                        time.sleep(initial_delay * (2**attempt))
-
-            if not success:
-                LOGGER.error("Max tries exceeded for this query batch")
+            except requests.RequestException as e:
+                LOGGER.error(f"Request failed: {e}")
                 break
 
             if papers_found_in_batch == 0:
@@ -310,8 +316,6 @@ def save_count_data(
     license_counts, category_counts, year_counts, author_counts
 ):
     """Save count data to CSV files."""
-    plan_index = 1
-
     # Save license counts
     with open(FILE_ARXIV_COUNT, "w", newline="") as file_obj:
         writer = csv.DictWriter(
@@ -322,12 +326,10 @@ def save_count_data(
         for license_type, count in license_counts.items():
             writer.writerow(
                 {
-                    "PLAN_INDEX": plan_index,
                     "TOOL_IDENTIFIER": license_type,
                     "COUNT": count,
                 }
             )
-            plan_index += 1
 
     # Save category counts
     with open(FILE_ARXIV_CATEGORY, "w", newline="") as file_obj:
@@ -340,13 +342,11 @@ def save_count_data(
             for category, count in categories.items():
                 writer.writerow(
                     {
-                        "PLAN_INDEX": plan_index,
                         "TOOL_IDENTIFIER": license_type,
                         "CATEGORY": category,
                         "COUNT": count,
                     }
                 )
-                plan_index += 1
 
     # Save year counts
     with open(FILE_ARXIV_YEAR, "w", newline="") as file_obj:
@@ -359,13 +359,11 @@ def save_count_data(
             for year, count in years.items():
                 writer.writerow(
                     {
-                        "PLAN_INDEX": plan_index,
                         "TOOL_IDENTIFIER": license_type,
                         "YEAR": year,
                         "COUNT": count,
                     }
                 )
-                plan_index += 1
 
     # Save author count data
     with open(FILE_ARXIV_AUTHOR, "w", newline="") as file_obj:
@@ -378,13 +376,11 @@ def save_count_data(
             for author_count, count in author_counts_data.items():
                 writer.writerow(
                     {
-                        "PLAN_INDEX": plan_index,
                         "TOOL_IDENTIFIER": license_type,
                         "AUTHOR_COUNT": author_count,
                         "COUNT": count,
                     }
                 )
-                plan_index += 1
 
 
 def main():
