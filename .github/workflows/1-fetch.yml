@@ -67,3 +67,14 @@ jobs:
             --enable-save --enable-git
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      # CC Technology team members:
+      #   See cc-quantifying-bot Flickr entry in Bitwarden for
+      #   information on FLICKR_ secrets
+      - name: Fetch from Flickr
+        run: |
+          ./scripts/1-fetch/flickr_fetch.py \
+            --limit=100 --enable-save --enable-git
+        env:
+          FLICKR_API_KEY: ${{ secrets.FLICKR_API_KEY }}
+          FLICKR_API_SECRET: ${{ secrets.FLICKR_API_SECRET }}
