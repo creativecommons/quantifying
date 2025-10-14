@@ -15,6 +15,44 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
+# WikiCommons License Normalization Mapping
+# Maps WikiCommons category-based license names to human-readable format
+LICENSE_NORMALIZATION = {
+    "CC-BY-4.0": "CC BY 4.0",
+    "CC-BY-SA-4.0": "CC BY-SA 4.0",
+    "CC-BY-NC-4.0": "CC BY-NC 4.0",
+    "CC-BY-NC-SA-4.0": "CC BY-NC-SA 4.0",
+    "CC-BY-NC-ND-4.0": "CC BY-NC-ND 4.0",
+    "CC-BY-ND-4.0": "CC BY-ND 4.0",
+    "CC-BY-3.0": "CC BY 3.0",
+    "CC-BY-SA-3.0": "CC BY-SA 3.0",
+    "CC-BY-NC-3.0": "CC BY-NC 3.0",
+    "CC-BY-NC-SA-3.0": "CC BY-NC-SA 3.0",
+    "CC-BY-NC-ND-3.0": "CC BY-NC-ND 3.0",
+    "CC-BY-ND-3.0": "CC BY-ND 3.0",
+    "CC-BY-2.5": "CC BY 2.5",
+    "CC-BY-SA-2.5": "CC BY-SA 2.5",
+    "CC-BY-NC-2.5": "CC BY-NC 2.5",
+    "CC-BY-NC-SA-2.5": "CC BY-NC-SA 2.5",
+    "CC-BY-NC-ND-2.5": "CC BY-NC-ND 2.5",
+    "CC-BY-ND-2.5": "CC BY-ND 2.5",
+    "CC-BY-2.0": "CC BY 2.0",
+    "CC-BY-SA-2.0": "CC BY-SA 2.0",
+    "CC-BY-NC-2.0": "CC BY-NC 2.0",
+    "CC-BY-NC-SA-2.0": "CC BY-NC-SA 2.0",
+    "CC-BY-NC-ND-2.0": "CC BY-NC-ND 2.0",
+    "CC-BY-ND-2.0": "CC BY-ND 2.0",
+    "CC-BY-1.0": "CC BY 1.0",
+    "CC-BY-SA-1.0": "CC BY-SA 1.0",
+    "CC-BY-NC-1.0": "CC BY-NC 1.0",
+    "CC-BY-NC-SA-1.0": "CC BY-NC-SA 1.0",
+    "CC-BY-NC-ND-1.0": "CC BY-NC-ND 1.0",
+    "CC-BY-ND-1.0": "CC BY-ND 1.0",
+    "CC0-1.0": "CC0 1.0",
+    "PDM-1.0": "PDM 1.0",
+}
+
+
 def git_fetch_and_merge(args, repo_path, branch=None):
     if not args.enable_git:
         return

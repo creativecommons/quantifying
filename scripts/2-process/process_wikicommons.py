@@ -30,42 +30,6 @@ QUARTER = os.path.basename(PATHS["data_quarter"])
 INPUT_FILE = shared.path_join(PATHS["data_1-fetch"], "wikicommons_1_count.csv")
 OUTPUT_FILE = shared.path_join(PATHS["data_phase"], "wikicommons_2_processed.csv")
 
-# License normalization mapping
-LICENSE_NORMALIZATION = {
-    "CC-BY-4.0": "CC BY 4.0",
-    "CC-BY-SA-4.0": "CC BY-SA 4.0",
-    "CC-BY-NC-4.0": "CC BY-NC 4.0",
-    "CC-BY-NC-SA-4.0": "CC BY-NC-SA 4.0",
-    "CC-BY-NC-ND-4.0": "CC BY-NC-ND 4.0",
-    "CC-BY-ND-4.0": "CC BY-ND 4.0",
-    "CC-BY-3.0": "CC BY 3.0",
-    "CC-BY-SA-3.0": "CC BY-SA 3.0",
-    "CC-BY-NC-3.0": "CC BY-NC 3.0",
-    "CC-BY-NC-SA-3.0": "CC BY-NC-SA 3.0",
-    "CC-BY-NC-ND-3.0": "CC BY-NC-ND 3.0",
-    "CC-BY-ND-3.0": "CC BY-ND 3.0",
-    "CC-BY-2.5": "CC BY 2.5",
-    "CC-BY-SA-2.5": "CC BY-SA 2.5",
-    "CC-BY-NC-2.5": "CC BY-NC 2.5",
-    "CC-BY-NC-SA-2.5": "CC BY-NC-SA 2.5",
-    "CC-BY-NC-ND-2.5": "CC BY-NC-ND 2.5",
-    "CC-BY-ND-2.5": "CC BY-ND 2.5",
-    "CC-BY-2.0": "CC BY 2.0",
-    "CC-BY-SA-2.0": "CC BY-SA 2.0",
-    "CC-BY-NC-2.0": "CC BY-NC 2.0",
-    "CC-BY-NC-SA-2.0": "CC BY-NC-SA 2.0",
-    "CC-BY-NC-ND-2.0": "CC BY-NC-ND 2.0",
-    "CC-BY-ND-2.0": "CC BY-ND 2.0",
-    "CC-BY-1.0": "CC BY 1.0",
-    "CC-BY-SA-1.0": "CC BY-SA 1.0",
-    "CC-BY-NC-1.0": "CC BY-NC 1.0",
-    "CC-BY-NC-SA-1.0": "CC BY-NC-SA 1.0",
-    "CC-BY-NC-ND-1.0": "CC BY-NC-ND 1.0",
-    "CC-BY-ND-1.0": "CC BY-ND 1.0",
-    "CC0-1.0": "CC0 1.0",
-    "PDM-1.0": "PDM 1.0",
-}
-
 
 def parse_arguments():
     """
@@ -166,7 +130,7 @@ def normalize_license_names(data):
     
     # Apply normalization mapping
     processed_data["LICENSE_NORMALIZED"] = processed_data["LICENSE"].map(
-        LICENSE_NORMALIZATION
+        shared.LICENSE_NORMALIZATION
     )
     
     # Handle any unmapped licenses
