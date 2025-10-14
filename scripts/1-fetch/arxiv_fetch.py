@@ -16,11 +16,11 @@ from collections import defaultdict
 # Third-party
 import feedparser
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
