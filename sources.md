@@ -191,7 +191,25 @@ Quantifying now supports fetching data from Wikipedia as an additional source al
 ### Example Usage
 
 ```python
-from scripts.wikipedia_fetch import get_site_statistics, search_articles_count, fetch_cc_related_statistics
+
+def main():
+    stats = get_site_statistics()
+    print("Wikipedia Site Stats:", stats)
+
+    cc_articles = search_articles_count("Creative Commons")
+    print("Articles with 'Creative Commons':", cc_articles)
+
+    cc_stats = fetch_cc_related_statistics()
+    for license_name, count in cc_stats.items():
+        print(f"{license_name}: {count}")
+
+if __name__ == "__main__":
+    main()
+
+
+
+#previous
+"""from scripts.wikipedia_fetch import get_site_statistics, search_articles_count, fetch_cc_related_statistics
 
 # General Wikipedia statistics
 stats = get_site_statistics()
@@ -204,5 +222,5 @@ print("Articles with 'Creative Commons':", cc_articles)
 # Fetch counts for various Creative Commons licenses
 cc_stats = fetch_cc_related_statistics()
 for license_name, count in cc_stats.items():
-    print(f"{license_name}: {count}")
+    print(f"{license_name}: {count}")"""
 
