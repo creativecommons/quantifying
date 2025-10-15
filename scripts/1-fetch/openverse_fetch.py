@@ -72,6 +72,10 @@ def query_openverse(session, page_size=10):
     url = f"https://api.openverse.engineering/v1/images/?page_size={page_size}"
     try:
         response = session.get(url)
+        if response.status_code == 401:
+            raise shared.QuantifyingException(
+                "Unauthorized(401): Check API key.", exit_code=1
+            )
         response.raise_for_status()
         data = response.json()
         works = data.get("results", [])
