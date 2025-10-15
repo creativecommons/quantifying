@@ -32,6 +32,7 @@ FILE_LANGUAGES = os.path.join(
 HEADER_LANGUAGES = ["LANGUAGE_CODE", "LANGUAGE_NAME", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 WIKIPEDIA_BASE_URL = "https://en.wikipedia.org/w/api.php"
+WIKIPEDIA_MATRIX_URL = "https://meta.wikimedia.org/w/api.php"
 WIKIPEDIA_RETRY_STATUS_FORCELIST = [
     408,  # Request Timeout
     422,  # Unprocessable Content (Validation failed, or endpoint spammed)
@@ -99,29 +100,28 @@ def query_wikipedia_languages(session):
     LOGGER.info("Fetching article counts from all language Wikipedias")
     tool_data = []
 
-    # Get all language wikipedias
-    site_matrix_url = "https://meta.wikimedia.org/w/api.php"
+    # Gets all language wikipedias
     params = {"action": "sitematrix", "format": "json"}
-    r = session.get(site_matrix_url, params=params, timeout=30)
+    r = session.get(WIKIPEDIA_MATRIX_URL, params=params, timeout=30)
     data = r.json()["sitematrix"]
 
-    langs = []
+    languages = []
     for key, val in data.items():
         if key.isdigit():
-            lang_code = val.get("code")
-            lang_name = val.get("name")
+            language_code = val.get("code")
+            language_name = val.get("name")
             for site in val.get("site", []):
                 if "wikipedia.org" in site["url"]:
-                    langs.append(
+                    languages.append(
                         {
-                            "lang": lang_code,
-                            "name": lang_name,
+                            "code": language_code,
+                            "name": language_name,
                             "url": site["url"],
                         }
                     )
 
     # For each language wikipedia, fetch statistics.
-    for site in langs:
+    for site in languages:
         base_url = f"{site['url']}/w/api.php"
         params = {
             "action": "query",
@@ -139,16 +139,16 @@ def query_wikipedia_languages(session):
 
             tool_data.append(
                 {
-                    "LANGUAGE_CODE": site["lang"],
+                    "LANGUAGE_CODE": site["code"],
                     "LANGUAGE_NAME": site["name"],
                     "COUNT": article_count,
                 }
             )
-            LOGGER.info(f"{site['lang']} ({site['name']}): {article_count}")
+            LOGGER.info(f"{site['code']} ({site['name']}): {article_count}")
 
         except Exception as e:
             LOGGER.warning(
-                f"Failed to fetch for {site['lang']} ({site['name']}): {e}"
+                f"Failed to fetch for {site['code']} ({site['name']}): {e}"
             )
 
     return tool_data
