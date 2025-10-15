@@ -19,26 +19,15 @@ from pygments.lexers import PythonTracebackLexer
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Add parent directory so shared can be imported
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
 # First-party/Local
-import shared  # noqa: E402
+from scripts import shared
+from shared import RETRY_STATUS_FORCELIST
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 FILE_PATH = os.path.join(PATHS["data_phase"], "openverse_fetch.csv")
-RETRY_STATUS_FORCELIST = [
-    408,  # Request Timeout
-    422,  # Unprocessable Content (Validation failed, or endpoint spammed)
-    429,  # Too Many Requests
-    500,  # Internal Server Error
-    502,  # Bad Gateway
-    503,  # Service Unavailable
-    504,  # Gateway Timeout
-]
 OPENVERSE_FIELDS = ["id", "title", "creator", "license"]
 
 

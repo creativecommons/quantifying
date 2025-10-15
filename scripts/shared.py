@@ -7,6 +7,17 @@ from datetime import datetime, timezone
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from pandas import PeriodIndex
 
+# constants
+RETRY_STATUS_FORCELIST = [
+    408,  # Request Timeout
+    422,  # Unprocessable Content (Validation failed, or endpoint spammed)
+    429,  # Too Many Requests
+    500,  # Internal Server Error
+    502,  # Bad Gateway
+    503,  # Service Unavailable
+    504,  # Gateway Timeout
+]
+
 
 class QuantifyingException(Exception):
     def __init__(self, message, exit_code=None):
