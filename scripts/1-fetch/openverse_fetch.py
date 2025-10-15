@@ -19,9 +19,12 @@ from pygments.lexers import PythonTracebackLexer
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# Add parent directory so shared can be imported
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
 # First-party/Local
-from scripts import shared
-from shared import RETRY_STATUS_FORCELIST
+import shared  # noqa: E402
+from shared import RETRY_STATUS_FORCELIST  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
