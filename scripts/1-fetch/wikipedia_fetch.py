@@ -19,10 +19,12 @@ from pygments.lexers import PythonTracebackLexer
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# Add parent directory so shared can be imported
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 # First-party/Local
 import shared  # noqa: E402
+from shared import STATUS_FORCELIST, USER_AGENT
+
+# Add parent directory so shared can be imported
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
@@ -33,15 +35,6 @@ HEADER_LANGUAGES = ["LANGUAGE_CODE", "LANGUAGE_NAME", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 WIKIPEDIA_BASE_URL = "https://en.wikipedia.org/w/api.php"
 WIKIPEDIA_MATRIX_URL = "https://meta.wikimedia.org/w/api.php"
-WIKIPEDIA_RETRY_STATUS_FORCELIST = [
-    408,  # Request Timeout
-    422,  # Unprocessable Content (Validation failed, or endpoint spammed)
-    429,  # Too Many Requests
-    500,  # Internal Server Error
-    502,  # Bad Gateway
-    503,  # Service Unavailable
-    504,  # Gateway Timeout
-]
 
 
 def parse_arguments():
@@ -70,13 +63,11 @@ def get_requests_session():
     max_retries = Retry(
         total=5,
         backoff_factor=10,
-        status_forcelist=WIKIPEDIA_RETRY_STATUS_FORCELIST,
+        status_forcelist=STATUS_FORCELIST,
     )
     session = requests.Session()
     session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    session.headers.update(
-        {"User-Agent": "quantifying-wikipedia-fetch/1.0 (contact@example.com)"}
-    )
+    session.headers.update({"User-Agent": USER_AGENT})
     return session
 
 
@@ -136,7 +127,9 @@ def query_wikipedia_languages(session):
             stats = data["query"]["statistics"]
 
             article_count = stats.get("articles", 0)
-
+            if article_count == 0:
+                LOGGER.info(f"Skipping {language_name} with 0 articles")
+                continue
             tool_data.append(
                 {
                     "LANGUAGE_CODE": site["code"],
