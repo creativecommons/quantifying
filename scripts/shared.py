@@ -17,6 +17,7 @@ RETRY_STATUS_FORCELIST = [
     503,  # Service Unavailable
     504,  # Gateway Timeout
 ]
+USER_AGENT = "QuantifyingTheCommons/1.0 (https://github.com/creativecommons/quantifying)"  # noqa: E501
 
 
 class QuantifyingException(Exception):
