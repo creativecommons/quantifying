@@ -203,12 +203,12 @@ def get_requests_session():
 
 def query_arxiv(args):
     """Query ArXiv API for papers with potential CC licenses."""
-    
+
     LOGGER.info("Beginning to fetch results from ArXiv API")
 
     session = get_requests_session()
     results_per_iteration = 50
-    
+
     search_queries = [
         'all:"creative commons"',
         'all:"CC BY"',
@@ -246,7 +246,7 @@ def query_arxiv(args):
 
             papers_found_in_batch = 0
 
-            try: 
+            try:
                 LOGGER.info(
                     f"Fetching results {start} - "
                     f"{start + results_per_iteration}"
@@ -258,9 +258,9 @@ def query_arxiv(args):
                 for entry in feed.entries:
                     if total_fetched >= args.limit:
                         break
-                
+
                     license_info = extract_license_info(entry)
-                
+
                     if license_info != "Unknown":
                         category = extract_category_from_entry(entry)
                         year = extract_year_from_entry(entry)
@@ -286,11 +286,12 @@ def query_arxiv(args):
                             f"{category} - {year}"
                         )
 
-                # arXiv recommends a 3-seconds delay between consecutive api calls for efficiency
+                # arXiv recommends a 3-seconds delay between consecutive
+                # api calls for efficiency
                 time.sleep(3)
-        except requests.RequestException as e:
-            LOGGER.error(f"Request failed: {e}")
-            break
+            except requests.RequestException as e:
+                LOGGER.error(f"Request failed: {e}")
+                break
 
         if papers_found_in_batch == 0:
             consecutive_empty_calls += 1
@@ -304,13 +305,14 @@ def query_arxiv(args):
             consecutive_empty_calls = 0
 
     # Save results
-        
+
     if args.enable_save:
         save_count_data(
             license_counts, category_counts, year_counts, author_counts
         )
 
     LOGGER.info(f"Total CC licensed papers fetched: {total_fetched}")
+
 
 def save_count_data(
     license_counts, category_counts, year_counts, author_counts
@@ -364,7 +366,7 @@ def save_count_data(
                         "COUNT": count,
                     }
                 )
-                
+
     # Save author count data
     with open(FILE_ARXIV_AUTHOR, "w", newline="") as file_obj:
         writer = csv.DictWriter(
