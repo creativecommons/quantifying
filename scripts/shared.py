@@ -15,8 +15,8 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
-# WikiCommons License Normalization Mapping
-# Maps WikiCommons category-based license names to human-readable format
+# Hyphenated to CC legal tool identifier mapping
+# Except PDM-1.0, follows SPDX identifier. Used by WikiCommons.
 LICENSE_NORMALIZATION = {
     "CC-BY-4.0": "CC BY 4.0",
     "CC-BY-SA-4.0": "CC BY-SA 4.0",
