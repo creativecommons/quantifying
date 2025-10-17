@@ -259,6 +259,7 @@ def query_gcs(args, service, last_completed_plan_index, plan):
                         initial_delay *= 2  # Exponential backoff
                 else:
                     LOGGER.error(f"Error fetching results: {e}")
+                    break
         if success:
             append_data(args, plan_row, index, count)
         else:
