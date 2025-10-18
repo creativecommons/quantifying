@@ -19,12 +19,11 @@ from pygments.lexers import PythonTracebackLexer
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# First-party/Local
-import shared  # noqa: E402
-from shared import STATUS_FORCELIST, USER_AGENT
-
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
+# First-party/Local
+import shared  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
@@ -63,11 +62,11 @@ def get_requests_session():
     max_retries = Retry(
         total=5,
         backoff_factor=10,
-        status_forcelist=STATUS_FORCELIST,
+        status_forcelist=shared.STATUS_FORCELIST,
     )
     session = requests.Session()
     session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    session.headers.update({"User-Agent": USER_AGENT})
+    session.headers.update({"User-Agent": shared.USER_AGENT})
     return session
 
 
