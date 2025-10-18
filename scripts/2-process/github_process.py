@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 """
-This file is dedicated to processing Github data
-for analysis and comparison between quarters.
+Process GitHub CC License usage data for reporting.
+Phase 2: Clean and summarize GitHub data.
 """
+
 # Standard library
+import argparse
+import csv
 import os
 import sys
 import traceback
-
-# import pandas as pd
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -19,62 +20,109 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
-# def load_quarter_data(quarter):
-#     """
-#     Load data for a specific quarter.
-#     """
-#     file_path = os.path.join(PATHS["data"], f"{quarter}",
-#       "1-fetch", "github_fetched")
-#     if not os.path.exists(file_path):
-#         LOGGER.error(f"Data file for quarter {quarter} not found.")
-#         return None
-#     return pd.read_csv(file_path)
+
+def parse_arguments():
+    """
+    Parse command-line options.
+    """
+    LOGGER.info("Parsing command-line options")
+    parser = argparse.ArgumentParser(
+        description="Process GitHub data for reporting"
+    )
+    parser.add_argument(
+        "--enable-save",
+        action="store_true",
+        help="Enable saving results to data/2-process directory",
+    )
+    parser.add_argument(
+        "--enable-git",
+        action="store_true",
+        help="Commit and push processed files using git",
+    )
+    return parser.parse_args()
 
 
-# def compare_data(current_quarter, previous_quarter):
-#     """
-#     Compare data between two quarters.
-#     """
-#     current_data = load_quarter_data(current_quarter)
-#     previous_data = load_quarter_data(previous_quarter)
+def load_github_counts():
+    """
+    Load GitHub license counts from Phase 1.
+    """
+    file_path = os.path.join(PATHS["data_1-fetch"], "github_1_count.csv")
+    if not os.path.exists(file_path):
+        raise shared.QuantifyingException(
+            f"GitHub fetch file not found: {file_path}", exit_code=1
+        )
 
-#     if current_data is None or previous_data is None:
-#         return
+    data = []
+    with open(file_path, "r", newline="") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            try:
+                count = int(row["COUNT"])
+            except ValueError:
+                count = 0
+            data.append(
+                {
+                    "TOOL_IDENTIFIER": row["TOOL_IDENTIFIER"],
+                    "SPDX_IDENTIFIER": row["SPDX_IDENTIFIER"],
+                    "COUNT": count,
+                }
+            )
+    return data
 
-#     Process data to compare totals
+
+def process_data(data):
+    """
+    Compute totals for GitHub usage.
+    """
+    total_count = sum(row["COUNT"] for row in data)
+    summary = data.copy()
+    summary.append(
+        {
+            "TOOL_IDENTIFIER": "TOTAL",
+            "SPDX_IDENTIFIER": "N/A",
+            "COUNT": total_count,
+        }
+    )
+    return summary
 
 
-# def parse_arguments():
-#     """
-#     Parses command-line arguments, returns parsed arguments.
-#     """
-#     LOGGER.info("Parsing command-line arguments")
-#     parser = argparse.ArgumentParser(
-#       description="Google Custom Search Comparison Report")
-#     parser.add_argument(
-#         "--current_quarter", type=str, required=True,
-#       help="Current quarter for comparison (e.g., 2024Q3)"
-#     )
-#     parser.add_argument(
-#         "--previous_quarter", type=str, required=True,
-#           help="Previous quarter for comparison (e.g., 2024Q2)"
-#     )
-#     return parser.parse_args()
+def save_summary(summary, args):
+    """
+    Save the processed summary file.
+    """
+    if not args.enable_save:
+        LOGGER.info("Skipping save step (--enable-save not passed)")
+        return
+
+    output_file = os.path.join(PATHS["data_2-process"], "github_summary.csv")
+    os.makedirs(PATHS["data_2-process"], exist_ok=True)
+
+    with open(output_file, "w", newline="") as file:
+        writer = csv.DictWriter(
+            file, fieldnames=["TOOL_IDENTIFIER", "SPDX_IDENTIFIER", "COUNT"]
+        )
+        writer.writeheader()
+        writer.writerows(summary)
+
+    LOGGER.info(f"Processed GitHub data saved to {output_file}")
+
+    if args.enable_git:
+        shared.git_add_and_commit(
+            args,
+            PATHS["repo"],
+            PATHS["data_quarter"],
+            "Add processed GitHub summary file",
+        )
+        shared.git_push_changes(args, PATHS["repo"])
 
 
 def main():
-    raise shared.QuantifyingException("No current code for Phase 2", 0)
+    args = parse_arguments()
+    shared.paths_log(LOGGER, PATHS)
 
-    # # Fetch and merge changes
-    # shared.fetch_and_merge(PATHS["repo"])
-
-    # # Add and commit changes
-    # shared.add_and_commit(
-    #     PATHS["repo"], PATHS["data_quarter"], "Fetched and updated new data"
-    # )
-
-    # # Push changes
-    # shared.push_changes(PATHS["repo"])
+    github_data = load_github_counts()
+    summary = process_data(github_data)
+    save_summary(summary, args)
 
 
 if __name__ == "__main__":
@@ -85,13 +133,12 @@ if __name__ == "__main__":
             LOGGER.info(e.message)
         else:
             LOGGER.error(e.message)
-        sys.exit(e.code)
-    except SystemExit as e:
-        LOGGER.error(f"System exit with code: {e.code}")
-        sys.exit(e.code)
+        sys.exit(e.exit_code)
     except KeyboardInterrupt:
         LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
+    except SystemExit as e:
+        sys.exit(e.code)
     except Exception:
         LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
         sys.exit(1)

@@ -24,8 +24,8 @@ urllib3 = ">=2.5.0"
 wordcloud = "*"
 
 [dev-packages]
-black = "*"
 "black[jupyter]" = "*"
+black = "*"
 flake8 = "*"
 isort = "*"
 pre-commit = "*"
