@@ -101,12 +101,11 @@ def query_openverse(session):
             records = data.get("results", [])
             for record in records:
                 key = (
-                    record.get(OPENVERSE_FIELDS[0], ""),
+                    record.get(OPENVERSE_FIELDS[0], ""),  # source
                     media_type,
-                    record.get(OPENVERSE_FIELDS[2], ""),
-                    record.get(OPENVERSE_FIELDS[3], ""),
+                    record.get(OPENVERSE_FIELDS[2], ""),  # license
+                    record.get(OPENVERSE_FIELDS[3], ""),  # license version
                 )
-                # key = ("source", "media_type", "license", "license_version")
                 tally[key] = tally.get(key, 0) + 1
         except requests.RequestException as e:
             LOGGER.error(f"Openverse fetch failed: {e}")
@@ -114,10 +113,10 @@ def query_openverse(session):
     # Convert tally dictionary to a list of dicts for writing
     aggregate = [
         {
-            OPENVERSE_FIELDS[0]: field[0],
+            OPENVERSE_FIELDS[0]: field[0],  # source
             "media_type": field[1],
-            OPENVERSE_FIELDS[2]: field[2],
-            OPENVERSE_FIELDS[3]: field[3],
+            OPENVERSE_FIELDS[2]: field[2],  # license
+            OPENVERSE_FIELDS[3]: field[3],  # license version
             "media_count": count,
         }
         for field, count in tally.items()
@@ -130,10 +129,14 @@ def write_data(args, data):
         return
     os.makedirs(PATHS["data_phase"], exist_ok=True)
     with open(FILE_PATH, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=OPENVERSE_FIELDS)
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[header.upper() for header in OPENVERSE_FIELDS],
+            dialect="unix",
+        )
         writer.writeheader()
         for row in data:
-            writer.writerow(row)
+            writer.writerow({key.upper(): value for key, value in row.items()})
 
 
 def main():
