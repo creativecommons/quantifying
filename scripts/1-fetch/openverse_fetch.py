@@ -36,13 +36,11 @@ FILE_PATH = os.path.join(PATHS["data_phase"], "openverse_fetch.csv")
 OPENVERSE_FIELDS = [
     "source",
     "media_type",
-    "license",
-    "license_version",
+    "CC_TOOL_IDENTIFIER",
     "media_count",
 ]
 OPENVERSE_BASE_URL = "https://api.openverse.org/v1"
 MEDIA_TYPES = ["audio", "images"]
-PAGE_SIZE = 20  # API limit for anonymous requests
 
 
 def parse_arguments():
@@ -107,7 +105,7 @@ def query_openverse(session):
     """
     tally = {}
     for media_type in MEDIA_TYPES:
-        LOGGER.info(f"Fetching {media_type} data...")
+        LOGGER.info(f"FETCHING {media_type.upper()} DATA...")
         sources, licenses = get_all_sources_and_licenses(session, media_type)
         for source in sources:
             for license in licenses:
@@ -116,7 +114,7 @@ def query_openverse(session):
                     f"source={source}&license={license}"
                     "&format=json"
                 )
-                LOGGER.info(f"GETTING FOR: {url}")
+                LOGGER.info(f"Target URL: {url}")
                 try:
                     response = session.get(url)
                     if response.status_code == 401:
@@ -133,7 +131,10 @@ def query_openverse(session):
                         key = (
                             record.get(OPENVERSE_FIELDS[0], ""),  # source
                             media_type,
-                            record.get(OPENVERSE_FIELDS[2], ""),  # license
+                            record.get("license", ""),  # license
+                            record.get(
+                                "license_version", ""
+                            ),  # license version
                         )
                         tally[key] = count
                 except requests.RequestException as e:
@@ -142,13 +143,17 @@ def query_openverse(session):
                         f"Openverse fetch failed: {e}"
                     )
     # Convert tally dictionary to a list of dicts for writing
-    LOGGER.info("Aggrgating the data")
+    LOGGER.info("Aggregating the data")
     aggregate = [
         {
             OPENVERSE_FIELDS[0]: field[0],  # source
             "media_type": field[1],
-            OPENVERSE_FIELDS[2]: field[2],  # license
-            "media_count": count,
+            # CC_TOOL_IDENTIFIER = f"CC {license.upper()} {license_version}"
+            OPENVERSE_FIELDS[2]: (
+                f"{'CC ' + field[2].upper() if field[2] not in ['cc0', 'pdm'] else field[2].upper()}"  # noqa: E501
+                f" {field[3]}"
+            ),
+            OPENVERSE_FIELDS[3]: count,  # media_count
         }
         for field, count in tally.items()
     ]
