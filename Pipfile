@@ -22,7 +22,6 @@ requests = ">=2.31.0"
 seaborn = "*"
 urllib3 = ">=2.5.0"
 wordcloud = "*"
-pre-commit = "*"
 
 [dev-packages]
 black = "*"
