@@ -81,6 +81,26 @@ def get_requests_session():
     return session
 
 
+def get_all_sources_and_licenses(session, media_type):
+    LOGGER.info("Fetching all sources and licenses")
+    sources = set()
+    licenses = set()
+    url = f"{OPENVERSE_BASE_URL}/{media_type}/?format=json"
+    try:
+        response = session.get(url)
+        response.raise_for_status()
+        records = response.json().get("results", [])
+        for record in records:
+            sources.add(record.get("source", ""))
+            licenses.add(record.get("license", ""))
+        return list(sources), list(licenses)
+    except requests.HTTPError as e:
+        LOGGER.error(f"Failed to fetch sources and licenses: {e}")
+        raise shared.QuantifyingException(
+            f"Failed to fetch sources and licenses: {e}"
+        )
+
+
 def query_openverse(session):
     """
     Fetch records from Openverse API.
@@ -88,35 +108,46 @@ def query_openverse(session):
     tally = {}
     for media_type in MEDIA_TYPES:
         LOGGER.info(f"Fetching {media_type} data...")
-        url = f"{OPENVERSE_BASE_URL}/{media_type}/?page_size={PAGE_SIZE}"
-        try:
-            response = session.get(url)
-            if response.status_code == 401:
-                raise shared.QuantifyingException(
-                    f"Unauthorized(401): Check API key for {media_type}.",
-                    exit_code=1,
+        sources, licenses = get_all_sources_and_licenses(session, media_type)
+        for source in sources:
+            for license in licenses:
+                url = (
+                    f"{OPENVERSE_BASE_URL}/{media_type}/?"
+                    f"source={source}&license={license}"
+                    "&format=json"
                 )
-            response.raise_for_status()
-            data = response.json()
-            records = data.get("results", [])
-            for record in records:
-                key = (
-                    record.get(OPENVERSE_FIELDS[0], ""),  # source
-                    media_type,
-                    record.get(OPENVERSE_FIELDS[2], ""),  # license
-                    record.get(OPENVERSE_FIELDS[3], ""),  # license version
-                )
-                tally[key] = tally.get(key, 0) + 1
-        except requests.RequestException as e:
-            LOGGER.error(f"Openverse fetch failed: {e}")
-            raise shared.QuantifyingException(f"Openverse fetch failed: {e}")
+                LOGGER.info(f"GETTING FOR: {url}")
+                try:
+                    response = session.get(url)
+                    if response.status_code == 401:
+                        raise shared.QuantifyingException(
+                            "Unauthorized(401): Check API key for"
+                            f" {media_type}.",
+                            exit_code=1,
+                        )
+                    response.raise_for_status()
+                    data = response.json()
+                    count = data.get("result_count", 0)
+                    records = data.get("results", [])
+                    for record in records:
+                        key = (
+                            record.get(OPENVERSE_FIELDS[0], ""),  # source
+                            media_type,
+                            record.get(OPENVERSE_FIELDS[2], ""),  # license
+                        )
+                        tally[key] = count
+                except requests.RequestException as e:
+                    LOGGER.error(f"Openverse fetch failed: {e}")
+                    raise shared.QuantifyingException(
+                        f"Openverse fetch failed: {e}"
+                    )
     # Convert tally dictionary to a list of dicts for writing
+    LOGGER.info("Aggrgating the data")
     aggregate = [
         {
             OPENVERSE_FIELDS[0]: field[0],  # source
             "media_type": field[1],
             OPENVERSE_FIELDS[2]: field[2],  # license
-            OPENVERSE_FIELDS[3]: field[3],  # license version
             "media_count": count,
         }
         for field, count in tally.items()
