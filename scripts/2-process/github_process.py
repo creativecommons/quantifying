@@ -20,11 +20,18 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
+# Map SPDX to CC License Identifiers
+SPDX_TO_CC_LICENSE = {
+    "CC0-1.0": "zero_1.0",
+    "CC-BY-4.0": "by_4.0",
+    "CC-BY-SA-4.0": "by-sa_4.0",
+}
+
+# Licenses outside Creative Commons are kept unchanged
+NON_CC_LICENSES = {"0BSD", "MIT-0", "Unlicense", "N/A"}
+
 
 def parse_arguments():
-    """
-    Parse command-line options.
-    """
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(
         description="Process GitHub data for reporting"
@@ -43,9 +50,6 @@ def parse_arguments():
 
 
 def load_github_counts():
-    """
-    Load GitHub license counts from Phase 1.
-    """
     file_path = os.path.join(PATHS["data_1-fetch"], "github_1_count.csv")
     if not os.path.exists(file_path):
         raise shared.QuantifyingException(
@@ -60,10 +64,17 @@ def load_github_counts():
                 count = int(row["COUNT"])
             except ValueError:
                 count = 0
+
+            spdx = row["SPDX_IDENTIFIER"]
+            if spdx in SPDX_TO_CC_LICENSE:
+                license_id = SPDX_TO_CC_LICENSE[spdx]
+            else:
+                license_id = spdx  # Keep as is for Non-CC licenses
+
             data.append(
                 {
                     "TOOL_IDENTIFIER": row["TOOL_IDENTIFIER"],
-                    "SPDX_IDENTIFIER": row["SPDX_IDENTIFIER"],
+                    "LICENSE_IDENTIFIER": license_id,
                     "COUNT": count,
                 }
             )
@@ -71,15 +82,12 @@ def load_github_counts():
 
 
 def process_data(data):
-    """
-    Compute totals for GitHub usage.
-    """
     total_count = sum(row["COUNT"] for row in data)
     summary = data.copy()
     summary.append(
         {
             "TOOL_IDENTIFIER": "TOTAL",
-            "SPDX_IDENTIFIER": "N/A",
+            "LICENSE_IDENTIFIER": "TOTAL",
             "COUNT": total_count,
         }
     )
@@ -87,9 +95,6 @@ def process_data(data):
 
 
 def save_summary(summary, args):
-    """
-    Save the processed summary file.
-    """
     if not args.enable_save:
         LOGGER.info("Skipping save step (--enable-save not passed)")
         return
@@ -99,7 +104,8 @@ def save_summary(summary, args):
 
     with open(output_file, "w", newline="") as file:
         writer = csv.DictWriter(
-            file, fieldnames=["TOOL_IDENTIFIER", "SPDX_IDENTIFIER", "COUNT"]
+            file,
+            fieldnames=["TOOL_IDENTIFIER", "LICENSE_IDENTIFIER", "COUNT"],
         )
         writer.writeheader()
         writer.writerows(summary)
