@@ -120,7 +120,7 @@ def get_requests_session():
     session = requests.Session()
     session.mount("https://", HTTPAdapter(max_retries=max_retries))
     headers = {
-        "User-Agent": "QuantifyingTheCommons/1.0 (https://github.com/creativecommons/quantifying)"
+        "User-Agent": shared.USER_AGENT
     }
     session.headers.update(headers)
     return session

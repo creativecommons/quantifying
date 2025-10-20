@@ -25,6 +25,9 @@ RETRY_STATUS_FORCELIST = [
     504,  # Gateway Timeout
 ]
 
+# User-Agent string for HTTP requests
+USER_AGENT = "QuantifyingTheCommons/1.0 (https://github.com/creativecommons/quantifying)"
+
 # Hyphenated to CC legal tool identifier mapping
 # Except PDM-1.0, follows SPDX identifier. Used by WikiCommons.
 LICENSE_NORMALIZATION = {
