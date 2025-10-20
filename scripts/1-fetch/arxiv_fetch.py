@@ -5,22 +5,26 @@ Fetch ArXiv papers with CC license information and generate count reports.
 # Standard library
 import argparse
 import csv
+import json
 import os
+import re
 import sys
 import textwrap
 import time
 import traceback
 import urllib.parse
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 # Third-party
 import feedparser
 import requests
+import yaml
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -37,24 +41,104 @@ FILE_ARXIV_COUNT = shared.path_join(PATHS["data_1-fetch"], "arxiv_1_count.csv")
 FILE_ARXIV_CATEGORY = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_2_count_by_category.csv"
 )
+FILE_ARXIV_CATEGORY_REPORT = shared.path_join(
+    PATHS["data_1-fetch"], "arxiv_2_count_by_category_report.csv"
+)
+FILE_ARXIV_CATEGORY_REPORT_AGGREGATE = shared.path_join(
+    PATHS["data_1-fetch"], "arxiv_2_count_by_category_report_agg.csv"
+)
 FILE_ARXIV_YEAR = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_3_count_by_year.csv"
 )
 FILE_ARXIV_AUTHOR = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_count.csv"
 )
+FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
+    PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
+)
+# records metadata for each run for audit, reproducibility, and provenance
+FILE_PROVENANCE = shared.path_join(PATHS["data_1-fetch"], "arxiv_provenance.json")
 
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
 HEADER_CATEGORY = ["TOOL_IDENTIFIER", "CATEGORY", "COUNT"]
+HEADER_CATEGORY_REPORT = [
+    "TOOL_IDENTIFIER",
+    "CATEGORY_CODE",
+    "CATEGORY_LABEL",
+    "COUNT",
+    "PERCENT",
+]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 HEADER_AUTHOR = ["TOOL_IDENTIFIER", "AUTHOR_COUNT", "COUNT"]
+HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
 
 QUARTER = os.path.basename(PATHS["data_quarter"])
+
+CATEGORY_LABELS = {}
+
+# Compiled regex patterns for CC license detection
+CC_PATTERNS = [
+    (re.compile(r'\bCC[-\s]?0\b', re.IGNORECASE), "CC0"),
+    (re.compile(r'\bCC[-\s]?BY[-\s]?NC[-\s]?ND\b', re.IGNORECASE),
+     "CC BY-NC-ND"),
+    (re.compile(r'\bCC[-\s]?BY[-\s]?NC[-\s]?SA\b', re.IGNORECASE),
+     "CC BY-NC-SA"),
+    (re.compile(r'\bCC[-\s]?BY[-\s]?ND\b', re.IGNORECASE), "CC BY-ND"),
+    (re.compile(r'\bCC[-\s]?BY[-\s]?SA\b', re.IGNORECASE), "CC BY-SA"),
+    (re.compile(r'\bCC[-\s]?BY[-\s]?NC\b', re.IGNORECASE), "CC BY-NC"),
+    (re.compile(r'\bCC[-\s]?BY\b', re.IGNORECASE), "CC BY"),
+    (re.compile(r'\bCREATIVE\s+COMMONS\b', re.IGNORECASE),
+     "Creative Commons"),
+]
 
 # Log the start of the script execution
 LOGGER.info("Script execution started.")
 
 
+def load_category_map(paths):
+    """Load category->label mapping from data/arxiv_category_map.yaml if present
+    Returns a dict (possibly empty) and logs failures silently.
+    """
+    paths_to_check = []
+    # use the repository data directory
+    repository_data_dir = (
+        paths.get("data") if isinstance(paths, dict) else None
+    )
+    if repository_data_dir:
+        paths_to_check.append(
+            os.path.join(repository_data_dir, "arxiv_category_map.yaml")
+        )
+
+    # allow for looking two levels up (data/)
+    paths_to_check.append(
+        os.path.join(
+            os.path.dirname(__file__), "..", "..", "data",
+            "arxiv_category_map.yaml"
+        )
+    )
+
+    for p in paths_to_check:
+        p = os.path.abspath(os.path.realpath(p))
+        try:
+            if os.path.exists(p):
+                with open(p, "r", encoding="utf-8") as fh:
+                    data = yaml.safe_load(fh)
+                if isinstance(data, dict):
+                    # Normalise keys/values to strings for readability
+                    return {str(k).strip(): str(v) for k, v in data.items()}
+        except Exception as e:
+            LOGGER = globals().get("LOGGER")
+            if LOGGER:
+                LOGGER.warning("Failed to load category map %s: %s", p, e)
+            else:
+                print(
+                    f"Warning: Failed to load category map {p}: {e}",
+                    file=sys.stderr
+                )
+    return {}
+
+
+# parsing arguments function
 def parse_arguments():
     """Parse command-line options, returns parsed argument namespace."""
     LOGGER.info("Parsing command-line options")
@@ -92,7 +176,10 @@ def initialize_data_file(file_path, headers):
 
 
 def initialize_all_data_files(args):
-    """Initialize all data files."""
+    """Initialize all data files used by this script.
+
+    Creates the data directory and initializes empty CSVs with headers.
+    """
     if not args.enable_save:
         return
 
@@ -101,67 +188,55 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_ARXIV_CATEGORY, HEADER_CATEGORY)
     initialize_data_file(FILE_ARXIV_YEAR, HEADER_YEAR)
     initialize_data_file(FILE_ARXIV_AUTHOR, HEADER_AUTHOR)
+    initialize_data_file(FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET)
+
+
+def get_requests_session():
+    """Create request session with retry logic"""
+    retry_strategy = Retry(
+        total=5,
+        backoff_factor=1,
+        status_forcelist=[408, 429, 500, 502, 503, 504]
+    )
+    session = requests.Session()
+    session.mount("http://", HTTPAdapter(max_retries=retry_strategy))
+    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
+    return session
+
+
+def normalize_license_text(raw_text: str) -> str:
+    """Normalize license text to standard CC license identifiers using regex."""
+    if not raw_text:
+        return "Unknown"
+
+    for pattern, license_type in CC_PATTERNS:
+        if pattern.search(raw_text):
+            return license_type
+
+    return "Unknown"
 
 
 def extract_license_info(entry):
     """Extract CC license information from ArXiv entry."""
-    license_info = "Unknown"
-
-    # Check for license in rights field
+    # checking through the rights field first then summary
     if hasattr(entry, "rights") and entry.rights:
-        license_info = entry.rights.upper()
-        if "CC0" in license_info or "CC 0" in license_info:
-            license_info = "CC0"
-        elif "CC BY-NC-ND" in license_info:
-            license_info = "CC BY-NC-ND"
-        elif "CC BY-NC-SA" in license_info:
-            license_info = "CC BY-NC-SA"
-        elif "CC BY-ND" in license_info:
-            license_info = "CC BY-ND"
-        elif "CC BY-SA" in license_info:
-            license_info = "CC BY-SA"
-        elif "CC BY-NC" in license_info:
-            license_info = "CC BY-NC"
-        elif "CC BY" in license_info:
-            license_info = "CC BY"
-        elif "CREATIVE COMMONS" in license_info:
-            license_info = "Creative Commons"
-        else:
-            license_info = "unknown"
+        license_info = normalize_license_text(entry.rights)
+        if license_info != "Unknown":
+            return license_info
+    if hasattr(entry, "summary") and entry.summary:
+        license_info = normalize_license_text(entry.summary)
+        if license_info != "Unknown":
+            return license_info
+    return "Unknown"
 
-    # Check for license in summary/abstract
-    if license_info == "Unknown" and hasattr(entry, "summary"):
-        license_info = entry.summary.upper()
-        if "CCO" in license_info or "CC 0" in license_info:
-            license_info = "CC0"
-        elif "CC BY-NC-ND" in license_info:
-            license_info = "CC BY-NC-ND"
-        elif "CC BT-NC-SA" in license_info:
-            license_info = "CC BY-NC-SA"
-        elif "CC BY-ND" in license_info:
-            license_info = "CC BY-ND"
-        elif "CC BY-SA" in license_info:
-            license_info = "CC BY-SA"
-        elif "CC BY-NC" in license_info:
-            license_info = "CC BY-NC"
-        elif "CC BY" in license_info:
-            license_info = "CC BY"
-        elif "CREATIVE COMMONS" in license_info:
-            license_info = "Creative Commons"
-        else:
-            license_info = "Unknown"
-
-    return license_info
 
 
 def extract_category_from_entry(entry):
     """Extract primary category from ArXiv entry."""
-    if (
-        hasattr(entry, "arxiv_primary_category")
-        and entry.arxiv_primary_category
-    ):
+    if (hasattr(entry, "arxiv_primary_category") and
+            entry.arxiv_primary_category):
         return entry.arxiv_primary_category.get("term", "Unknown")
-    elif hasattr(entry, "tags") and entry.tags:
+    if hasattr(entry, "tags") and entry.tags:
         # Get first category from tags
         for tag in entry.tags:
             if hasattr(tag, "term"):
@@ -171,7 +246,7 @@ def extract_category_from_entry(entry):
 
 def extract_year_from_entry(entry):
     """Extract publication year from ArXiv entry."""
-    if hasattr(entry, "published"):
+    if hasattr(entry, "published") and entry.published:
         try:
             return entry.published[:4]  # Extract year from date string
         except (AttributeError, IndexError):
@@ -181,43 +256,189 @@ def extract_year_from_entry(entry):
 
 def extract_author_count_from_entry(entry):
     """Extract number of authors from ArXiv entry."""
-    if hasattr(entry, "authors"):
-        return str(len(entry.authors))
-    elif hasattr(entry, "author"):
-        return "1"
+    if hasattr(entry, "authors") and entry.authors:
+        try:
+            return len(entry.authors)
+        except Exception:
+            pass
+    if hasattr(entry, "author") and entry.author:
+        return 1
     return "Unknown"
 
 
-def get_requests_session():
-    """Create requests session with retry logic."""
-    retry_strategy = Retry(
-        total=5,
-        backoff_factor=3,
-        status_forcelist=[408, 429, 500, 502, 503, 504],
-    )
-    session = requests.Session()
-    session.mount("http://", HTTPAdapter(max_retries=retry_strategy))
-    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
-    return session
+def bucket_author_count(n):
+    if n is None:
+        return "Unknown"
+    if n == 1:
+        return "1"
+    if 2 <= n <= 3:
+        return "2-3"
+    if 4 <= n <= 6:
+        return "4-6"
+    if 7 <= n <= 10:
+        return "7-10"
+    return "11+"
+
+
+def save_count_data(license_counts, category_counts, year_counts,
+                    author_counts):
+    # license_counts: {license: count}
+    # category_counts: {license: {category_code: count}}
+    # year_counts: {license: {year: count}}
+    # author_counts: {license: {author_count(int|None): count}}
+
+    # Save license counts
+    with open(FILE_ARXIV_COUNT, "w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=HEADER_COUNT, dialect="unix")
+        writer.writeheader()
+        for lic, c in license_counts.items():
+            writer.writerow({"TOOL_IDENTIFIER": lic, "COUNT": c})
+
+    # Save detailed category counts (code)
+    with open(FILE_ARXIV_CATEGORY, "w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=HEADER_CATEGORY,
+                               dialect="unix")
+        writer.writeheader()
+        for lic, cats in category_counts.items():
+            for code, c in cats.items():
+                writer.writerow({
+                    "TOOL_IDENTIFIER": lic,
+                    "CATEGORY": code,
+                    "COUNT": c
+                })
+
+    # Save category report with labels and percent
+    with open(FILE_ARXIV_CATEGORY_REPORT, "w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=HEADER_CATEGORY_REPORT,
+                               dialect="unix")
+        writer.writeheader()
+        for lic, cats in category_counts.items():
+            total_for_license = sum(cats.values()) or 1
+            for code, c in cats.items():
+                label = CATEGORY_LABELS.get(
+                    code,
+                    code.split(".")[0].upper() if code and "." in code else code
+                )
+                pct = round((c / total_for_license) * 100, 2)
+                writer.writerow({
+                    "TOOL_IDENTIFIER": lic,
+                    "CATEGORY_CODE": code,
+                    "CATEGORY_LABEL": label,
+                    "COUNT": c,
+                    "PERCENT": pct,
+                })
+
+    # Save aggregated category report (top N per license, rest -> Other)
+    TOP_N = 10
+    with open(FILE_ARXIV_CATEGORY_REPORT_AGGREGATE, "w", newline="") as fh:
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=["TOOL_IDENTIFIER", "CATEGORY_LABEL", "COUNT",
+                       "PERCENT"],
+            dialect="unix"
+        )
+        writer.writeheader()
+        for lic, cats in category_counts.items():
+            total_for_license = sum(cats.values()) or 1
+            sorted_cats = sorted(cats.items(), key=lambda x: x[1],
+                               reverse=True)
+            top = sorted_cats[:TOP_N]
+            others = sorted_cats[TOP_N:]
+            other_count = sum(c for _, c in others)
+            for code, c in top:
+                label = CATEGORY_LABELS.get(
+                    code,
+                    code.split(".")[0].upper() if code and "." in code else code
+                )
+                writer.writerow({
+                    "TOOL_IDENTIFIER": lic,
+                    "CATEGORY_LABEL": label,
+                    "COUNT": c,
+                    "PERCENT": round((c / total_for_license) * 100, 2),
+                })
+            if other_count:
+                writer.writerow({
+                    "TOOL_IDENTIFIER": lic,
+                    "CATEGORY_LABEL": "Other",
+                    "COUNT": other_count,
+                    "PERCENT": round((other_count / total_for_license) * 100, 2),
+                })
+
+    # Save year counts
+    with open(FILE_ARXIV_YEAR, "w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=HEADER_YEAR, dialect="unix")
+        writer.writeheader()
+        for lic, years in year_counts.items():
+            for year, c in years.items():
+                writer.writerow({
+                    "TOOL_IDENTIFIER": lic,
+                    "YEAR": year,
+                    "COUNT": c
+                })
+
+    # Save detailed author counts (AUTHOR_COUNT as integer or Unknown)
+    with open(FILE_ARXIV_AUTHOR, "w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=HEADER_AUTHOR,
+                               dialect="unix")
+        writer.writeheader()
+        for lic, acs in author_counts.items():
+            for ac, c in acs.items():
+                writer.writerow({
+                    "TOOL_IDENTIFIER": lic,
+                    "AUTHOR_COUNT": ac if ac is not None else "Unknown",
+                    "COUNT": c
+                })
+
+    # Save author buckets summary
+    with open(FILE_ARXIV_AUTHOR_BUCKET, "w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=HEADER_AUTHOR_BUCKET,
+                               dialect="unix")
+        writer.writeheader()
+        # build buckets across licenses
+        for lic, acs in author_counts.items():
+            bucket_counts = Counter()
+            for ac, c in acs.items():
+                b = bucket_author_count(ac)
+                bucket_counts[b] += c
+            for b, c in bucket_counts.items():
+                writer.writerow({
+                    "TOOL_IDENTIFIER": lic,
+                    "AUTHOR_BUCKET": b,
+                    "COUNT": c
+                })
 
 
 def query_arxiv(args):
     """Query ArXiv API for papers with potential CC licenses."""
 
     LOGGER.info("Beginning to fetch results from ArXiv API")
-
     session = get_requests_session()
+    try:
+        loaded = load_category_map(PATHS)
+        if loaded:
+            # overlay loaded map over default
+            CATEGORY_LABELS.update(loaded)
+    except Exception as e:
+        LOGGER.warning("Error loading external arXiv category map: %s", e)
     results_per_iteration = 50
 
     search_queries = [
         'all:"creative commons"',
         'all:"CC BY"',
+        'all:"CC-BY"',
         'all:"CC BY-NC"',
+        'all:"CC-BY-NC"',
         'all:"CC BY-SA"',
+        'all:"CC-BY-SA"',
         'all:"CC BY-ND"',
+        'all:"CC-BY-ND"',
         'all:"CC BY-NC-SA"',
+        'all:"CC-BY-NC-SA"',
         'all:"CC BY-NC-ND"',
+        'all:"CC-BY-NC-ND"',
         'all:"CC0"',
+        'all:"CC 0"',
+        'all:"CC-0"',
     ]
 
     # Data structures for counting
@@ -262,6 +483,7 @@ def query_arxiv(args):
                     license_info = extract_license_info(entry)
 
                     if license_info != "Unknown":
+
                         category = extract_category_from_entry(entry)
                         year = extract_year_from_entry(entry)
                         author_count = extract_author_count_from_entry(entry)
@@ -293,16 +515,16 @@ def query_arxiv(args):
                 LOGGER.error(f"Request failed: {e}")
                 break
 
-        if papers_found_in_batch == 0:
-            consecutive_empty_calls += 1
-            if consecutive_empty_calls >= 2:
-                LOGGER.info(
-                    f"No new papers in 2 consecutive calls for "
-                    f"query: {search_query}. Moving over to the next query."
-                )
-                break
-        else:
-            consecutive_empty_calls = 0
+            if papers_found_in_batch == 0:
+                consecutive_empty_calls += 1
+                if consecutive_empty_calls >= 2:
+                    LOGGER.info(
+                        f"No new papers in 2 consecutive calls for "
+                        f"query: {search_query}. Moving over to the next query."
+                    )
+                    break
+            else:
+                consecutive_empty_calls = 0
 
     # Save results
 
@@ -311,78 +533,24 @@ def query_arxiv(args):
             license_counts, category_counts, year_counts, author_counts
         )
 
+    # save provenance
+    provenance_data = {
+        "total_fetched": total_fetched,
+        "queries": search_queries,
+        "limit": args.limit,
+        "quarter": QUARTER,
+        "script": os.path.basename(__file__),
+    }
+
+    # write provenance JSON for auditing
+    try:
+        os.makedirs(os.path.dirname(FILE_PROVENANCE), exist_ok=True)
+        with open(FILE_PROVENANCE, "w", encoding="utf-8") as fh:
+            json.dump(provenance_data, fh, indent=2)
+    except Exception as e:
+        LOGGER.warning("Failed to write provenance file: %s", e)
+
     LOGGER.info(f"Total CC licensed papers fetched: {total_fetched}")
-
-
-def save_count_data(
-    license_counts, category_counts, year_counts, author_counts
-):
-    """Save count data to CSV files."""
-    # Save license counts
-    with open(FILE_ARXIV_COUNT, "w", newline="") as file_obj:
-        writer = csv.DictWriter(
-            file_obj, fieldnames=HEADER_COUNT, dialect="unix"
-        )
-        writer.writeheader()
-
-        for license_type, count in license_counts.items():
-            writer.writerow(
-                {
-                    "TOOL_IDENTIFIER": license_type,
-                    "COUNT": count,
-                }
-            )
-
-    # Save category counts
-    with open(FILE_ARXIV_CATEGORY, "w", newline="") as file_obj:
-        writer = csv.DictWriter(
-            file_obj, fieldnames=HEADER_CATEGORY, dialect="unix"
-        )
-        writer.writeheader()
-
-        for license_type, categories in category_counts.items():
-            for category, count in categories.items():
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": license_type,
-                        "CATEGORY": category,
-                        "COUNT": count,
-                    }
-                )
-
-    # Save year counts
-    with open(FILE_ARXIV_YEAR, "w", newline="") as file_obj:
-        writer = csv.DictWriter(
-            file_obj, fieldnames=HEADER_YEAR, dialect="unix"
-        )
-        writer.writeheader()
-
-        for license_type, years in year_counts.items():
-            for year, count in years.items():
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": license_type,
-                        "YEAR": year,
-                        "COUNT": count,
-                    }
-                )
-
-    # Save author count data
-    with open(FILE_ARXIV_AUTHOR, "w", newline="") as file_obj:
-        writer = csv.DictWriter(
-            file_obj, fieldnames=HEADER_AUTHOR, dialect="unix"
-        )
-        writer.writeheader()
-
-        for license_type, author_counts_data in author_counts.items():
-            for author_count, count in author_counts_data.items():
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": license_type,
-                        "AUTHOR_COUNT": author_count,
-                        "COUNT": count,
-                    }
-                )
 
 
 def main():
