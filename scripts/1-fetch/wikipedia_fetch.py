@@ -30,7 +30,12 @@ LOGGER, PATHS = shared.setup(__file__)
 FILE_LANGUAGES = os.path.join(
     PATHS["data_phase"], "wikipedia_count_by_languages.csv"
 )
-HEADER_LANGUAGES = ["LANGUAGE_CODE", "LANGUAGE_NAME", "COUNT"]
+HEADER_LANGUAGES = [
+    "LANGUAGE_CODE",
+    "LANGUAGE_NAME",
+    "LANGUAGE_NAME_EN",
+    "COUNT",
+]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 WIKIPEDIA_BASE_URL = "https://en.wikipedia.org/w/api.php"
 WIKIPEDIA_MATRIX_URL = "https://meta.wikimedia.org/w/api.php"
@@ -91,25 +96,28 @@ def query_wikipedia_languages(session):
     tool_data = []
 
     # Gets all language wikipedias
-    params = {"action": "sitematrix", "format": "json"}
+    params = {"action": "sitematrix", "format": "json", "uselang": "en"}
     r = session.get(WIKIPEDIA_MATRIX_URL, params=params, timeout=30)
     data = r.json()["sitematrix"]
 
     languages = []
     for key, val in data.items():
+        if not isinstance(val, dict):
+            continue
         if key.isdigit():
             language_code = val.get("code")
             language_name = val.get("name")
-            for site in val.get("site", []):
-                if "wikipedia.org" in site["url"]:
-                    languages.append(
-                        {
-                            "code": language_code,
-                            "name": language_name,
-                            "url": site["url"],
-                        }
-                    )
-
+            language_name_en = val.get("localname")
+        for site in val.get("site", []):
+            if "wikipedia.org" in site["url"]:
+                languages.append(
+                    {
+                        "code": language_code,
+                        "name": language_name,
+                        "name_en": language_name_en,
+                        "url": site["url"],
+                    }
+                )
     # For each language wikipedia, fetch statistics.
     for site in languages:
         base_url = f"{site['url']}/w/api.php"
@@ -124,24 +132,32 @@ def query_wikipedia_languages(session):
             r.raise_for_status()
             data = r.json()
             stats = data["query"]["statistics"]
-
             article_count = stats.get("articles", 0)
+            language_code = site["code"]
+            language_name = site["name"]
+            language_name_en = site["name_en"]
+
+            if language_name:
+                language_display = (
+                    f"{language_code} {language_name_en} ({language_name})"
+                )
+            else:
+                language_display = f"{language_code} {language_name_en}"
             if article_count == 0:
-                LOGGER.info(f"Skipping {language_name} with 0 articles")
+                LOGGER.info(f"Skipping {language_display} with 0 articles")
                 continue
             tool_data.append(
                 {
-                    "LANGUAGE_CODE": site["code"],
-                    "LANGUAGE_NAME": site["name"],
+                    "LANGUAGE_CODE": language_code,
+                    "LANGUAGE_NAME": language_name,
+                    "LANGUAGE_NAME_EN": language_name_en,
                     "COUNT": article_count,
                 }
             )
-            LOGGER.info(f"{site['code']} ({site['name']}): {article_count}")
+            LOGGER.info(f"{language_display}: {article_count}")
 
         except Exception as e:
-            LOGGER.warning(
-                f"Failed to fetch for {site['code']} ({site['name']}): {e}"
-            )
+            LOGGER.warning(f"Failed to fetch for {language_display}): {e}")
 
     return tool_data
 
