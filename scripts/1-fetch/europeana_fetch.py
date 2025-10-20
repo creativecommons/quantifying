@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Fetch high-level Europeana statistics for Quantifying the Commons.
-Aggregates data by DATA_PROVIDER, LEGAL_TOOL, and COUNT.
+Aggregates data by DATA_PROVIDER, LEGAL_TOOL, THEME, and COUNT.
 """
 
 # Standard library
@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
+from requests.adapters import HTTPAdapter, Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -37,7 +38,7 @@ load_dotenv(PATHS["dotenv"])
 EUROPEANA_API_KEY = os.getenv("EUROPEANA_API_KEY")
 BASE_URL = "https://api.europeana.eu/record/v2/search.json"
 FILE_STATS = shared.path_join(PATHS["data_phase"], "europeana_1_count.csv")
-HEADER_STATS = ["DATA_PROVIDER", "LEGAL_TOOL", "COUNT"]
+HEADER_STATS = ["DATA_PROVIDER", "LEGAL_TOOL", "THEME", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
 # Log the start of script execution
@@ -45,9 +46,7 @@ LOGGER.info("Europeana high-level stats script execution started.")
 
 
 def parse_arguments():
-    """
-    Parse command-line options, returns parsed argument namespace.
-    """
+    """Parse command-line options."""
     LOGGER.info("Parsing command-line options.")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -90,10 +89,28 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_STATS, HEADER_STATS)
 
 
+def get_requests_session():
+    """Create a requests session with retry and headers."""
+    max_retries = Retry(
+        total=5,
+        backoff_factor=5,
+        status_forcelist=shared.RETRY_STATUS_FORCELIST,
+    )
+    session = requests.Session()
+    session.mount("https://", HTTPAdapter(max_retries=max_retries))
+    session.headers.update(
+        {
+            "accept": "application/json",
+            "User-Agent": shared.USER_AGENT,
+        }
+    )
+    return session
+
+
 def fetch_europeana_data(args):
     """
     Fetch and aggregate data from the Europeana Search API
-    by DATA_PROVIDER and LEGAL_TOOL.
+    by DATA_PROVIDER, LEGAL_TOOL, and THEME.
     """
     LOGGER.info("Fetching aggregated Europeana data.")
 
@@ -102,32 +119,50 @@ def fetch_europeana_data(args):
             "EUROPEANA_API_KEY not found in environment variables", 1
         )
 
-    # Try different queries to get diverse content
-    queries = ["art", "history", "science", "music", "photography"]
-    items_per_query = max(20, args.limit // len(queries))
-    all_items = []
+    # Define Europeana themes to query
+    # Provided in Europeana's site
+    themes = [
+        "art",
+        "fashion",
+        "music",
+        "industrial",
+        "sport",
+        "photography",
+        "archaeology",
+    ]
 
-    for query in queries:
+    items_per_query = max(20, args.limit // len(themes))
+    all_items = []
+    # Initialize a session for efficient and reliable requests
+    session = get_requests_session()
+
+    for theme in themes:
         params = {
             "wskey": EUROPEANA_API_KEY,
             "rows": min(items_per_query, 20),
             "profile": "rich",
-            "query": query,
+            "query": "*",
+            "theme": theme,
         }
 
         try:
             LOGGER.info(
-                f"Fetching {params['rows']} records for query: '{query}'"
+                f"Fetching {params['rows']} records for theme: '{theme}'"
             )
-            response = requests.get(BASE_URL, params=params, timeout=30)
-            response.raise_for_status()
-            results = response.json()
-            items = results.get("items", [])
+            with session.get(BASE_URL, params=params, timeout=30) as response:
+                response.raise_for_status()
+                results = response.json()
+                items = results.get("items", [])
+
+            # Tag each item with the theme used for easy tracking
+            for item in items:
+                item["theme_used"] = theme
+
             all_items.extend(items)
-            LOGGER.info(f"Retrieved {len(items)} items for '{query}'")
-            time.sleep(1)  # Be nice to the API
+            LOGGER.info(f"Retrieved {len(items)} items for theme '{theme}'")
+            time.sleep(1)
         except requests.RequestException as e:
-            LOGGER.warning(f"Failed to fetch data for query '{query}': {e}")
+            LOGGER.warning(f"Failed to fetch data for theme '{theme}': {e}")
             continue
 
     if not all_items:
@@ -136,8 +171,8 @@ def fetch_europeana_data(args):
 
     LOGGER.info(f"Total items retrieved: {len(all_items)}")
 
-    # Aggregate by data provider and legal tool
-    aggregation = defaultdict(lambda: defaultdict(int))
+    # Aggregate by data provider, legal tool, and theme
+    aggregation = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
     for item in all_items:
         # Handle dataProvider (can be array or string)
@@ -145,30 +180,24 @@ def fetch_europeana_data(args):
         if isinstance(data_providers, str):
             data_provider = data_providers
         elif data_providers and isinstance(data_providers, list):
-            data_provider = data_providers[0] if data_providers else "Unknown"
+            data_provider = data_providers[0]
         else:
             data_provider = "Unknown"
 
-        # Handle rights/license information - extract only the license code
+        # Handle rights/license information
         rights = item.get("rights", [])
         if isinstance(rights, str):
             legal_tool = rights
         elif rights and isinstance(rights, list):
-            legal_tool = rights[0] if rights else "Unknown"
+            legal_tool = rights[0]
         else:
             legal_tool = "Unknown"
 
         # Simplify legal tool (e.g., extract 'by/4.0/' → 'CC BY 4.0')
-        if (
-            legal_tool
-            and legal_tool != "Unknown"
-            and legal_tool.startswith("http")
-        ):
+        if legal_tool and legal_tool.startswith("http"):
             parts = legal_tool.strip("/").split("/")
-            last_parts = parts[-2:]  # e.g., ['by', '4.0'] or ['InC', '1.0']
+            last_parts = parts[-2:]
             if last_parts:
-                # Join neatly with spaces and add CC if
-                # it’s a Creative Commons license
                 joined = " ".join(part.upper() for part in last_parts if part)
                 if "creativecommons.org" in legal_tool:
                     legal_tool = f"CC {joined}"
@@ -177,22 +206,28 @@ def fetch_europeana_data(args):
             else:
                 legal_tool = "Unknown"
 
-        aggregation[data_provider][legal_tool] += 1
+        # Use the theme from the query loop
+        theme = item.get("theme_used", "Unknown")
+
+        aggregation[data_provider][legal_tool][theme] += 1
 
     # Convert to flat list
     output = []
     for provider, licenses in aggregation.items():
-        for legal_tool, count in licenses.items():
-            output.append(
-                {
-                    "DATA_PROVIDER": provider,
-                    "LEGAL_TOOL": legal_tool,
-                    "COUNT": count,
-                }
-            )
+        for legal_tool, themes_dict in licenses.items():
+            for theme, count in themes_dict.items():
+                output.append(
+                    {
+                        "DATA_PROVIDER": provider,
+                        "LEGAL_TOOL": legal_tool,
+                        "THEME": theme,
+                        "COUNT": count,
+                    }
+                )
 
     LOGGER.info(
-        f"Aggregated data into {len(output)} provider-license combinations"
+        f"Aggregated data into {len(output)} "
+        f"provider-license-theme combinations"
     )
     return output
 
