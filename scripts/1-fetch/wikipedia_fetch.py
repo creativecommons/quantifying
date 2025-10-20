@@ -32,8 +32,8 @@ FILE_LANGUAGES = os.path.join(
 )
 HEADER_LANGUAGES = [
     "LANGUAGE_CODE",
-    "LANGUAGE_NAME",
     "LANGUAGE_NAME_EN",
+    "LANGUAGE_NAME",
     "COUNT",
 ]
 QUARTER = os.path.basename(PATHS["data_quarter"])
@@ -137,12 +137,15 @@ def query_wikipedia_languages(session):
             language_name = site["name"]
             language_name_en = site["name_en"]
 
-            if language_name:
+            if not language_name_en:
+                language_display = f"{language_code}"
+            elif language_name:
                 language_display = (
                     f"{language_code} {language_name_en} ({language_name})"
                 )
             else:
                 language_display = f"{language_code} {language_name_en}"
+
             if article_count == 0:
                 LOGGER.info(f"Skipping {language_display} with 0 articles")
                 continue
