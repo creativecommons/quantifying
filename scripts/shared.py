@@ -15,6 +15,16 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
+# HTTP status codes that should trigger retries
+RETRY_STATUS_FORCELIST = [
+    408,  # Request Timeout
+    429,  # Too Many Requests
+    500,  # Internal Server Error
+    502,  # Bad Gateway
+    503,  # Service Unavailable
+    504,  # Gateway Timeout
+]
+
 # Hyphenated to CC legal tool identifier mapping
 # Except PDM-1.0, follows SPDX identifier. Used by WikiCommons.
 LICENSE_NORMALIZATION = {

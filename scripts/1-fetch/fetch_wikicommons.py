@@ -32,14 +32,6 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 FILE1_COUNT = shared.path_join(PATHS["data_phase"], "wikicommons_1_count.csv")
 BASE_URL = "https://commons.wikimedia.org/w/api.php"
-WIKICOMMONS_RETRY_STATUS_FORCELIST = [
-    408,  # Request Timeout
-    429,  # Too Many Requests
-    500,  # Internal Server Error
-    502,  # Bad Gateway
-    503,  # Service Unavailable
-    504,  # Gateway Timeout
-]
 HEADER1_COUNT = ["LICENSE", "FILE_COUNT", "PAGE_COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
@@ -123,7 +115,7 @@ def get_requests_session():
     max_retries = Retry(
         total=5,
         backoff_factor=2,
-        status_forcelist=WIKICOMMONS_RETRY_STATUS_FORCELIST,
+        status_forcelist=shared.RETRY_STATUS_FORCELIST,
     )
     session = requests.Session()
     session.mount("https://", HTTPAdapter(max_retries=max_retries))
