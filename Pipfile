@@ -8,6 +8,7 @@ flickrapi = "*"
 GitPython = "*"
 google-api-python-client = "*"
 h11 = ">=0.16.0"  # Ensure dependency is secure
+internetarchive = ">=5.5.1"
 jupyterlab = ">=3.6.7"
 matplotlib = "*"
 numpy = "*"
@@ -21,7 +22,7 @@ requests = ">=2.31.0"
 seaborn = "*"
 urllib3 = ">=2.5.0"
 wordcloud = "*"
-internetarchive = "*"
+pycountry = "*"
 
 [dev-packages]
 black = "*"
