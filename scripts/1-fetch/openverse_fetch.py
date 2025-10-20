@@ -137,7 +137,7 @@ def query_openverse(session):
                             ),  # license version
                         )
                         tally[key] = count
-                except requests.RequestException as e:
+                except (requests.HTTPError, requests.RequestException) as e:
                     LOGGER.error(f"Openverse fetch failed: {e}")
                     raise shared.QuantifyingException(
                         f"Openverse fetch failed: {e}"
