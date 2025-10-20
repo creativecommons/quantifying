@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Fetch public domain data from Internet Archive using the Python interface.
+Fetch open content data from Internet Archive using the Python interface.
 """
 
 # Standard library
@@ -14,6 +14,7 @@ from collections import Counter
 from time import sleep
 
 # Third-party
+import pycountry
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -35,13 +36,13 @@ FILE1_COUNT = os.path.join(PATHS["data_phase"], "internetarchive_1_count.csv")
 FILE2_LANGUAGE = os.path.join(
     PATHS["data_phase"], "internetarchive_2_count_by_language.csv"
 )
-FILE3_COUNTRY = os.path.join(
-    PATHS["data_phase"], "internetarchive_3_count_by_country.csv"
+FILE3_PORT = os.path.join(
+    PATHS["data_phase"], "internetarchive_3_count_by_port.csv"
 )
 
-HEADER1 = ["LICENSEURL", "LICENSE", "COUNT"]
-HEADER2 = ["LICENSEURL", "LICENSE", "LANGUAGE", "COUNT"]
-HEADER3 = ["LICENSEURL", "LICENSE", "COUNTRY", "COUNT"]
+HEADER1 = ["LICENSE_URL", "LICENSE", "COUNT"]
+HEADER2 = ["LICENSE_URL", "LICENSE", "LANGUAGE", "COUNT"]
+HEADER3 = ["LICENSE_URL", "LICENSE", "PORT", "COUNT"]
 
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
@@ -61,57 +62,45 @@ def parse_arguments():
     return args
 
 
-def load_license_mapping(country_mapping):
+def load_license_mapping(port_mapping):
     """Loads and normalizes the license mapping from CSV."""
     license_mapping = {}
-    file_path = shared.path_join(PATHS["data"], "gcs_query_plan.csv")
+    file_path = shared.path_join(
+        PATHS["data"], "license_url_to_identifier_mapping.csv"
+    )
     with open(file_path, newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            raw_url = row["TOOL_URL"]
-            label = row["TOOL_IDENTIFIER"].strip()
+            raw_url = row["LICENSE_URL"]
+            label = row["LICENSE"].strip()
             normalized_url, _ = normalize_license(
-                raw_url, license_mapping=None, country_mapping=country_mapping
+                raw_url, license_mapping=None, port_mapping=port_mapping
             )
             if normalized_url:
                 license_mapping[normalized_url] = label
     return license_mapping
 
 
-def load_country_mapping():
-    """Loads a mapping of jurisdiction codes to country names from a CSV."""
-    country_mapping = {}
-    file_path = shared.path_join(PATHS["data"], "country_mapping.csv")
-    try:
-        with open(file_path, newline="") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                # Assuming the CSV has headers like
-                # 'COUNTRY_CODE' and 'COUNTRY_NAME'
-                # and content like "US","United States"
-                code = row["COUNTRY_CODE"].strip().lower()
-                name = row["COUNTRY_NAME"].strip()
-                country_mapping[code] = name
-    except FileNotFoundError:
-        LOGGER.warning(
-            f"Country mapping file not found at {file_path}. "
-            "Using 'UNKNOWN' for jurisdictions."
-        )
-    return country_mapping
+def load_port_mapping():
+    """Maps jurisdiction codes to country names using pycountry."""
+    port_mapping = {}
+    for country in pycountry.countries:
+        code = country.alpha_2.lower()
+        port_mapping[code] = country.name
+    return port_mapping
 
 
-def normalize_license(licenseurl, license_mapping=None, country_mapping=None):
+def normalize_license(licenseurl, license_mapping=None, port_mapping=None):
     """Normalize licenseurl to match TOOL_URL format"""
     """map to TOOL_IDENTIFIER and jurisdiction."""
     if not isinstance(licenseurl, str) or not licenseurl.strip():
-        return None, "UNKNOWN"
+        return None, None
 
     # Cleanup
     normalized = (
         licenseurl.lower()
         .strip()
-        .replace("http://", "")
-        .replace("https://", "")
+        .replace("http://", "https://")
         .replace("www.", "")
         .rstrip("/")
     )
@@ -122,17 +111,16 @@ def normalize_license(licenseurl, license_mapping=None, country_mapping=None):
             normalized = normalized[: -len(suffix)]
 
     # Ensure leading double slashes to match TOOL_URL format
-    if not normalized.startswith("//"):
-        normalized = "//" + normalized
+    if not normalized.startswith("https://"):
+        normalized = "https://" + normalized
 
     # Extract jurisdiction code from final segment
     parts = normalized.split("/")
-    jurisdiction = "UNKNOWN"
+    jurisdiction = None
     if len(parts) >= 6 and parts[-1].isalpha() and len(parts[-1]) <= 4:
-        jurisdiction_code = parts[-1].lower()
-        jurisdiction = country_mapping.get(jurisdiction_code, "UNKNOWN")
+        jurisdiction = parts[-1].lower()
 
-    # Lookup TOOL_IDENTIFIER
+    # Lookup LICENSE_URL
     label = (
         license_mapping.get(normalized, "UNKNOWN")
         if license_mapping
@@ -145,12 +133,12 @@ def normalize_license(licenseurl, license_mapping=None, country_mapping=None):
 def query_internet_archive(args):
     license_counter = Counter()
     language_counter = Counter()
-    country_counter = Counter()
+    port_counter = Counter()
 
     fields = ["licenseurl", "language"]
     query = "creativecommons.org"
-    country_mapping = load_country_mapping()
-    license_mapping = load_license_mapping(country_mapping)
+    port_mapping = load_port_mapping()
+    license_mapping = load_license_mapping(port_mapping)
 
     rows = 100000
     total_rows = 0
@@ -205,11 +193,11 @@ def query_internet_archive(args):
                 language = language[0] if language else "UNKNOWN"
 
             normalized_url, jurisdiction = normalize_license(
-                licenseurl, license_mapping, country_mapping
+                licenseurl, license_mapping, port_mapping
             )
 
-            # Use jurisdiction as country
-            country = jurisdiction
+            # Use jurisdiction as port country
+            port = jurisdiction
 
             if normalized_url == "UNKNOWN":
                 LOGGER.warning(
@@ -218,7 +206,7 @@ def query_internet_archive(args):
 
             license_counter[(licenseurl, normalized_url)] += 1
             language_counter[(licenseurl, normalized_url, language)] += 1
-            country_counter[(licenseurl, normalized_url, country)] += 1
+            port_counter[(licenseurl, normalized_url, port)] += 1
 
             total_processed += 1
 
@@ -227,7 +215,7 @@ def query_internet_archive(args):
         LOGGER.info(
             f"Unique licenses: {len(license_counter)}|"
             f"Languages:{len(language_counter)}|"
-            f"Countries:{len(country_counter)}"
+            f"Countries:{len(port_counter)}"
         )
 
         # If the results is less than the requested rows, implies the end
@@ -239,7 +227,7 @@ def query_internet_archive(args):
             break
 
     LOGGER.info("Finished processing.")
-    return license_counter, language_counter, country_counter
+    return license_counter, language_counter, port_counter
 
 
 def write_csv(file_path, header, rows):
@@ -251,7 +239,7 @@ def write_csv(file_path, header, rows):
     LOGGER.info(f"Wrote {len(rows)} rows to {file_path}")
 
 
-def write_all(args, license_counter, language_counter, country_counter):
+def write_all(args, license_counter, language_counter, port_counter):
     if not args.enable_save:
         return args
 
@@ -268,9 +256,9 @@ def write_all(args, license_counter, language_counter, country_counter):
         [(k[0], k[1], k[2], v) for k, v in language_counter.items()],
     )
     write_csv(
-        FILE3_COUNTRY,
+        FILE3_PORT,
         HEADER3,
-        [(k[0], k[1], k[2], v) for k, v in country_counter.items()],
+        [(k[0], k[1], k[2], v) for k, v in port_counter.items()],
     )
 
     return args
@@ -280,10 +268,10 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
 
-    license_data, language_data, country_data = query_internet_archive(args)
+    license_data, language_data, port_data = query_internet_archive(args)
 
     if args.enable_save:
-        write_all(args, license_data, language_data, country_data)
+        write_all(args, license_data, language_data, port_data)
 
     if args.enable_git:
         args = shared.git_add_and_commit(
