@@ -214,13 +214,13 @@ def get_subcategories(session, category_name):
         
     except requests.HTTPError as e:
         LOGGER.error(f"HTTP Error getting subcategories for {category_name}: {e}")
-        return []
+        raise
     except requests.RequestException as e:
         LOGGER.error(f"Request Exception getting subcategories for {category_name}: {e}")
-        return []
+        raise
     except KeyError as e:
         LOGGER.error(f"KeyError getting subcategories for {category_name}: {e}")
-        return []
+        raise
 
 
 def recursively_count_category(session, category_name, visited=None):
@@ -300,12 +300,7 @@ def query_wikicommons(args, session):
             
         except shared.QuantifyingException as e:
             LOGGER.error(f"Error processing category {category}: {e.message}")
-            # Continue with other categories even if one fails
-            license_data.append({
-                "LICENSE": category,
-                "FILE_COUNT": 0,
-                "PAGE_COUNT": 0
-            })
+            raise
     
     return license_data
 
