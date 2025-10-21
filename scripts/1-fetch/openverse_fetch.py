@@ -77,7 +77,7 @@ def get_requests_session():
     max_retries = Retry(
         total=5,
         backoff_factor=5,
-        status_forcelist=shared.RETRY_STATUS_FORCELIST,
+        status_forcelist=shared.STATUS_FORCELIST,
     )
     session = requests.Session()
     session.mount("https://", HTTPAdapter(max_retries=max_retries))
