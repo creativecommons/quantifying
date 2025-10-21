@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 """
 Fetch CC Legal Tool usage from Openverse API.
+
+Note:
+    Because anonymous Openverse API access
+    returns a maximum of ~240 result count
+    per source-license combination, this
+    script currently provides approximate counts.
+    It does not include vide pagination or license_version
+    breakdown.
 """
 
 # Standard library
@@ -34,10 +42,10 @@ LOGGER.info("Starting Openverse Fetch Script...")
 # Constants
 FILE_PATH = os.path.join(PATHS["data_phase"], "openverse_fetch.csv")
 OPENVERSE_FIELDS = [
-    "source",
-    "media_type",
-    "CC_TOOL_IDENTIFIER",
-    "media_count",
+    "SOURCE",
+    "MEDIA_TYPE",
+    "LICENSE",
+    "MEDIA_COUNT",
 ]
 OPENVERSE_BASE_URL = "https://api.openverse.org/v1"
 MEDIA_TYPES = ["audio", "images"]
@@ -80,7 +88,10 @@ def get_requests_session():
 
 
 def get_all_sources_and_licenses(session, media_type):
-    LOGGER.info("Fetching all sources and licenses")
+    """
+    Fetch all available sources and licenses for a given media_type.
+    """
+    LOGGER.info(f"Fetching all sources and licenses for {media_type}")
     sources = set()
     licenses = set()
     url = f"{OPENVERSE_BASE_URL}/{media_type}/?format=json"
@@ -112,7 +123,7 @@ def query_openverse(session):
                 url = (
                     f"{OPENVERSE_BASE_URL}/{media_type}/?"
                     f"source={source}&license={license}"
-                    "&format=json"
+                    "&format=json&page=1"
                 )
                 LOGGER.info(f"Target URL: {url}")
                 try:
@@ -126,17 +137,8 @@ def query_openverse(session):
                     response.raise_for_status()
                     data = response.json()
                     count = data.get("result_count", 0)
-                    records = data.get("results", [])
-                    for record in records:
-                        key = (
-                            record.get(OPENVERSE_FIELDS[0], ""),  # source
-                            media_type,
-                            record.get("license", ""),  # license
-                            record.get(
-                                "license_version", ""
-                            ),  # license version
-                        )
-                        tally[key] = count
+                    key = (source, media_type, license)
+                    tally[key] = count
                 except (requests.HTTPError, requests.RequestException) as e:
                     LOGGER.error(f"Openverse fetch failed: {e}")
                     raise shared.QuantifyingException(
@@ -146,14 +148,10 @@ def query_openverse(session):
     LOGGER.info("Aggregating the data")
     aggregate = [
         {
-            OPENVERSE_FIELDS[0]: field[0],  # source
-            "media_type": field[1],
-            # CC_TOOL_IDENTIFIER = f"CC {license.upper()} {license_version}"
-            OPENVERSE_FIELDS[2]: (
-                f"{'CC ' + field[2].upper() if field[2] not in ['cc0', 'pdm'] else field[2].upper()}"  # noqa: E501
-                f" {field[3]}"
-            ),
-            OPENVERSE_FIELDS[3]: count,  # media_count
+            OPENVERSE_FIELDS[0].lower(): field[0],  # SOURCE
+            OPENVERSE_FIELDS[1].lower(): field[1],  # MEDIA_TYPE
+            OPENVERSE_FIELDS[2].lower(): field[2],  # LICENSE
+            OPENVERSE_FIELDS[3].lower(): count,  # MEDIA_COUNT
         }
         for field, count in tally.items()
     ]
@@ -167,7 +165,7 @@ def write_data(args, data):
     with open(FILE_PATH, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=[header.upper() for header in OPENVERSE_FIELDS],
+            fieldnames=OPENVERSE_FIELDS,
             dialect="unix",
         )
         writer.writeheader()
