@@ -27,6 +27,8 @@ import shared  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
+
+# Constants
 FILE_LANGUAGES = os.path.join(
     PATHS["data_phase"], "wikipedia_count_by_languages.csv"
 )
@@ -137,17 +139,14 @@ def query_wikipedia_languages(session):
             language_name = site["name"]
             language_name_en = site["name_en"]
 
-            if not language_name_en:
-                language_display = f"{language_code}"
-            elif language_name:
-                language_display = (
-                    f"{language_code} {language_name_en} ({language_name})"
-                )
-            else:
-                language_display = f"{language_code} {language_name_en}"
+            language_display = f"{language_code}"
+            if language_name_en:
+                language_display = f"{language_display} {language_name_en}"
+            if language_name:
+                language_display = f"{language_display} ({language_name})"
 
             if article_count == 0:
-                LOGGER.info(f"Skipping {language_display} with 0 articles")
+                LOGGER.warning(f"Skipping {language_display} with 0 articles")
                 continue
             tool_data.append(
                 {
