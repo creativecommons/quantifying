@@ -81,7 +81,6 @@ and access towards related query data using a programmable search engine.
   5000 requests per hour if authenticated
 - Data available through JSON format
 
-
 ## Wikipedia
 
 **Description:** The Wikipedia API allows users to query statistics of pages,
@@ -103,4 +102,3 @@ language edition of wikipedia. It runs on the Meta-Wiki API.
 - No API key required
 - Query limit: It is rate-limited only to prevent abuse
 - Data available through XML or JSON format
->>>>>>> 568ed70 (Made requested changes)
