@@ -74,6 +74,7 @@ Quantifying/
 │   ├── 1-fetch/
 │   ├── 2-process/
 │   ├── 3-report/
+│   ├── plot.py # Data visualizations with matplotlib
 │   └── shared.py
 ├── .cc-metadata.yml
 ├── .flake8  # Python tool configuration
