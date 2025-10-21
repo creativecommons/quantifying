@@ -235,8 +235,11 @@ def update_readme(
         entry_start_index = lines.index(entry_start_line)
         entry_end_index = lines.index(entry_end_line)
         # Include any trailing empty/whitespace-only lines
-        while not lines[entry_end_index + 1].strip():
-            entry_end_index += 1
+        while entry_end_index + 1 < len(lines):
+            if not lines[entry_end_index + 1].strip():
+                entry_end_index += 1
+            else:
+                break
     # Initalize variables of entry is not present
     else:
         entry_start_index = None

@@ -21,7 +21,7 @@ def annotate_ylabels(ax, data, data_label, colors):
     #    defaults: ytick.major.size         + ytick.major.pad
     indent = -1 * (ytick.get_tick_padding() + ytick.get_pad())
     for index, row in data.iterrows():
-        if c > len(colors):
+        if c >= len(colors):
             c = 0
 
         # annotate totals
