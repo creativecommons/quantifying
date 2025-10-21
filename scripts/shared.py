@@ -8,9 +8,9 @@ from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from pandas import PeriodIndex
 
 # Constants
-RETRY_STATUS_FORCELIST = [
+STATUS_FORCELIST = [
     408,  # Request Timeout
-    422,  # Unprocessable Content (Validation failed, or endpoint spammed)
+    422,  # Unprocessable Content (Validation failed, endpoint spammed, etc.)
     429,  # Too Many Requests
     500,  # Internal Server Error
     502,  # Bad Gateway
@@ -18,7 +18,7 @@ RETRY_STATUS_FORCELIST = [
     504,  # Gateway Timeout
 ]
 USER_AGENT = (
-    "QuantifyingTheCommons/1.0"
+    "QuantifyingTheCommons/1.0 "
     "(https://github.com/creativecommons/quantifying)"
 )
 
@@ -235,8 +235,11 @@ def update_readme(
         entry_start_index = lines.index(entry_start_line)
         entry_end_index = lines.index(entry_end_line)
         # Include any trailing empty/whitespace-only lines
-        while not lines[entry_end_index + 1].strip():
-            entry_end_index += 1
+        while entry_end_index + 1 < len(lines):
+            if not lines[entry_end_index + 1].strip():
+                entry_end_index += 1
+            else:
+                break
     # Initalize variables of entry is not present
     else:
         entry_start_index = None
