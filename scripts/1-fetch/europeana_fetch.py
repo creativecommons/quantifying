@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """
 Fetch high-level Europeana statistics for Quantifying the Commons.
-Aggregates data by DATA_PROVIDER, LEGAL_TOOL, THEME, and COUNT.
+Generates two datasets:
+1) Without themes (aggregated by DATA_PROVIDER, LEGAL_TOOL)
+2) With all themes (aggregated by DATA_PROVIDER, LEGAL_TOOL, THEME)
 """
 
 # Standard library
@@ -37,12 +39,18 @@ load_dotenv(PATHS["dotenv"])
 # Constants
 EUROPEANA_API_KEY = os.getenv("EUROPEANA_API_KEY")
 BASE_URL = "https://api.europeana.eu/record/v2/search.json"
-FILE_STATS = shared.path_join(PATHS["data_phase"], "europeana_1_count.csv")
-HEADER_STATS = ["DATA_PROVIDER", "LEGAL_TOOL", "THEME", "COUNT"]
+FILE_WITH_THEMES = shared.path_join(
+    PATHS["data_phase"], "europeana_with_themes.csv"
+)
+FILE_WITHOUT_THEMES = shared.path_join(
+    PATHS["data_phase"], "europeana_without_themes.csv"
+)
+HEADER_WITH_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "THEME", "COUNT"]
+HEADER_WITHOUT_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
-# Log the start of script execution
-LOGGER.info("Europeana high-level stats script execution started.")
+# Log start
+LOGGER.info("Europeana dual-fetch (with & without themes) script started.")
 
 
 def parse_arguments():
@@ -71,24 +79,6 @@ def parse_arguments():
     return args
 
 
-def initialize_data_file(file_path, header):
-    """Initialize the data file with a header if it doesn't exist."""
-    if not os.path.isfile(file_path):
-        with open(file_path, "w", newline="") as file_obj:
-            writer = csv.DictWriter(
-                file_obj, fieldnames=header, dialect="unix"
-            )
-            writer.writeheader()
-
-
-def initialize_all_data_files(args):
-    """Ensure data directories and files exist."""
-    if not args.enable_save:
-        return
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-    initialize_data_file(FILE_STATS, HEADER_STATS)
-
-
 def get_requests_session():
     """Create a requests session with retry and headers."""
     max_retries = Retry(
@@ -107,20 +97,103 @@ def get_requests_session():
     return session
 
 
-def fetch_europeana_data(args):
-    """
-    Fetch and aggregate data from the Europeana Search API
-    by DATA_PROVIDER, LEGAL_TOOL, and THEME.
-    """
-    LOGGER.info("Fetching aggregated Europeana data.")
+def fetch_europeana_data_without_themes(args):
+    """Fetch and aggregate Europeana data without specifying themes."""
+    LOGGER.info("Fetching Europeana data without themes.")
 
     if not EUROPEANA_API_KEY:
         raise shared.QuantifyingException(
             "EUROPEANA_API_KEY not found in environment variables", 1
         )
 
-    # Define Europeana themes to query
-    # Provided in Europeana's site
+    params = {
+        "wskey": EUROPEANA_API_KEY,
+        "rows": args.limit,
+        "profile": "rich",
+        "query": "*",
+    }
+
+    session = get_requests_session()
+    try:
+        with session.get(BASE_URL, params=params, timeout=30) as response:
+            response.raise_for_status()
+            results = response.json()
+            items = results.get("items", [])
+    except requests.RequestException as e:
+        LOGGER.error(f"Failed to fetch data without themes: {e}")
+        return []
+
+    LOGGER.info(f"Retrieved {len(items)} items without themes.")
+
+    # --- Aggregate by DATA_PROVIDER + LEGAL_TOOL ---
+    aggregation = defaultdict(lambda: defaultdict(int))
+
+    for item in items:
+        data_providers = item.get("dataProvider", [])
+        data_provider = (
+            data_providers
+            if isinstance(data_providers, str)
+            else (
+                data_providers[0]
+                if isinstance(data_providers, list) and data_providers
+                else "Unknown"
+            )
+        )
+
+        rights = item.get("rights", [])
+        legal_tool = (
+            rights
+            if isinstance(rights, str)
+            else (
+                rights[0] if isinstance(rights, list) and rights else "Unknown"
+            )
+        )
+
+        # Simplify license format if it’s a Creative Commons URL
+        if (
+            legal_tool
+            and isinstance(legal_tool, str)
+            and legal_tool.startswith("http")
+        ):
+            parts = legal_tool.strip("/").split("/")
+            last_parts = parts[-2:]
+            if last_parts:
+                joined = " ".join(part.upper() for part in last_parts if part)
+                if "creativecommons.org" in legal_tool:
+                    legal_tool = f"CC {joined}"
+                else:
+                    legal_tool = joined
+            else:
+                legal_tool = "Unknown"
+
+        aggregation[data_provider][legal_tool] += 1
+
+    # Convert to flat list
+    output = []
+    for provider, licenses in aggregation.items():
+        for legal_tool, count in licenses.items():
+            output.append(
+                {
+                    "DATA_PROVIDER": provider,
+                    "LEGAL_TOOL": legal_tool,
+                    "COUNT": count,
+                }
+            )
+
+    LOGGER.info(f"Aggregated data without themes into {len(output)} records.")
+    return output
+
+
+def fetch_europeana_data_with_themes(args):
+    """Fetch and aggregate data by DATA_PROVIDER, LEGAL_TOOL, and THEME."""
+    LOGGER.info("Fetching aggregated Europeana data with themes.")
+
+    if not EUROPEANA_API_KEY:
+        raise shared.QuantifyingException(
+            "EUROPEANA_API_KEY not found in environment variables", 1
+        )
+
+    # Themes from Europeana site
     themes = [
         "art",
         "fashion",
@@ -133,7 +206,6 @@ def fetch_europeana_data(args):
 
     items_per_query = max(20, args.limit // len(themes))
     all_items = []
-    # Initialize a session for efficient and reliable requests
     session = get_requests_session()
 
     for theme in themes:
@@ -153,11 +225,8 @@ def fetch_europeana_data(args):
                 response.raise_for_status()
                 results = response.json()
                 items = results.get("items", [])
-
-            # Tag each item with the theme used for easy tracking
             for item in items:
                 item["theme_used"] = theme
-
             all_items.extend(items)
             LOGGER.info(f"Retrieved {len(items)} items for theme '{theme}'")
             time.sleep(1)
@@ -166,35 +235,40 @@ def fetch_europeana_data(args):
             continue
 
     if not all_items:
-        LOGGER.error("No items retrieved from any query")
+        LOGGER.error("No items retrieved for any theme.")
         return []
 
-    LOGGER.info(f"Total items retrieved: {len(all_items)}")
+    LOGGER.info(f"Total items retrieved across all themes: {len(all_items)}")
 
-    # Aggregate by data provider, legal tool, and theme
+    # Aggregate by DATA_PROVIDER + LEGAL_TOOL + THEME
     aggregation = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
     for item in all_items:
-        # Handle dataProvider (can be array or string)
         data_providers = item.get("dataProvider", [])
-        if isinstance(data_providers, str):
-            data_provider = data_providers
-        elif data_providers and isinstance(data_providers, list):
-            data_provider = data_providers[0]
-        else:
-            data_provider = "Unknown"
+        data_provider = (
+            data_providers
+            if isinstance(data_providers, str)
+            else (
+                data_providers[0]
+                if isinstance(data_providers, list) and data_providers
+                else "Unknown"
+            )
+        )
 
-        # Handle rights/license information
         rights = item.get("rights", [])
-        if isinstance(rights, str):
-            legal_tool = rights
-        elif rights and isinstance(rights, list):
-            legal_tool = rights[0]
-        else:
-            legal_tool = "Unknown"
+        legal_tool = (
+            rights
+            if isinstance(rights, str)
+            else (
+                rights[0] if isinstance(rights, list) and rights else "Unknown"
+            )
+        )
 
-        # Simplify legal tool (e.g., extract 'by/4.0/' → 'CC BY 4.0')
-        if legal_tool and legal_tool.startswith("http"):
+        if (
+            legal_tool
+            and isinstance(legal_tool, str)
+            and legal_tool.startswith("http")
+        ):
             parts = legal_tool.strip("/").split("/")
             last_parts = parts[-2:]
             if last_parts:
@@ -206,9 +280,7 @@ def fetch_europeana_data(args):
             else:
                 legal_tool = "Unknown"
 
-        # Use the theme from the query loop
         theme = item.get("theme_used", "Unknown")
-
         aggregation[data_provider][legal_tool][theme] += 1
 
     # Convert to flat list
@@ -225,50 +297,49 @@ def fetch_europeana_data(args):
                     }
                 )
 
-    LOGGER.info(
-        f"Aggregated data into {len(output)} "
-        f"provider-license-theme combinations"
-    )
+    LOGGER.info(f"Aggregated data with themes into {len(output)} records.")
     return output
 
 
-def save_to_csv(args, data):
-    """Save aggregated data to CSV."""
-    if not args.enable_save:
-        LOGGER.info("Save disabled - skipping file write")
-        return
-    if not data:
-        LOGGER.warning("No data to save")
-        return
-
-    with open(FILE_STATS, "w", newline="") as file_obj:
-        writer = csv.DictWriter(
-            file_obj, fieldnames=HEADER_STATS, dialect="unix"
-        )
+def save_csv(filepath, header, data):
+    """Save data to a CSV file."""
+    with open(filepath, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=header)
         writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-    LOGGER.info(f"Saved {len(data)} aggregated rows to {FILE_STATS}.")
+        writer.writerows(data)
+    LOGGER.info(f"Saved {len(data)} rows to {filepath}.")
 
 
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    initialize_all_data_files(args)
 
-    data = fetch_europeana_data(args)
-    save_to_csv(args, data)
+    os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    args = shared.git_add_and_commit(
-        args,
-        PATHS["repo"],
-        PATHS["data_quarter"],
-        f"Add and commit Europeana high-level statistics for {QUARTER}",
+    # Fetch and save data WITHOUT themes (aggregated)
+    data_no_theme = fetch_europeana_data_without_themes(args)
+    if args.enable_save and data_no_theme:
+        save_csv(FILE_WITHOUT_THEMES, HEADER_WITHOUT_THEMES, data_no_theme)
+
+    # Fetch and save data WITH themes (aggregated)
+    data_with_theme = fetch_europeana_data_with_themes(args)
+    if args.enable_save and data_with_theme:
+        save_csv(FILE_WITH_THEMES, HEADER_WITH_THEMES, data_with_theme)
+
+    # Git commit & push
+    if args.enable_git and args.enable_save:
+        args = shared.git_add_and_commit(
+            args,
+            PATHS["repo"],
+            PATHS["data_quarter"],
+            f"Add Europeana files (with and without themes) for {QUARTER}",
+        )
+        shared.git_push_changes(args, PATHS["repo"])
+
+    LOGGER.info(
+        "Europeana dual-fetch (with & without themes) completed successfully."
     )
-    shared.git_push_changes(args, PATHS["repo"])
-
-    LOGGER.info("Europeana high-level stats script completed successfully.")
 
 
 if __name__ == "__main__":
