@@ -7,7 +7,7 @@ Note:
     returns a maximum of ~240 result count
     per source-license combination, this
     script currently provides approximate counts.
-    It does not include vide pagination or license_version
+    It does not include pagination or license_version
     breakdown.
 """
 
@@ -18,6 +18,7 @@ import os
 import sys
 import textwrap
 import traceback
+import urllib
 
 # Third-party
 import requests
@@ -36,19 +37,16 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
-LOGGER.info("Starting Openverse Fetch Script...")
-
-
 # Constants
 FILE_PATH = os.path.join(PATHS["data_phase"], "openverse_fetch.csv")
+MEDIA_TYPES = ["audio", "images"]
+OPENVERSE_BASE_URL = "https://api.openverse.org/v1"
 OPENVERSE_FIELDS = [
     "SOURCE",
     "MEDIA_TYPE",
     "LICENSE",
     "MEDIA_COUNT",
 ]
-OPENVERSE_BASE_URL = "https://api.openverse.org/v1"
-MEDIA_TYPES = ["audio", "images"]
 
 
 def parse_arguments():
@@ -89,21 +87,55 @@ def get_requests_session():
 
 def get_all_sources_and_licenses(session, media_type):
     """
-    Fetch all available sources and licenses for a given media_type.
+    Fetch all available sources for a given media_type.
     """
     LOGGER.info(f"Fetching all sources and licenses for {media_type}")
-    sources = set()
-    licenses = set()
-    url = f"{OPENVERSE_BASE_URL}/{media_type}/?format=json"
+    url = f"{OPENVERSE_BASE_URL}/{media_type}/stats/?format=json"
+    # encoded_nc_sampling = urllib.parse.quote("nc-sampling+", safe="")
+    # encoded_sampling = urllib.parse.quote("sampling+", safe="")
+    licenses = [
+        "by",
+        "by-nc",
+        "by-nc-nd",
+        "by-nc-sa",
+        "by-nd",
+        "by-sa",
+        "cc0",
+        "nc-sampling+",
+        "pdm",
+        "sampling+",
+    ]
     try:
         response = session.get(url)
         response.raise_for_status()
-        records = response.json().get("results", [])
-        for record in records:
-            sources.add(record.get("source", ""))
-            licenses.add(record.get("license", ""))
-        return list(sources), list(licenses)
-    except requests.HTTPError as e:
+        records = response.json()
+        raw_sources = sorted(
+            [
+                record["source_name"]
+                for record in records
+                if "source_name" in record
+            ]
+        )
+        """
+        To ensure the sources in /stats/ endpoints are indexed in
+        Openverse's catalog.
+        """
+        valid_sources = set()
+        for source in raw_sources:
+            new_response = session.get(
+                f"{OPENVERSE_BASE_URL}/{media_type}/?"
+                f"source={source}&format=json"
+            )
+            if new_response.status_code == 200:
+                valid_sources.add(source)
+            else:
+                LOGGER.info(
+                    f"Skipping source {source}:"
+                    f" not available in /{media_type}/ endpoint"
+                )
+        LOGGER.info(f"Found {len(valid_sources)} sources for {media_type}")
+        return valid_sources, set(licenses)
+    except (requests.HTTPError, requests.RequestException) as e:
         LOGGER.error(f"Failed to fetch sources and licenses: {e}")
         raise shared.QuantifyingException(
             f"Failed to fetch sources and licenses: {e}"
@@ -112,7 +144,9 @@ def get_all_sources_and_licenses(session, media_type):
 
 def query_openverse(session):
     """
-    Fetch records from Openverse API.
+    Fetch available sources given the
+    media_type and use standard list
+    of Openverse's standard licenses.
     """
     tally = {}
     for media_type in MEDIA_TYPES:
@@ -122,7 +156,9 @@ def query_openverse(session):
             for license in licenses:
                 url = (
                     f"{OPENVERSE_BASE_URL}/{media_type}/?"
-                    f"source={source}&license={license}"
+                    # encode the license
+                    f"source={source}&"
+                    f"license={urllib.parse.quote(license, safe='')}"
                     "&format=json&page=1"
                 )
                 LOGGER.info(f"Target URL: {url}")
@@ -176,7 +212,9 @@ def write_data(args, data):
 def main():
     args = parse_arguments()
     session = get_requests_session()
+    LOGGER.info("Starting Openverse Fetch Script...")
     records = query_openverse(session)
+    LOGGER.info(f"CHECKING: {records[0]}")
     write_data(args, records)
     LOGGER.info(f"Fetched {len(records)} unique Openverse records")
 
