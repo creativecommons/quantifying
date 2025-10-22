@@ -44,7 +44,7 @@ OPENVERSE_BASE_URL = "https://api.openverse.org/v1"
 OPENVERSE_FIELDS = [
     "SOURCE",
     "MEDIA_TYPE",
-    "LICENSE",
+    "TOOL_IDENTIFIER",
     "MEDIA_COUNT",
 ]
 
@@ -92,7 +92,7 @@ def get_all_sources_and_licenses(session, media_type):
     LOGGER.info(f"Fetching all sources for {media_type}")
     url = f"{OPENVERSE_BASE_URL}/{media_type}/stats/?format=json"
     # Standard /stats/ license
-    licenses = [
+    OPENVERSE_LEGAL_TOOLS = [
         "by",
         "by-nc",
         "by-nc-nd",
@@ -128,16 +128,15 @@ def get_all_sources_and_licenses(session, media_type):
             if new_response.status_code == 200:
                 valid_sources.add(source)
             else:
-                LOGGER.info(
+                LOGGER.warning(
                     f"Skipping source {source}: "
                     f"not available in /{media_type}/ endpoint"
                 )
         LOGGER.info(f"Found {len(valid_sources)} sources for {media_type}")
-        return valid_sources, set(licenses)
+        return valid_sources, set(OPENVERSE_LEGAL_TOOLS)
     except (requests.HTTPError, requests.RequestException) as e:
-        LOGGER.error(f"Failed to fetch sources and licenses: {e}")
         raise shared.QuantifyingException(
-            f"Failed to fetch sources and licenses: {e}"
+            f"Failed to fetch sources and licenses: {e}", exit_code=1
         )
 
 
@@ -152,11 +151,12 @@ def query_openverse(session):
         sources, licenses = get_all_sources_and_licenses(session, media_type)
         for source in sources:
             for license in licenses:
+                # encode the license to escape '+' e.g sampling+
+                encoded_license = urllib.parse.quote(license, safe="")
                 url = (
                     f"{OPENVERSE_BASE_URL}/{media_type}/?"
-                    # encode the license
                     f"source={source}&"
-                    f"license={urllib.parse.quote(license, safe='')}"
+                    f"license={encoded_license}"
                     "&format=json&page=1"
                 )
                 LOGGER.info(f"Target URL: {url}")
@@ -171,26 +171,39 @@ def query_openverse(session):
                     response.raise_for_status()
                     data = response.json()
                     count = data.get("result_count", 0)
-                    key = (source, media_type, license)
-                    tally[key] = count
+                    # Skip (source x license) with result_count = 0
+                    if count > 0:
+                        key = (source, media_type, license)
+                        tally[key] = count
+                    else:
+                        LOGGER.warning(
+                            f"Skipping {source}, {license}: count is 0"
+                        )
                 except (requests.HTTPError, requests.RequestException) as e:
-                    LOGGER.error(f"Openverse fetch failed: {e}")
                     raise shared.QuantifyingException(
-                        f"Openverse fetch failed: {e}"
+                        f"Openverse fetch failed: {e}", exit_code=1
                     )
-    # Convert tally dictionary to a list of dicts for writing
     LOGGER.info("Aggregating the data")
-    aggregate = [
-        {
-            OPENVERSE_FIELDS[0].lower(): field[0],  # SOURCE
-            OPENVERSE_FIELDS[1].lower(): field[1],  # MEDIA_TYPE
-            OPENVERSE_FIELDS[2].lower(): (
-                f"{'cc ' + field[2] if field[2] not in ['pdm', 'cc0'] else field[2]}"  # noqa: E501
-            ),  # LICENSE
-            OPENVERSE_FIELDS[3].lower(): count,  # MEDIA_COUNT
-        }
-        for field, count in tally.items()
-    ]
+    aggregate = []
+    for field, count in tally.items():
+        source_name = field[0]
+        media_type_name = field[1]
+        license_code = field[2]
+        # Append prefix "cc" except for 'pdm' and 'cc0'
+        if license_code not in ["pdm", "cc0"]:
+            tool_identifier = f"cc {license_code}"
+        else:
+            tool_identifier = license_code
+        aggregate.append(
+            {
+                OPENVERSE_FIELDS[0].lower(): source_name,  # SOURCE
+                OPENVERSE_FIELDS[1].lower(): media_type_name,  # MEDIA_TYPE
+                OPENVERSE_FIELDS[
+                    2
+                ].lower(): tool_identifier,  # LEGAL_TOOL_IDENTIFIER
+                OPENVERSE_FIELDS[3].lower(): count,  # MEDIA_COUNT
+            }
+        )
     return aggregate
 
 
