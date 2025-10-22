@@ -539,7 +539,7 @@ def query_arxiv(args):
         # Convert category codes to user-friendly names
         try:
             input_file = FILE_ARXIV_CATEGORY
-            output_file = shared.path_join(PATHS["data"], "arxiv_2_count_by_category_converted.csv")
+            output_file = shared.path_join(PATHS["data_1-fetch"], "arxiv_2_count_by_category_report.csv")
             arxiv_category_converter.convert_categories_to_friendly_names(
                 input_file, output_file, PATHS["data"]
             )
