@@ -147,3 +147,9 @@ query_secrets.py
 
 # backup files
 *.bak
+
+# Generated data files
+data/*/1-fetch/*.csv
+data/*/2-process/
+data/*.yaml
+data/*.json
