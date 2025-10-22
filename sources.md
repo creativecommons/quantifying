@@ -80,3 +80,25 @@ and access towards related query data using a programmable search engine.
 - Query limit: 60 requests per hour if unauthenticated,
   5000 requests per hour if authenticated
 - Data available through JSON format
+
+## Wikipedia
+
+**Description:** The Wikipedia API allows users to query statistics of pages,
+categories, revisions from a public API endpoint. We have included two urls in
+the project: The `WIKIPEDIA_BASE_URL` AND `WIKIPEDIA_MATRIX_URL`. The
+`WIKIPEDIA_BASE_URL` provides access to articles, categories, and metadata from
+the English version of Wikipedia. It runs on the MediaWiki Action API, but this
+instance only provides English Wikipedia data. Then the `WIKIPEDIA_MATRIX_URL`
+provides access to information of all wikimedia projects including the different
+language edition of wikipedia. It runs on the Meta-Wiki API.
+
+**API documentation link:**
+[WIKIPEDIA_BASE_URL documentation](https://en.wikipedia.org/w/api.php)
+[WIKIPEDIA_BASE_URL reference page](https://www.mediawiki.org/wiki/API:Main_page)
+[WIKIPEDIA_MATRIX_URL documentation](https://meta.wikimedia.org/w/api.php)
+[WIKIPEDIA_MATRIX_URL reference page](https://www.mediawiki.org/wiki/API:Sitematrix)
+
+**API information:**
+- No API key required
+- Query limit: It is rate-limited only to prevent abuse
+- Data available through XML or JSON format
