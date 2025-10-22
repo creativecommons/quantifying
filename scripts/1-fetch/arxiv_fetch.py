@@ -5,7 +5,6 @@ Fetch ArXiv papers with CC license information and generate count reports.
 # Standard library
 import argparse
 import csv
-import json
 import os
 import re
 import sys
@@ -61,9 +60,7 @@ FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
 )
 # records metadata for each run for audit, reproducibility, and provenance
-FILE_PROVENANCE = shared.path_join(
-    PATHS["data_1-fetch"], "arxiv_provenance.json"
-)
+FILE_PROVENANCE = shared.path_join(PATHS["data"], "arxiv_provenance.yaml")
 
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
 HEADER_CATEGORY = ["TOOL_IDENTIFIER", "CATEGORY", "COUNT"]
@@ -590,11 +587,11 @@ def query_arxiv(args):
         "script": os.path.basename(__file__),
     }
 
-    # write provenance JSON for auditing
+    # write provenance YAML for auditing
     try:
         os.makedirs(os.path.dirname(FILE_PROVENANCE), exist_ok=True)
         with open(FILE_PROVENANCE, "w", encoding="utf-8") as fh:
-            json.dump(provenance_data, fh, indent=2)
+            yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
     except Exception as e:
         LOGGER.warning("Failed to write provenance file: %s", e)
 
