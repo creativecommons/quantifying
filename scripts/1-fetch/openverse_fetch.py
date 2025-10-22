@@ -89,10 +89,9 @@ def get_all_sources_and_licenses(session, media_type):
     """
     Fetch all available sources for a given media_type.
     """
-    LOGGER.info(f"Fetching all sources and licenses for {media_type}")
+    LOGGER.info(f"Fetching all sources for {media_type}")
     url = f"{OPENVERSE_BASE_URL}/{media_type}/stats/?format=json"
-    # encoded_nc_sampling = urllib.parse.quote("nc-sampling+", safe="")
-    # encoded_sampling = urllib.parse.quote("sampling+", safe="")
+    # Standard /stats/ license
     licenses = [
         "by",
         "by-nc",
@@ -117,8 +116,8 @@ def get_all_sources_and_licenses(session, media_type):
             ]
         )
         """
-        To ensure the sources in /stats/ endpoints are indexed in
-        Openverse's catalog.
+        To ensure the sources in /stats/ endpoints are truly
+        indexed in Openverse's catalog.
         """
         valid_sources = set()
         for source in raw_sources:
@@ -130,8 +129,8 @@ def get_all_sources_and_licenses(session, media_type):
                 valid_sources.add(source)
             else:
                 LOGGER.info(
-                    f"Skipping source {source}:"
-                    f" not available in /{media_type}/ endpoint"
+                    f"Skipping source {source}: "
+                    f"not available in /{media_type}/ endpoint"
                 )
         LOGGER.info(f"Found {len(valid_sources)} sources for {media_type}")
         return valid_sources, set(licenses)
@@ -144,9 +143,8 @@ def get_all_sources_and_licenses(session, media_type):
 
 def query_openverse(session):
     """
-    Fetch available sources given the
-    media_type and use standard list
-    of Openverse's standard licenses.
+    Fetch available sources given the media_type and use
+    standard list of Openverse's standard licenses.
     """
     tally = {}
     for media_type in MEDIA_TYPES:
@@ -186,7 +184,9 @@ def query_openverse(session):
         {
             OPENVERSE_FIELDS[0].lower(): field[0],  # SOURCE
             OPENVERSE_FIELDS[1].lower(): field[1],  # MEDIA_TYPE
-            OPENVERSE_FIELDS[2].lower(): field[2],  # LICENSE
+            OPENVERSE_FIELDS[2].lower(): (
+                f"{'cc ' + field[2] if field[2] not in ['pdm', 'cc0'] else field[2]}"  # noqa: E501
+            ),  # LICENSE
             OPENVERSE_FIELDS[3].lower(): count,  # MEDIA_COUNT
         }
         for field, count in tally.items()
@@ -214,7 +214,6 @@ def main():
     session = get_requests_session()
     LOGGER.info("Starting Openverse Fetch Script...")
     records = query_openverse(session)
-    LOGGER.info(f"CHECKING: {records[0]}")
     write_data(args, records)
     LOGGER.info(f"Fetched {len(records)} unique Openverse records")
 
