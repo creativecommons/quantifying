@@ -199,7 +199,7 @@ def get_requests_session():
         status_forcelist=[408, 429, 500, 502, 503, 504]
     )
     session = requests.Session()
-    session.mount("http://", HTTPAdapter(max_retries=retry_strategy))
+    session.headers.update({"User-Agent": shared.USER_AGENT})
     session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
     return session
 
