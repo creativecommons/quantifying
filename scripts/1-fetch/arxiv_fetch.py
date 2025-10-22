@@ -28,9 +28,12 @@ from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+# Add dev directory for category converter
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "dev"))
 
 # First-party/Local
 import shared  # noqa: E402
+import arxiv_category_converter  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
@@ -532,6 +535,17 @@ def query_arxiv(args):
         save_count_data(
             license_counts, category_counts, year_counts, author_counts
         )
+        
+        # Convert category codes to user-friendly names
+        try:
+            input_file = FILE_ARXIV_CATEGORY
+            output_file = shared.path_join(PATHS["data"], "arxiv_2_count_by_category_converted.csv")
+            arxiv_category_converter.convert_categories_to_friendly_names(
+                input_file, output_file, PATHS["data"]
+            )
+            LOGGER.info(f"Category conversion completed: {output_file}")
+        except Exception as e:
+            LOGGER.warning(f"Category conversion failed: {e}")
 
     # save provenance
     provenance_data = {
