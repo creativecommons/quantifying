@@ -165,13 +165,10 @@ def get_category_info(session, category_name):
         return {"files": files, "pages": pages}
         
     except requests.HTTPError as e:
-        LOGGER.error(f"HTTP Error for category {category_name}: {e}")
         raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
     except requests.RequestException as e:
-        LOGGER.error(f"Request Exception for category {category_name}: {e}")
         raise shared.QuantifyingException(f"Request Exception: {e}", 1)
     except KeyError as e:
-        LOGGER.error(f"KeyError for category {category_name}: {e}")
         raise shared.QuantifyingException(f"KeyError: {e}", 1)
 
 
@@ -213,14 +210,11 @@ def get_subcategories(session, category_name):
         return subcategories
         
     except requests.HTTPError as e:
-        LOGGER.error(f"HTTP Error getting subcategories for {category_name}: {e}")
-        raise
+        raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
     except requests.RequestException as e:
-        LOGGER.error(f"Request Exception getting subcategories for {category_name}: {e}")
-        raise
+        raise shared.QuantifyingException(f"Request Exception: {e}", 1)
     except KeyError as e:
-        LOGGER.error(f"KeyError getting subcategories for {category_name}: {e}")
-        raise
+        raise shared.QuantifyingException(f"KeyError: {e}", 1)
 
 
 def recursively_count_category(session, category_name, visited=None):
