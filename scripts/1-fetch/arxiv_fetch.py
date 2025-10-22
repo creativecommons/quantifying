@@ -88,7 +88,7 @@ CC_PATTERNS = [
     (re.compile(r'\bCC[-\s]?BY[-\s]?NC\b', re.IGNORECASE), "CC BY-NC"),
     (re.compile(r'\bCC[-\s]?BY\b', re.IGNORECASE), "CC BY"),
     (re.compile(r'\bCREATIVE\s+COMMONS\b', re.IGNORECASE),
-     "Creative Commons"),
+     "UNKNOWN CC legal tool"),
 ]
 
 # Log the start of the script execution
