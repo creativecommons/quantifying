@@ -47,6 +47,18 @@ OPENVERSE_FIELDS = [
     "TOOL_IDENTIFIER",
     "MEDIA_COUNT",
 ]
+OPENVERSE_LEGAL_TOOLS = [
+    "by",
+    "by-nc",
+    "by-nc-nd",
+    "by-nc-sa",
+    "by-nd",
+    "by-sa",
+    "cc0",
+    "nc-sampling+",
+    "pdm",
+    "sampling+",
+]
 
 
 def parse_arguments():
@@ -89,21 +101,8 @@ def get_all_sources_and_licenses(session, media_type):
     """
     Fetch all available sources for a given media_type.
     """
-    LOGGER.info(f"Fetching all sources for {media_type}")
+    LOGGER.info(f"Fetching all sources for the /{media_type}/ endpoint")
     url = f"{OPENVERSE_BASE_URL}/{media_type}/stats/?format=json"
-    # Standard /stats/ license
-    OPENVERSE_LEGAL_TOOLS = [
-        "by",
-        "by-nc",
-        "by-nc-nd",
-        "by-nc-sa",
-        "by-nd",
-        "by-sa",
-        "cc0",
-        "nc-sampling+",
-        "pdm",
-        "sampling+",
-    ]
     try:
         response = session.get(url)
         response.raise_for_status()
@@ -159,7 +158,12 @@ def query_openverse(session):
                     f"license={encoded_license}"
                     "&format=json&page=1"
                 )
-                LOGGER.info(f"Target URL: {url}")
+                LOGGER.info(
+                    "Fetching Openverse data: "
+                    f"media_type={media_type} | "
+                    f"source={source} | "
+                    f"license={license}"
+                )
                 try:
                     response = session.get(url)
                     if response.status_code == 401:
@@ -177,7 +181,7 @@ def query_openverse(session):
                         tally[key] = count
                     else:
                         LOGGER.warning(
-                            f"Skipping {source}, {license}: count is 0"
+                            f"Skipping ({source}, {license}): count is 0"
                         )
                 except (requests.HTTPError, requests.RequestException) as e:
                     raise shared.QuantifyingException(
@@ -185,9 +189,9 @@ def query_openverse(session):
                     )
     LOGGER.info("Aggregating the data")
     aggregate = []
-    for field, count in tally.items():
-        source_name = field[0]
-        media_type_name = field[1]
+    for field, media_count in tally.items():
+        source = field[0]
+        media_type = field[1]
         license_code = field[2]
         # Append prefix "cc" except for 'pdm' and 'cc0'
         if license_code not in ["pdm", "cc0"]:
@@ -196,12 +200,10 @@ def query_openverse(session):
             tool_identifier = license_code
         aggregate.append(
             {
-                OPENVERSE_FIELDS[0].lower(): source_name,  # SOURCE
-                OPENVERSE_FIELDS[1].lower(): media_type_name,  # MEDIA_TYPE
-                OPENVERSE_FIELDS[
-                    2
-                ].lower(): tool_identifier,  # LEGAL_TOOL_IDENTIFIER
-                OPENVERSE_FIELDS[3].lower(): count,  # MEDIA_COUNT
+                OPENVERSE_FIELDS[0]: source,
+                OPENVERSE_FIELDS[1]: media_type,
+                OPENVERSE_FIELDS[2]: tool_identifier.upper(),
+                OPENVERSE_FIELDS[3]: media_count,
             }
         )
     return aggregate
@@ -219,7 +221,7 @@ def write_data(args, data):
         )
         writer.writeheader()
         for row in data:
-            writer.writerow({key.upper(): value for key, value in row.items()})
+            writer.writerow(row)
 
 
 def main():
