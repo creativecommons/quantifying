@@ -150,13 +150,10 @@ def query_github(args, session):
             )
             LOGGER.info(f"count: {count}")
         except requests.HTTPError as e:
-            LOGGER.error(f"HTTP Error: {e}")
             raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
         except requests.RequestException as e:
-            LOGGER.error(f"Request Exception: {e}")
             raise shared.QuantifyingException(f"Request Exception: {e}", 1)
         except KeyError as e:
-            LOGGER.error(f"KeyError: {e}.")
             raise shared.QuantifyingException(f"KeyError: {e}", 1)
     return tool_data
 
