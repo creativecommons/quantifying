@@ -248,7 +248,7 @@ def get_requests_session():
     return session
 
 
-def normalize_license_text(raw_text: str) -> str:
+def normalize_license_text(raw_text):
     """Normalize license text to standard CC license identifiers."""
     if not raw_text:
         return "Unknown"
