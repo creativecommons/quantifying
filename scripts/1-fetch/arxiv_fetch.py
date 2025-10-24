@@ -191,7 +191,7 @@ def parse_arguments():
         "--limit",
         type=int,
         default=DEFAULT_FETCH_LIMIT,
-        help=f"Limit number of papers to fetch (default: {DEFAULT_FETCH_LIMIT})",
+        help=f"Limit papers to fetch (default: {DEFAULT_FETCH_LIMIT})",
     )
     parser.add_argument(
         "--enable-save",
@@ -212,7 +212,7 @@ def parse_arguments():
 def initialize_data_file(file_path, headers):
     """Initialize CSV file with headers if it doesn't exist."""
     if not os.path.isfile(file_path):
-        with open(file_path, "w", newline="") as file_obj:
+        with open(file_path, "w", newline="", encoding="utf-8") as file_obj:
             writer = csv.DictWriter(
                 file_obj, fieldnames=headers, dialect="unix"
             )
@@ -295,7 +295,9 @@ def extract_year_from_entry(entry):
         try:
             return entry.published[:4]  # Extract year from date string
         except (AttributeError, IndexError) as e:
-            LOGGER.debug(f"Failed to extract year from entry.published '{entry.published}': {e}")
+            LOGGER.debug(
+                f"Failed to extract year from '{entry.published}': {e}"
+            )
     return "Unknown"
 
 
@@ -334,14 +336,14 @@ def save_count_data(
     # author_counts: {license: {author_count(int|None): count}}
 
     # Save license counts
-    with open(FILE_ARXIV_COUNT, "w", newline="") as fh:
+    with open(FILE_ARXIV_COUNT, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=HEADER_COUNT, dialect="unix")
         writer.writeheader()
         for lic, c in license_counts.items():
             writer.writerow({"TOOL_IDENTIFIER": lic, "COUNT": c})
 
     # Save detailed category counts (code)
-    with open(FILE_ARXIV_CATEGORY, "w", newline="") as fh:
+    with open(FILE_ARXIV_CATEGORY, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=HEADER_CATEGORY, dialect="unix")
         writer.writeheader()
         for lic, cats in category_counts.items():
@@ -351,7 +353,9 @@ def save_count_data(
                 )
 
     # Save category report with labels and percent
-    with open(FILE_ARXIV_CATEGORY_REPORT, "w", newline="") as fh:
+    with open(
+        FILE_ARXIV_CATEGORY_REPORT, "w", newline="", encoding="utf-8"
+    ) as fh:
         writer = csv.DictWriter(
             fh, fieldnames=HEADER_CATEGORY_REPORT, dialect="unix"
         )
@@ -380,7 +384,9 @@ def save_count_data(
 
     # Save aggregated category report (top N per license, rest -> Other)
     TOP_N = 10
-    with open(FILE_ARXIV_CATEGORY_REPORT_AGGREGATE, "w", newline="") as fh:
+    with open(
+        FILE_ARXIV_CATEGORY_REPORT_AGGREGATE, "w", newline="", encoding="utf-8"
+    ) as fh:
         writer = csv.DictWriter(
             fh,
             fieldnames=[
@@ -430,7 +436,7 @@ def save_count_data(
                 )
 
     # Save year counts
-    with open(FILE_ARXIV_YEAR, "w", newline="") as fh:
+    with open(FILE_ARXIV_YEAR, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=HEADER_YEAR, dialect="unix")
         writer.writeheader()
         for lic, years in year_counts.items():
@@ -440,7 +446,7 @@ def save_count_data(
                 )
 
     # Save detailed author counts (AUTHOR_COUNT as integer or Unknown)
-    with open(FILE_ARXIV_AUTHOR, "w", newline="") as fh:
+    with open(FILE_ARXIV_AUTHOR, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=HEADER_AUTHOR, dialect="unix")
         writer.writeheader()
         for lic, acs in author_counts.items():
@@ -454,7 +460,9 @@ def save_count_data(
                 )
 
     # Save author buckets summary
-    with open(FILE_ARXIV_AUTHOR_BUCKET, "w", newline="") as fh:
+    with open(
+        FILE_ARXIV_AUTHOR_BUCKET, "w", newline="", encoding="utf-8"
+    ) as fh:
         writer = csv.DictWriter(
             fh, fieldnames=HEADER_AUTHOR_BUCKET, dialect="unix"
         )
@@ -503,7 +511,9 @@ def query_arxiv(args):
         consecutive_empty_calls = 0
 
         for start in range(
-            0, min(args.limit - total_fetched, MAX_RESULTS_PER_QUERY), results_per_iteration
+            0,
+            min(args.limit - total_fetched, MAX_RESULTS_PER_QUERY),
+            results_per_iteration,
         ):
             encoded_query = urllib.parse.quote_plus(search_query)
             query = (
