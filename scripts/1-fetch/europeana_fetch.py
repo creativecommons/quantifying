@@ -85,52 +85,149 @@ def get_requests_session():
 
 
 def get_facet_list(session, facet_field):
-    """Fetch unique values for a facet (e.g., DATA_PROVIDER or RIGHTS)."""
-    params = {
-        "wskey": EUROPEANA_API_KEY,
-        "query": "*",
-        "rows": 0,
-        "facet": facet_field,
-        "profile": "facets",
-    }
-    resp = session.get(BASE_URL, params=params, timeout=30)
-    resp.raise_for_status()
-    data = resp.json()
-    facet_values = [
-        f["label"] for f in data.get("facets", [])[0].get("fields", [])
-    ]
-    return facet_values
+    """Complete facet fetching using cursor pagination"""
+    all_values = []
+    cursor = "*"
+    page = 1
+
+    print(f"\n=== Fetching {facet_field} values (cursor-based) ===")
+
+    while cursor:
+        params = {
+            "wskey": EUROPEANA_API_KEY,
+            "query": "*",
+            "rows": 0,
+            "facet": facet_field,
+            "facet.limit": 100,
+            "cursor": cursor,
+            "profile": "facets",
+        }
+
+        resp = session.get(BASE_URL, params=params, timeout=30)
+        data = resp.json()
+
+        facets = data.get("facets", [])
+        if facets and facets[0].get("fields"):
+            fields = facets[0]["fields"]
+            new_count = 0
+
+            for field in fields:
+                if field.get("label") and field["label"] not in all_values:
+                    all_values.append(field["label"])
+                    new_count += 1
+
+            print(f"P{page}: {len(fields)} total, +{new_count}")
+
+            # Show sample of new values
+            if new_count > 0:
+                new_values = [
+                    field["label"]
+                    for field in fields
+                    if field.get("label")
+                    and field["label"] not in all_values[:-new_count]
+                ]
+                sample = new_values[:3]
+                sample_display = ", ".join(sample)
+                if new_count > 3:
+                    sample_display += f" ... and {new_count - 3} more"
+                print(f"  New: {sample_display}")
+        else:
+            print(f"Page {page}: No fields returned")
+
+        # Get next cursor or break
+        next_cursor = data.get("nextCursor")
+        if next_cursor == cursor or not next_cursor:
+            print(f"→ Reached end after {page} pages")
+            break
+
+        cursor = next_cursor
+        page += 1
+        time.sleep(0.5)
+
+    print(f"✅ Completed: {len(all_values)} total unique {facet_field} values")
+    return all_values
 
 
 def simplify_legal_tool(legal_tool):
-    """Simplify and standardize Creative Commons or license URLs."""
-    if (
-        legal_tool
-        and isinstance(legal_tool, str)
-        and legal_tool.startswith("http")
-    ):
+    """
+    Simplify and standardize license URLs (especially Creative Commons).
+
+    This function converts long or complex license URLs into
+    short, human-readable labels like "CC BY-SA 4.0" or "CC BY-NC-ND 3.0 AT".
+
+    It handles both:
+    - Non-ported Creative Commons licenses (no jurisdiction)
+    - Ported licenses (with jurisdiction codes, e.g., 'AT', 'DE', etc.)
+    - Other license URLs gracefully (returns simplified or original form)
+
+    Examples
+    --------
+    >>> simplify_legal_tool("http://creativecommons.org/licenses/by-sa/4.0/")
+    'CC BY-SA 4.0'
+
+    >>> simplify_legal_tool
+    >>> ("http://creativecommons.org/licenses/by-nc-nd/3.0/at/")
+    'CC BY-NC-ND 3.0 AT'
+
+    >>> simplify_legal_tool("http://rightsstatements.org/vocab/InC/1.0/")
+    'VOCAB INC 1.0'
+
+    >>> simplify_legal_tool("Public Domain")
+    'Public Domain'
+
+    Parameters
+    ----------
+    legal_tool : str
+        A license string or URL, e.g., Creative Commons or RightsStatement.
+
+    Returns
+    -------
+    str
+        A short, standardized form of the license.
+    """
+    if not (legal_tool and isinstance(legal_tool, str)):
+        return legal_tool
+
+    if legal_tool.startswith("http"):
         parts = legal_tool.strip("/").split("/")
-        last_parts = parts[-2:]
-        if last_parts:
-            joined = " ".join(part.upper() for part in last_parts if part)
-            if "creativecommons.org" in legal_tool:
-                return f"CC {joined}"
-            else:
-                return joined
+        last_parts = parts[-3:]  # allow for jurisdiction at the end
+
+        # Detect jurisdiction (2-letter code or known suffix)
+        jurisdiction = ""
+        if len(last_parts[-1]) == 2 and last_parts[-1].isalpha():
+            jurisdiction = last_parts[-1].upper()
+            last_parts = last_parts[:-1]
+
+        # Join and format
+        joined = " ".join(
+            part.upper() for part in last_parts if part and part != "licenses"
+        )
+
+        if "creativecommons.org" in legal_tool:
+            return f"CC {joined} {jurisdiction}".strip()
         else:
-            return "Unknown"
+            return joined or "Unknown"
+
     return legal_tool
 
 
-def fetch_europeana_data_without_themes(session):
-    """Fetch aggregated counts by DATA_PROVIDER and LEGAL_TOOL (no theme)."""
+def fetch_europeana_data_without_themes(session, providers, rights_list):
+    """Fetch aggregated counts by DATA_PROVIDER and LEGAL_TOOL (no theme)
+
+    Parameters
+    ----------
+    session : requests.Session
+        A configured requests session.
+    providers : list[str]
+        List of DATA_PROVIDER names.
+    rights_list : list[str]
+        List of license/rights strings.
+
+    """
     LOGGER.info(
         "Fetching Europeana totalResults aggregated "
         "by provider and rights (without themes)."
     )
-
-    providers = get_facet_list(session, "DATA_PROVIDER")
-    rights_list = get_facet_list(session, "RIGHTS")
 
     output = []
     for provider in providers:
@@ -164,35 +261,42 @@ def fetch_europeana_data_without_themes(session):
     return output
 
 
-def fetch_europeana_data_with_themes(session):
-    """Fetch aggregated counts by DATA_PROVIDER, LEGAL_TOOL, and THEME."""
+def fetch_europeana_data_with_themes(session, providers, rights_list, themes):
+    """
+    Fetch aggregated counts by DATA_PROVIDER, LEGAL_TOOL, and THEME.
+
+    Parameters
+    ----------
+    session : requests.Session
+        A configured requests session.
+    providers : list[str]
+        List of DATA_PROVIDER names.
+    rights_list : list[str]
+        List of license/rights strings.
+    themes : list[str]
+        List of themes to query.
+
+    Returns
+    -------
+    list[dict]
+        Aggregated counts with keys: DATA_PROVIDER, LEGAL_TOOL, THEME, COUNT.
+    """
     LOGGER.info(
         "Fetching Europeana totalResults "
         "aggregated by provider, rights, and theme."
     )
 
-    providers = get_facet_list(session, "DATA_PROVIDER")
-    rights_list = get_facet_list(session, "RIGHTS")
-    themes = [
-        "art",
-        "fashion",
-        "music",
-        "industrial",
-        "sport",
-        "photography",
-        "archaeology",
-    ]
-
     output = []
+
     for provider in providers:
         for rights in rights_list:
             simplified_rights = simplify_legal_tool(rights)
-            for theme in themes:
+            for theme in themes:  # use the themes passed from main()
                 params = {
                     "wskey": EUROPEANA_API_KEY,
                     "rows": 0,
                     "query": (
-                        f'DATA_PROVIDER:"{provider}" AND RIGHTS:"{rights}"'
+                        f'DATA_PROVIDER:"{provider}" ' f'AND RIGHTS:"{rights}"'
                     ),
                     "theme": theme,
                 }
@@ -235,11 +339,41 @@ def main():
     shared.git_fetch_and_merge(args, PATHS["repo"])
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
+    # --- Environment check for Europeana API key ---
+    if not EUROPEANA_API_KEY:
+        raise shared.QuantifyingException(
+            "EUROPEANA_API_KEY not found in environment variables", 1
+        )
+
     session = get_requests_session()
 
+    providers = get_facet_list(session, "DATA_PROVIDER")
+    rights_list = get_facet_list(session, "RIGHTS")
+
+    # Define themes here (alphabetically for consistency)
+    themes = [
+        "archaeology",
+        "art",
+        "fashion",
+        "industrial",
+        "manuscript",
+        "maps",
+        "migration",
+        "music",
+        "nature",
+        "newspaper",
+        "photography",
+        "sport",
+        "ww1",
+    ]
+
     # Fetch data
-    data_no_theme = fetch_europeana_data_without_themes(session)
-    data_with_theme = fetch_europeana_data_with_themes(session)
+    data_no_theme = fetch_europeana_data_without_themes(
+        session, providers, rights_list
+    )
+    data_with_theme = fetch_europeana_data_with_themes(
+        session, providers, rights_list, themes
+    )
 
     # Save if enabled
     if args.enable_save:
