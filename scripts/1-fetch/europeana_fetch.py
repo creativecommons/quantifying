@@ -85,12 +85,12 @@ def get_requests_session():
 
 
 def get_facet_list(session, facet_field):
-    """Complete facet fetching using cursor pagination"""
+    """Complete facet fetching using cursor pagination."""
     all_values = []
     cursor = "*"
     page = 1
 
-    print(f"\n=== Fetching {facet_field} values (cursor-based) ===")
+    LOGGER.info(f"Fetching {facet_field} values using cursor pagination.")
 
     while cursor:
         params = {
@@ -110,41 +110,39 @@ def get_facet_list(session, facet_field):
         if facets and facets[0].get("fields"):
             fields = facets[0]["fields"]
             new_count = 0
+            new_values = []
 
             for field in fields:
-                if field.get("label") and field["label"] not in all_values:
-                    all_values.append(field["label"])
+                label = field.get("label")
+                if label and label not in all_values:
+                    all_values.append(label)
+                    new_values.append(label)
                     new_count += 1
 
-            print(f"P{page}: {len(fields)} total, +{new_count}")
+            LOGGER.debug(
+                f"Page {page}: {len(fields)} total, +{new_count} new."
+            )
 
-            # Show sample of new values
-            if new_count > 0:
-                new_values = [
-                    field["label"]
-                    for field in fields
-                    if field.get("label")
-                    and field["label"] not in all_values[:-new_count]
-                ]
+            if new_values:
                 sample = new_values[:3]
-                sample_display = ", ".join(sample)
                 if new_count > 3:
-                    sample_display += f" ... and {new_count - 3} more"
-                print(f"  New: {sample_display}")
+                    sample.append(f"... +{new_count - 3} more")
+                LOGGER.debug(f"New sample values: {', '.join(sample)}")
         else:
-            print(f"Page {page}: No fields returned")
+            LOGGER.debug(f"Page {page}: No fields returned.")
 
-        # Get next cursor or break
         next_cursor = data.get("nextCursor")
         if next_cursor == cursor or not next_cursor:
-            print(f"→ Reached end after {page} pages")
+            LOGGER.info(
+                f"Cursor exhausted after {page} pages. "
+                f"Collected {len(all_values)} unique {facet_field} values."
+            )
             break
 
         cursor = next_cursor
         page += 1
         time.sleep(0.5)
 
-    print(f"✅ Completed: {len(all_values)} total unique {facet_field} values")
     return all_values
 
 
