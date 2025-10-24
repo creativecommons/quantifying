@@ -39,7 +39,39 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
+# API Configuration
 BASE_URL = "http://export.arxiv.org/api/query?"
+API_DELAY_SECONDS = 3  # ArXiv recommended delay between API calls
+RESULTS_PER_REQUEST = 50  # Number of results per API request
+MAX_RESULTS_PER_QUERY = 500  # Maximum results to fetch per search query
+DEFAULT_FETCH_LIMIT = 800  # Default total papers to fetch
+
+# HTTP Retry Configuration (using shared constants where available)
+RETRY_TOTAL = 5
+RETRY_BACKOFF_FACTOR = 1
+# STATUS_FORCELIST imported from shared.py
+
+# Search Queries
+SEARCH_QUERIES = [
+    'all:"creative commons"',
+    'all:"CC BY"',
+    'all:"CC-BY"',
+    'all:"CC BY-NC"',
+    'all:"CC-BY-NC"',
+    'all:"CC BY-SA"',
+    'all:"CC-BY-SA"',
+    'all:"CC BY-ND"',
+    'all:"CC-BY-ND"',
+    'all:"CC BY-NC-SA"',
+    'all:"CC-BY-NC-SA"',
+    'all:"CC BY-NC-ND"',
+    'all:"CC-BY-NC-ND"',
+    'all:"CC0"',
+    'all:"CC 0"',
+    'all:"CC-0"',
+]
+
+# File Paths
 FILE_ARXIV_COUNT = shared.path_join(PATHS["data_1-fetch"], "arxiv_1_count.csv")
 FILE_ARXIV_CATEGORY = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_2_count_by_category.csv"
@@ -158,8 +190,8 @@ def parse_arguments():
     parser.add_argument(
         "--limit",
         type=int,
-        default=800,
-        help="Limit number of papers to fetch (default: 800)",
+        default=DEFAULT_FETCH_LIMIT,
+        help=f"Limit number of papers to fetch (default: {DEFAULT_FETCH_LIMIT})",
     )
     parser.add_argument(
         "--enable-save",
@@ -206,9 +238,9 @@ def initialize_all_data_files(args):
 def get_requests_session():
     """Create request session with retry logic"""
     retry_strategy = Retry(
-        total=5,
-        backoff_factor=1,
-        status_forcelist=[408, 429, 500, 502, 503, 504],
+        total=RETRY_TOTAL,
+        backoff_factor=RETRY_BACKOFF_FACTOR,
+        status_forcelist=shared.STATUS_FORCELIST,
     )
     session = requests.Session()
     session.headers.update({"User-Agent": shared.USER_AGENT})
@@ -262,8 +294,8 @@ def extract_year_from_entry(entry):
     if hasattr(entry, "published") and entry.published:
         try:
             return entry.published[:4]  # Extract year from date string
-        except (AttributeError, IndexError):
-            pass
+        except (AttributeError, IndexError) as e:
+            LOGGER.debug(f"Failed to extract year from entry.published '{entry.published}': {e}")
     return "Unknown"
 
 
@@ -272,8 +304,8 @@ def extract_author_count_from_entry(entry):
     if hasattr(entry, "authors") and entry.authors:
         try:
             return len(entry.authors)
-        except Exception:
-            pass
+        except Exception as e:
+            LOGGER.debug(f"Failed to count authors from entry.authors: {e}")
     if hasattr(entry, "author") and entry.author:
         return 1
     return "Unknown"
@@ -451,26 +483,9 @@ def query_arxiv(args):
             CATEGORY_LABELS.update(loaded)
     except Exception as e:
         LOGGER.warning("Error loading external arXiv category map: %s", e)
-    results_per_iteration = 50
+    results_per_iteration = RESULTS_PER_REQUEST
 
-    search_queries = [
-        'all:"creative commons"',
-        'all:"CC BY"',
-        'all:"CC-BY"',
-        'all:"CC BY-NC"',
-        'all:"CC-BY-NC"',
-        'all:"CC BY-SA"',
-        'all:"CC-BY-SA"',
-        'all:"CC BY-ND"',
-        'all:"CC-BY-ND"',
-        'all:"CC BY-NC-SA"',
-        'all:"CC-BY-NC-SA"',
-        'all:"CC BY-NC-ND"',
-        'all:"CC-BY-NC-ND"',
-        'all:"CC0"',
-        'all:"CC 0"',
-        'all:"CC-0"',
-    ]
+    search_queries = SEARCH_QUERIES
 
     # Data structures for counting
     license_counts = defaultdict(int)
@@ -488,7 +503,7 @@ def query_arxiv(args):
         consecutive_empty_calls = 0
 
         for start in range(
-            0, min(args.limit - total_fetched, 500), results_per_iteration
+            0, min(args.limit - total_fetched, MAX_RESULTS_PER_QUERY), results_per_iteration
         ):
             encoded_query = urllib.parse.quote_plus(search_query)
             query = (
@@ -541,7 +556,7 @@ def query_arxiv(args):
 
                 # arXiv recommends a 3-seconds delay between consecutive
                 # api calls for efficiency
-                time.sleep(3)
+                time.sleep(API_DELAY_SECONDS)
             except requests.RequestException as e:
                 LOGGER.error(f"Request failed: {e}")
                 break
