@@ -131,7 +131,9 @@ def get_all_sources_and_licenses(session, media_type):
                     f"Skipping source {source}: "
                     f"not available in /{media_type}/ endpoint"
                 )
-        LOGGER.info(f"Found {len(valid_sources)} sources for {media_type}")
+        LOGGER.info(
+            f"Found {len(valid_sources)} valid sources for {media_type}"
+        )
         return valid_sources, set(OPENVERSE_LEGAL_TOOLS)
     except (requests.HTTPError, requests.RequestException) as e:
         raise shared.QuantifyingException(
@@ -148,20 +150,20 @@ def query_openverse(session):
     for media_type in MEDIA_TYPES:
         LOGGER.info(f"FETCHING {media_type.upper()} DATA...")
         sources, licenses = get_all_sources_and_licenses(session, media_type)
-        for source in sources:
+        for source_name in sources:
             for license in licenses:
                 # encode the license to escape '+' e.g sampling+
                 encoded_license = urllib.parse.quote(license, safe="")
                 url = (
                     f"{OPENVERSE_BASE_URL}/{media_type}/?"
-                    f"source={source}&"
+                    f"source={source_name}&"
                     f"license={encoded_license}"
                     "&format=json&page=1"
                 )
                 LOGGER.info(
                     "Fetching Openverse data: "
                     f"media_type={media_type} | "
-                    f"source={source} | "
+                    f"_nasource={source_name} | "
                     f"license={license}"
                 )
                 try:
@@ -177,11 +179,11 @@ def query_openverse(session):
                     count = data.get("result_count", 0)
                     # Skip (source x license) with result_count = 0
                     if count > 0:
-                        key = (source, media_type, license)
+                        key = (source_name, media_type, license)
                         tally[key] = count
                     else:
                         LOGGER.warning(
-                            f"Skipping ({source}, {license}): count is 0"
+                            f"Skipping ({source_name}, {license}): count is 0"
                         )
                 except (requests.HTTPError, requests.RequestException) as e:
                     raise shared.QuantifyingException(
@@ -189,10 +191,7 @@ def query_openverse(session):
                     )
     LOGGER.info("Aggregating the data")
     aggregate = []
-    for field, media_count in tally.items():
-        source = field[0]
-        media_type = field[1]
-        license_code = field[2]
+    for (source, media_type, license_code), media_count in tally.items():
         # Append prefix "cc" except for 'pdm' and 'cc0'
         if license_code not in ["pdm", "cc0"]:
             tool_identifier = f"cc {license_code}"
