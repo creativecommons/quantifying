@@ -85,21 +85,22 @@ def get_requests_session():
 
 
 def get_facet_list(session, facet_field):
-    """Complete facet fetching using cursor pagination."""
+    """Fetch complete facet list using offset-based pagination."""
     all_values = []
-    cursor = "*"
+    offset = 0
+    limit = 100
     page = 1
 
-    LOGGER.info(f"Fetching {facet_field} values using cursor pagination.")
+    LOGGER.info(f"Fetching {facet_field} values with offset pagination.")
 
-    while cursor:
+    while True:
         params = {
             "wskey": EUROPEANA_API_KEY,
             "query": "*",
             "rows": 0,
             "facet": facet_field,
-            "facet.limit": 100,
-            "cursor": cursor,
+            f"f.{facet_field}.facet.limit": limit,
+            f"f.{facet_field}.facet.offset": offset,
             "profile": "facets",
         }
 
@@ -107,39 +108,30 @@ def get_facet_list(session, facet_field):
         data = resp.json()
 
         facets = data.get("facets", [])
-        if facets and facets[0].get("fields"):
-            fields = facets[0]["fields"]
-            new_count = 0
-            new_values = []
+        if not facets or not facets[0].get("fields"):
+            LOGGER.info(f"No more values after page {page}.")
+            break
 
-            for field in fields:
-                label = field.get("label")
-                if label and label not in all_values:
-                    all_values.append(label)
-                    new_values.append(label)
-                    new_count += 1
+        fields = facets[0]["fields"]
+        new_values = [f["label"] for f in fields if f.get("label")]
 
-            LOGGER.debug(
-                f"Page {page}: {len(fields)} total, +{new_count} new."
-            )
+        for v in new_values:
+            if v not in all_values:
+                all_values.append(v)
 
-            if new_values:
-                sample = new_values[:3]
-                if new_count > 3:
-                    sample.append(f"... +{new_count - 3} more")
-                LOGGER.debug(f"New sample values: {', '.join(sample)}")
-        else:
-            LOGGER.debug(f"Page {page}: No fields returned.")
+        LOGGER.debug(
+            f"Page {page}: Received {len(new_values)} facet values. "
+            f"Total so far: {len(all_values)}"
+        )
 
-        next_cursor = data.get("nextCursor")
-        if next_cursor == cursor or not next_cursor:
+        if len(new_values) < limit:
             LOGGER.info(
-                f"Cursor exhausted after {page} pages. "
-                f"Collected {len(all_values)} unique {facet_field} values."
+                f"Completed fetching {facet_field}. "
+                f"Total unique: {len(all_values)}"
             )
             break
 
-        cursor = next_cursor
+        offset += limit
         page += 1
         time.sleep(0.5)
 
