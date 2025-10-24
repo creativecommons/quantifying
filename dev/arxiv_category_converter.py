@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 ArXiv category code to user-friendly name converter.
 Called by arxiv_fetch.py to convert category codes to readable names.
