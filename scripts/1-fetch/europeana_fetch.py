@@ -85,13 +85,12 @@ def get_requests_session():
 
 
 def get_facet_list(session, facet_field):
-    """Fetch complete facet list using offset-based pagination."""
+    """Fetch complete facet list"""
     all_values = []
     offset = 0
     limit = 100
-    page = 1
 
-    LOGGER.info(f"Fetching {facet_field} values with offset pagination.")
+    LOGGER.info(f"Fetching {facet_field} facet values.")
 
     while True:
         params = {
@@ -109,7 +108,6 @@ def get_facet_list(session, facet_field):
 
         facets = data.get("facets", [])
         if not facets or not facets[0].get("fields"):
-            LOGGER.info(f"No more values after page {page}.")
             break
 
         fields = facets[0]["fields"]
@@ -119,21 +117,15 @@ def get_facet_list(session, facet_field):
             if v not in all_values:
                 all_values.append(v)
 
-        LOGGER.info(
-            f"Page {page}: Received {len(new_values)} facet values. "
-            f"Total so far: {len(all_values)}"
-        )
-
         if len(new_values) < limit:
-            LOGGER.info(
-                f"Completed fetching {facet_field}. "
-                f"Total unique: {len(all_values)}"
-            )
             break
 
         offset += limit
-        page += 1
         time.sleep(0.5)
+
+    LOGGER.info(
+        f"Completed fetching {facet_field}. Total unique: {len(all_values)}"
+    )
 
     return all_values
 
