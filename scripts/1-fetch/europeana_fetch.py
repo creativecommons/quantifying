@@ -119,7 +119,7 @@ def get_facet_list(session, facet_field):
             if v not in all_values:
                 all_values.append(v)
 
-        LOGGER.debug(
+        LOGGER.info(
             f"Page {page}: Received {len(new_values)} facet values. "
             f"Total so far: {len(all_values)}"
         )

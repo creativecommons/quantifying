@@ -182,4 +182,4 @@ adjust video parameters, and obtain search results.
  - Full-text searching (query)
  - Retrieving only metadata facets (e.g. via profile=facets)
  - Data returned in JSON format
- - Uses facet pagination
+ - Uses offset based pagination
