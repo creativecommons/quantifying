@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 """
-This file is dedicated to visualizing and analyzing the data collected
-from GitHub.
+GitHub Reporting Script - Phase 3
+Generates visual report of GitHub CC license usage based on processed CSV.
 """
+
 # Standard library
 import argparse
 import os
 import sys
+import textwrap
 import traceback
-from datetime import datetime, timezone
 
 # Third-party
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
-from pandas import PeriodIndex
+
+# Third-party for nicer tracebacks (repo style)
+from pygments import highlight
+from pygments.formatters import TerminalFormatter
+from pygments.lexers import PythonTracebackLexer
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -25,157 +29,147 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
+# Creative Commons Brand Colors (fallback gray for unknown)
+CC_COLORS = {
+    "CC0 1.0": "#A7A9AC",  # CC0 Grey
+    "CC BY 4.0": "#1477D4",  # CC Blue
+    "CC BY-SA 4.0": "#00A35C",  # CC Green
+    "MIT No Attribution": "#FFDD00",  # CC Yellow
+    "Unlicense": "#000000",  # CC Black
+    "BSD Zero Clause License": "#FF100F",  # CC Red
+    "CC BY-NC 4.0": "#E14D94",  # CC Pink
+    "CC BY-NC-SA 4.0": "#8C4799",  # CC Purple
+    # Other licenses will be default gray
+}
+
 
 def parse_arguments():
-    """
-    Parses command-line arguments, returns parsed arguments.
-    """
-    LOGGER.info("Parsing command-line arguments")
-    # Taken from shared module, fix later
-    datetime_today = datetime.now(timezone.utc)
-    quarter = PeriodIndex([datetime_today.date()], freq="Q")[0]
-
-    parser = argparse.ArgumentParser(description="GitHub Data Report")
+    parser = argparse.ArgumentParser(description="GitHub License Report")
     parser.add_argument(
-        "--quarter",
-        "-q",
-        type=str,
-        default=f"{quarter}",
-        help="Data quarter in format YYYYQx, e.g., 2024Q2",
+        "--enable-save",
+        action="store_true",
+        help="Enable saving the report to data/<quarter>/3-report",
     )
     parser.add_argument(
-        "--skip-commit",
+        "--enable-git",
         action="store_true",
-        help="Don't git commit changes (also skips git push changes)",
-    )
-    parser.add_argument(
-        "--skip-push",
-        action="store_true",
-        help="Don't git push changes",
+        help="Commit and push generated reports",
     )
     parser.add_argument(
         "--show-plots",
         action="store_true",
-        help="Show generated plots (in addition to saving them)",
+        help="Display charts while generating them",
     )
-    args = parser.parse_args()
-    if args.skip_commit:
-        args.skip_push = True
-    return args
+    return parser.parse_args()
 
 
-def load_data(args):
+def load_processed_data():
     """
-    Load the collected data from the CSV file.
+    Load the Phase 2 output (github_summary.csv).
     """
-    selected_quarter = args.quarter
-
-    file_path = os.path.join(
-        PATHS["data"], f"{selected_quarter}", "1-fetch", "github_fetched.csv"
-    )
-
+    file_path = os.path.join(PATHS["data_2-process"], "github_summary.csv")
     if not os.path.exists(file_path):
-        LOGGER.error(f"Data file not found: {file_path}")
-        return pd.DataFrame()
-
-    data = pd.read_csv(file_path)
-    LOGGER.info(f"Data loaded from {file_path}")
-    return data
-
-
-def visualize_by_license_type(data, args):
-    """
-    Create a bar chart for the number of repositories licensed by license type.
-    """
-    LOGGER.info(
-        "Creating a bar chart for the number "
-        "of repositories licensed by license type."
-    )
-
-    selected_quarter = args.quarter
-
-    # Strip any leading/trailing spaces from the columns
-    data.columns = data.columns.str.strip()
-
-    plt.figure(figsize=(12, 8))
-    try:
-        ax = sns.barplot(x=data["LICENSE_TYPE"], y=data["Repository Count"])
-    except KeyError as e:
-        LOGGER.error(f"KeyError: {e}. Available columns are: {data.columns}")
-        return
-
-    plt.title("Number of Repositories Licensed by License Type")
-    plt.xlabel("License Type")
-    plt.ylabel("Number of Repositories")
-    plt.xticks(rotation=45, ha="right")
-
-    # Add value numbers to the top of each bar
-    for p in ax.patches:
-        ax.annotate(
-            format(p.get_height(), ",.0f"),
-            (p.get_x() + p.get_width() / 2.0, p.get_height()),
-            ha="center",
-            va="center",
-            xytext=(0, 9),
-            textcoords="offset points",
+        raise shared.QuantifyingException(
+            f"Processed GitHub summary file not found: {file_path}",
+            exit_code=1,
         )
 
-    output_directory = os.path.join(
-        PATHS["data"], f"{selected_quarter}", "3-report"
+    df = pd.read_csv(file_path)
+
+    # Removing total repositories row if present
+    if (
+        "total public repositories"
+        in df["LICENSE_IDENTIFIER"].str.lower().values
+    ):
+        # remove "total public repositories" row
+        df = df[
+            df["LICENSE_IDENTIFIER"].str.lower() != "total public repositories"
+        ]
+
+    # Clean column names
+    df.columns = [c.strip() for c in df.columns]
+
+    # Strip whitespace from LICENSE_IDENTIFIER
+    df["LICENSE_IDENTIFIER"] = df["LICENSE_IDENTIFIER"].astype(str).str.strip()
+
+    # Capture TOTAL row separately
+    total_row = df[df["LICENSE_IDENTIFIER"].str.upper() == "TOTAL"]
+    total_count = (
+        int(total_row["COUNT"].values[0]) if not total_row.empty else 0
     )
 
-    LOGGER.info(f"Output directory: {output_directory}")
-
-    # Create the directory if it does not exist
-    os.makedirs(output_directory, exist_ok=True)
-    image_path = os.path.join(
-        output_directory, "github_license_type_report.png"
+    # Filter out TOTAL from plot data
+    df_plot = df[df["LICENSE_IDENTIFIER"].str.upper() != "TOTAL"].copy()
+    df_plot["COUNT"] = (
+        pd.to_numeric(df_plot["COUNT"], errors="coerce").fillna(0).astype(int)
     )
+    df_plot = df_plot.sort_values(by="COUNT", ascending=False)
 
-    plt.savefig(image_path)
+    return df_plot, total_count
+
+
+def create_license_bar_chart(df, args):
+    """
+    Generate bar chart from license data.
+    """
+    plt.figure(figsize=(12, 8))
+
+    labels = df["LICENSE_IDENTIFIER"].tolist()
+    counts = df["COUNT"].tolist()
+    colors = [CC_COLORS.get(lic, "#808080") for lic in labels]
+
+    bars = plt.bar(labels, counts, color=colors)
+    plt.title("GitHub Repositories by License (Creative Commons)")
+    plt.xlabel("License")
+    plt.ylabel("Repository Count")
+    plt.xticks(rotation=45, ha="right")
+
+    # Add value labels
+    for bar in bars:
+        height = bar.get_height()
+        plt.annotate(
+            format(height, ",d"),
+            xy=(bar.get_x() + bar.get_width() / 2, height),
+            xytext=(0, 6),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+        )
+
+    plt.tight_layout()
+
+    out_dir = PATHS["data_3-report"]
+    os.makedirs(out_dir, exist_ok=True)
+    out_file = os.path.join(out_dir, "github_license_report.png")
+    plt.savefig(out_file)
 
     if args.show_plots:
         plt.show()
 
-    shared.update_readme(
-        PATHS,
-        image_path,
-        "GitHub Data",
-        "Number of Repositories Licensed by License Type",
-        "GitHub License Type Report",
-        args,
-    )
-
-    LOGGER.info("Visualization by license type created.")
+    LOGGER.info(f"Saved license report to: {out_file}")
+    return out_file
 
 
 def main():
-
-    # Fetch and merge changes
-    shared.fetch_and_merge(PATHS["repo"])
-
     args = parse_arguments()
+    shared.paths_log(LOGGER, PATHS)
 
-    data = load_data(args)
-    if data.empty:
-        return
+    df, total_count = load_processed_data()
 
-    current_directory = os.getcwd()
-    LOGGER.info(f"Current working directory: {current_directory}")
+    # Log total repositories
+    LOGGER.info(f"Total GitHub repositories analyzed: {total_count:,}")
 
-    visualize_by_license_type(data, args)
+    create_license_bar_chart(df, args)
 
-    # Add and commit changes
-    if not args.skip_commit:
-        shared.add_and_commit(
+    # Optionally commit/push
+    if args.enable_git:
+        args = shared.git_add_and_commit(
+            args,
             PATHS["repo"],
             PATHS["data_quarter"],
-            "Add and commit new GitHub reports",
+            "Add GitHub license report",
         )
-
-    # Push changes
-    if not args.skip_push:
-        shared.push_changes(PATHS["repo"])
+        shared.git_push_changes(args, PATHS["repo"])
 
 
 if __name__ == "__main__":
@@ -188,11 +182,20 @@ if __name__ == "__main__":
             LOGGER.error(e.message)
         sys.exit(e.exit_code)
     except SystemExit as e:
-        LOGGER.error(f"System exit with code: {e.code}")
+        if e.code != 0:
+            LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
         LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
+        traceback_formatted = textwrap.indent(
+            highlight(
+                traceback.format_exc(),
+                PythonTracebackLexer(),
+                TerminalFormatter(),
+            ),
+            "    ",
+        )
+        LOGGER.critical(f"(1) Unhandled exception:\n{traceback_formatted}")
         sys.exit(1)
