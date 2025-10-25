@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+feedparser = "*"
 flickrapi = "*"
 GitPython = "*"
 google-api-python-client = "*"
@@ -18,6 +19,7 @@ pillow = ">=11.3.0"  # Ensure dependency is secure
 Pyarrow = "*"
 Pygments = "*"
 python-dotenv = "*"
+PyYAML = "*"
 requests = ">=2.31.0"
 seaborn = "*"
 urllib3 = ">=2.5.0"
