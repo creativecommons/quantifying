@@ -7,6 +7,21 @@ from datetime import datetime, timezone
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from pandas import PeriodIndex
 
+STATUS_FORCELIST = [
+    408,  # Request Timeout
+    422,  # Unprocessable Content (Validation failed,endpoint spammed, etc.)
+    429,  # Too Many Requests
+    500,  # Internal Server Error
+    502,  # Bad Gateway
+    503,  # Service Unavailable
+    504,  # Gateway Timeout
+]
+
+USER_AGENT = (
+    "QuantifyingTheCommons/1.0 "
+    "(https://github.com/creativecommons/quantifying)"
+)
+
 
 class QuantifyingException(Exception):
     def __init__(self, message, exit_code=None):
