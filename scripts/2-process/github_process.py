@@ -18,18 +18,17 @@ from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
 
-# First-party/Local
-import shared  # noqa: E402
-
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
+# First-party/Local
+import shared  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
 # NOTE:
-# We will use TOOL_IDENTIFIER
-# (human-friendly names like "CC BY 4.0")
+# We will use TOOL_IDENTIFIER (human-friendly names like "CC BY 4.0")
 # as the canonical license identifier in the
 # processed CSV, per reviewer guidance.
 
@@ -89,8 +88,7 @@ def load_github_counts():
 
 def process_data(rows):
     """
-    Phase 1 already includes a TOTAL row
-    ("Total public repositories"),
+    Phase 1 already includes a TOTAL row ("Total public repositories"),
     so we simply return the rows unchanged to avoid duplication.
     """
     return rows
@@ -118,8 +116,8 @@ def save_summary(summary, args):
 
     LOGGER.info(f"Processed GitHub data saved to {output_file}")
 
-    # Git behaviour
-    # (no-op unless args.enable_git and user has configured remotes)
+    # Git behaviour (no-op unless args.enable_git and
+    # user has configured remotes)
     if args.enable_git:
         args = shared.git_add_and_commit(
             args,
