@@ -32,15 +32,6 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 FILE1_COUNT = os.path.join(PATHS["data_phase"], "github_1_count.csv")
 GH_TOKEN = os.getenv("GH_TOKEN")
-GITHUB_RETRY_STATUS_FORCELIST = [
-    408,  # Request Timeout
-    422,  # Unprocessable Content (Validation failed, or endpoint spammed)
-    429,  # Too Many Requests
-    500,  # Internal Server Error
-    502,  # Bad Gateway
-    503,  # Service Unavailable
-    504,  # Gateway Timeout
-]
 # Also see: https://en.wikipedia.org/wiki/Public-domain-equivalent_license
 GITHUB_TOOLS = [
     {"TOOL_IDENTIFIER": "BSD Zero Clause License", "SPDX_IDENTIFIER": "0BSD"},
@@ -93,11 +84,14 @@ def get_requests_session():
     max_retries = Retry(
         total=5,
         backoff_factor=10,
-        status_forcelist=GITHUB_RETRY_STATUS_FORCELIST,
+        status_forcelist=shared.STATUS_FORCELIST,
     )
     session = requests.Session()
     session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    headers = {"accept": "application/vnd.github+json"}
+    headers = {
+        "accept": "application/vnd.github+json",
+        "User-Agent": shared.USER_AGENT,
+    }
     if GH_TOKEN:
         headers["authorization"] = f"Bearer {GH_TOKEN}"
     session.headers.update(headers)
@@ -156,13 +150,10 @@ def query_github(args, session):
             )
             LOGGER.info(f"count: {count}")
         except requests.HTTPError as e:
-            LOGGER.error(f"HTTP Error: {e}")
             raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
         except requests.RequestException as e:
-            LOGGER.error(f"Request Exception: {e}")
             raise shared.QuantifyingException(f"Request Exception: {e}", 1)
         except KeyError as e:
-            LOGGER.error(f"KeyError: {e}.")
             raise shared.QuantifyingException(f"KeyError: {e}", 1)
     return tool_data
 
