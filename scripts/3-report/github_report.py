@@ -132,7 +132,7 @@ def Plot_by_license_type(args):
     name_label = "License"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
-
+    data.sort_values(name_label, ascending=False, inplace=True)
     title = "Totals by license type"
     plt = plot.combined_plot(
         args=args,
@@ -174,7 +174,7 @@ def plot_totals_by_code_license(args):
     name_label = "Category"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
-
+    data.sort_values(name_label, ascending=False, inplace=True)
     title = "Totals by Code License"
     plt = plot.combined_plot(
         args=args,
@@ -216,7 +216,7 @@ def plot_totals_by_restriction(args):
     name_label = "Category"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
-
+    data.sort_values(name_label, ascending=False, inplace=True)
     title = "Totals by restriction"
     plt = plot.combined_plot(
         args=args,
@@ -257,7 +257,7 @@ def plot_totals_by_rights_reserved(args):
     name_label = "Category"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
-
+    data.sort_values(name_label, ascending=False, inplace=True)
     title = "Totals by Rights Reserved vs No Rights Reserved"
     plt = plot.combined_plot(
         args=args,

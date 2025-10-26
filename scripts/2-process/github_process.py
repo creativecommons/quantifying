@@ -39,7 +39,7 @@ def parse_arguments():
         help=f"Data quarter in format YYYYQx (default: {QUARTER})",
     )
     parser.add_argument(
-        "--enable_save",
+        "--enable-save",
         action="store_true",
         help="Enable saving results (default: False)",
     )
@@ -134,7 +134,7 @@ def process_totals_by_license(args, count_data):
 
 def process_totals_by_restriction(args, count_data):
     """
-    Processing count data: totals by Approved for Free Cultural Works
+    Processing count data: totals by restriction
     """
     # https://creativecommons.org/public-domain/freeworks/
     LOGGER.info(process_totals_by_restriction.__doc__.strip())
