@@ -86,18 +86,51 @@ def load_data(args):
     return data
 
 
-def Plot_by_license_type(args):
+def github_intro(args):
     """
-    Create plots for the languages with highest usage of latest tools
+    Write Github introduction.
     """
-    LOGGER.info(plot_totals_by_code_license.__doc__.strip())
+    LOGGER.info(github_intro.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_1-fetch"],
         "github_1_count.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "TOOL_IDENTIFIER"
-    data_label = "COUNT"
+    data = pd.read_csv(file_path, index_col=name_label)
+    total_repositories = data.loc["Total public repositories", "COUNT"]
+    shared.update_readme(
+        args,
+        SECTION,
+        "Overview",
+        None,
+        None,
+        "Github data uses the `total_count` returned by"
+        " API for search queries of the SPDX IDENTIFIER URLS"
+        "\n"
+        f"**The results indicate that a total of {total_repositories}"
+        "repositories on GitHub use a mix of some rights reserved and"
+        "no rights reserved licenses which showcases the usage of"
+        "attribution based Creative Commons (CC) legal tool"
+        "and Public domain equivalent.**\n"
+        "/n"
+        "Thank you GitHub for providing public access to"
+        "repository metadata through its API.",
+    )
+
+
+def Plot_by_license_type(args):
+    """
+    Create plots for the languages with highest usage of latest tools
+    """
+    LOGGER.info(plot_totals_by_code_license.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"],
+        "github_totals_by_license.csv",
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    name_label = "License"
+    data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
 
     title = "Totals by license type"
@@ -166,7 +199,7 @@ def plot_totals_by_code_license(args):
         SECTION,
         title,
         image_path,
-        "Plots showing totals by code license.",
+        "Plots showing totals by code license vs content license.",
     )
 
 
@@ -184,7 +217,7 @@ def plot_totals_by_restriction(args):
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
 
-    title = "Approved for Free Cultural Works"
+    title = "Totals by restriction"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -211,13 +244,56 @@ def plot_totals_by_restriction(args):
     )
 
 
+def plot_totals_by_rights_reserved(args):
+    """
+    Create plots for the languages with highest usage of latest tools
+    """
+    LOGGER.info(plot_totals_by_rights_reserved.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"],
+        "github_totals_by_rights_reserved.csv",
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    name_label = "Category"
+    data_label = "Count"
+    data = pd.read_csv(file_path, index_col=name_label)
+
+    title = "Totals by Rights Reserved vs No Rights Reserved"
+    plt = plot.combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        name_label=name_label,
+        data_label=data_label,
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "github_rights_reserved.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path)
+
+    shared.update_readme(
+        args,
+        SECTION,
+        title,
+        image_path,
+        "Plots showing totals by rights reserved vs No rights reserved.",
+    )
+
+
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    github_intro(args)
     plot_totals_by_restriction(args)
     plot_totals_by_code_license(args)
     Plot_by_license_type(args)
+    plot_totals_by_rights_reserved(args)
 
     # Add and commit changes
     args = shared.git_add_and_commit(

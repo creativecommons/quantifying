@@ -83,7 +83,7 @@ def process_totals_by_code_license(args, count_data):
         tool = str(row.TOOL_IDENTIFIER)
         count = int(row.COUNT)
 
-        if tool == "Total_repositories":
+        if tool == "Total public repositories":
             continue
 
         if tool in [
@@ -107,6 +107,31 @@ def process_totals_by_code_license(args, count_data):
     data_to_csv(args, data, file_path)
 
 
+def process_totals_by_license(args, count_data):
+    """
+    Processing count data: totals by License
+    """
+    LOGGER.info(process_totals_by_license.__doc__.strip())
+    data = {}
+
+    for row in count_data.itertuples(index=False):
+        tool = str(row.TOOL_IDENTIFIER)
+        count = int(row.COUNT)
+
+        if tool == "Total public repositories":
+            continue
+
+        data[tool] = count
+
+    data = pd.DataFrame(data.items(), columns=["License", "Count"])
+    data.sort_values("Count", ascending=False, inplace=True)
+    data.reset_index(drop=True, inplace=True)
+    file_path = shared.path_join(
+        PATHS["data_phase"], "github_totals_by_license.csv"
+    )
+    data_to_csv(args, data, file_path)
+
+
 def process_totals_by_restriction(args, count_data):
     """
     Processing count data: totals by Approved for Free Cultural Works
@@ -118,6 +143,9 @@ def process_totals_by_restriction(args, count_data):
     for row in count_data.itertuples(index=False):
         tool = str(row.TOOL_IDENTIFIER)
         count = int(row.COUNT)
+
+        if tool == "Total public repositories":
+            continue
 
         if tool in ["BSD Zero Clause License", "CC0 1.0", "Unlicense"]:
             key = "Public domain"
@@ -134,6 +162,44 @@ def process_totals_by_restriction(args, count_data):
     data.reset_index(drop=True, inplace=True)
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_restriction.csv"
+    )
+    data_to_csv(args, data, file_path)
+
+
+def process_totals_by_rights_reserved(args, count_data):
+    """
+    Processing count data: totals by Rights Reserved
+    """
+    LOGGER.info(process_totals_by_rights_reserved.__doc__.strip())
+    data = {
+        "Rights reserved": 0,
+        "No rights reserved": 0,
+    }
+    for row in count_data.itertuples(index=False):
+        tool = str(row.TOOL_IDENTIFIER)
+        count = int(row.COUNT)
+
+        if tool == "Total public repositories":
+            continue
+
+        if tool in [
+            "MIT No Attribution",
+            "BSD Zero Clause License",
+            "CC0 1.0",
+            "Unlicense",
+        ]:
+            key = "No rights reserved"
+        elif tool in ["CC BY 4.0", "CC-BY-SA 4.0"]:
+            key = "Rights reserved"
+        else:
+            continue
+
+        data[key] += count
+    data = pd.DataFrame(data.items(), columns=["Category", "Count"])
+    data.sort_values("Count", ascending=False, inplace=True)
+    data.reset_index(drop=True, inplace=True)
+    file_path = shared.path_join(
+        PATHS["data_phase"], "github_totals_by_rights_reserved.csv"
     )
     data_to_csv(args, data, file_path)
 
@@ -188,6 +254,8 @@ def main():
 
     file_count = shared.path_join(PATHS["data_1-fetch"], "github_1_count.csv")
     count_data = pd.read_csv(file_count, usecols=["TOOL_IDENTIFIER", "COUNT"])
+    process_totals_by_license(args, count_data)
+    process_totals_by_rights_reserved(args, count_data)
     process_totals_by_restriction(args, count_data)
     process_totals_by_code_license(args, count_data)
 
