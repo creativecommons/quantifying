@@ -30,8 +30,8 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
-FILE1_COUNT = shared.path_join(PATHS["data_phase"], "wikicommons_1_count.csv")
 BASE_URL = "https://commons.wikimedia.org/w/api.php"
+FILE1_COUNT = shared.path_join(PATHS["data_phase"], "wikicommons_1_count.csv")
 HEADER1_COUNT = ["LICENSE", "FILE_COUNT", "PAGE_COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
