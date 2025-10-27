@@ -26,7 +26,7 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "Github Data"
+SECTION = "GitHub Data"
 
 
 def parse_arguments():
@@ -88,7 +88,7 @@ def load_data(args):
 
 def github_intro(args):
     """
-    Write Github introduction.
+    Write GitHub introduction.
     """
     LOGGER.info(github_intro.__doc__.strip())
     file_path = shared.path_join(
@@ -105,13 +105,13 @@ def github_intro(args):
         "Overview",
         None,
         None,
-        "Github data uses the `total_count` returned by"
+        "GitHub data uses the `total_count` returned by"
         " API for search queries of the SPDX IDENTIFIER URLS"
         "\n"
-        f"**The results indicate that a total of {total_repositories}"
-        "repositories on GitHub use a mix of some rights reserved and"
-        "no rights reserved licenses which showcases the usage of"
-        "attribution based Creative Commons (CC) legal tool"
+        f"**The results indicate that a total of {total_repositories} "
+        "repositories on GitHub use a mix of some rights reserved and "
+        "no rights reserved licenses which showcases the usage of "
+        "attribution based Creative Commons (CC) legal tool "
         "and Public domain equivalent.**\n"
         "/n"
         "Thank you GitHub for providing public access to"
@@ -119,11 +119,11 @@ def github_intro(args):
     )
 
 
-def Plot_by_license_type(args):
+def plot_totals_by_license_type(args):
     """
-    Create plots for the languages with highest usage of latest tools
+    Create plots showing totals by license type
     """
-    LOGGER.info(plot_totals_by_code_license.__doc__.strip())
+    LOGGER.info(plot_totals_by_license_type.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"],
         "github_totals_by_license.csv",
@@ -132,7 +132,7 @@ def Plot_by_license_type(args):
     name_label = "License"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
-    data.sort_values(name_label, ascending=False, inplace=True)
+    data.sort_values(data_label, ascending=True, inplace=True)
     title = "Totals by license type"
     plt = plot.combined_plot(
         args=args,
@@ -157,55 +157,20 @@ def Plot_by_license_type(args):
         SECTION,
         title,
         image_path,
-        "Plots showing totals by license type.",
-    )
-
-
-def plot_totals_by_code_license(args):
-    """
-    Create plots for the languages with highest usage of latest tools
-    """
-    LOGGER.info(plot_totals_by_code_license.__doc__.strip())
-    file_path = shared.path_join(
-        PATHS["data_2-process"],
-        "github_totals_by_code_license.csv",
-    )
-    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
-    name_label = "Category"
-    data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
-    data.sort_values(name_label, ascending=False, inplace=True)
-    title = "Totals by Code License"
-    plt = plot.combined_plot(
-        args=args,
-        data=data,
-        title=title,
-        name_label=name_label,
-        data_label=data_label,
-    )
-
-    image_path = shared.path_join(
-        PATHS["data_phase"], "github_totals_code_license.png"
-    )
-    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
-
-    if args.enable_save:
-        # Create the directory if it does not exist
-        os.makedirs(PATHS["data_phase"], exist_ok=True)
-        plt.savefig(image_path)
-
-    shared.update_readme(
-        args,
-        SECTION,
-        title,
-        image_path,
-        "Plots showing totals by code license vs content license.",
+        "Plots showing totals by license type."
+        "This shows the distribution of different licenses "
+        "used in GitHub repositories. "
+        "Allowing Commons to evaluate how freely softwares on "
+        "GitHub are being used, modified, and shared "
+        "and how developers choose to share their works. "
+        "See more at [SPDX License List]"
+        "(https://spdx.org/licenses/)",
     )
 
 
 def plot_totals_by_restriction(args):
     """
-    Create plots for the languages with highest usage of latest tools
+    Create plots showing totals by restriction
     """
     LOGGER.info(plot_totals_by_restriction.__doc__.strip())
     file_path = shared.path_join(
@@ -240,48 +205,22 @@ def plot_totals_by_restriction(args):
         SECTION,
         title,
         image_path,
-        "Plots showing totals by restrictions.",
-    )
-
-
-def plot_totals_by_rights_reserved(args):
-    """
-    Create plots for the languages with highest usage of latest tools
-    """
-    LOGGER.info(plot_totals_by_rights_reserved.__doc__.strip())
-    file_path = shared.path_join(
-        PATHS["data_2-process"],
-        "github_totals_by_rights_reserved.csv",
-    )
-    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
-    name_label = "Category"
-    data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
-    data.sort_values(name_label, ascending=False, inplace=True)
-    title = "Totals by Rights Reserved vs No Rights Reserved"
-    plt = plot.combined_plot(
-        args=args,
-        data=data,
-        title=title,
-        name_label=name_label,
-        data_label=data_label,
-    )
-
-    image_path = shared.path_join(
-        PATHS["data_phase"], "github_rights_reserved.png"
-    )
-    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
-    if args.enable_save:
-        # Create the directory if it does not exist
-        os.makedirs(PATHS["data_phase"], exist_ok=True)
-        plt.savefig(image_path)
-
-    shared.update_readme(
-        args,
-        SECTION,
-        title,
-        image_path,
-        "Plots showing totals by rights reserved vs No rights reserved.",
+        "Plots showing totals by different levels of restrictions."
+        "Public domain includes works released under CC0, 0BSD and Unlicense "
+        "meaning developers have waived all their rights to a software. "
+        "Allowing anyone to freely use, modify, and distribute the code "
+        "without restriction. "
+        "See more at "
+        "[Public-domain-equivalent license]"
+        "(https://en.wikipedia.org/wiki/Public-domain-equivalent_license) "
+        "While Permissive contains works under MIT-0 and CC BY 4.0 "
+        "allows users to reuse the code with some conditions and attribution "
+        "[Permissive license]"
+        "(https://en.wikipedia.org/wiki/Permissive_software_license) "
+        "and Copyleft contains works under CC BY-SA 4.0. "
+        "which requires any derivative works to be licensed "
+        "under the same terms. "
+        "[Copyleft](https://en.wikipedia.org/wiki/Copyleft) ",
     )
 
 
@@ -290,10 +229,8 @@ def main():
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     github_intro(args)
+    plot_totals_by_license_type(args)
     plot_totals_by_restriction(args)
-    plot_totals_by_code_license(args)
-    Plot_by_license_type(args)
-    plot_totals_by_rights_reserved(args)
 
     # Add and commit changes
     args = shared.git_add_and_commit(
