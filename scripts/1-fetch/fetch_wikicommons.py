@@ -152,7 +152,7 @@ def get_category_info(session, category_name):
         pages = data.get("query", {}).get("pages", {})
         if not pages:
             LOGGER.warning(f"No data found for category: {category_name}")
-            return {"files": 0, "pages": 0}
+            return None
             
         # Get the first (and usually only) page result
         page_data = list(pages.values())[0]
