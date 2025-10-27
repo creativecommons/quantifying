@@ -26,11 +26,6 @@ from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-# Add dev directory for category converter
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "dev"))
-
-# Third-party
-import arxiv_category_converter  # noqa: E402
 
 # First-party/Local
 import shared  # noqa: E402
@@ -49,7 +44,7 @@ DEFAULT_FETCH_LIMIT = 800  # Default total papers to fetch
 # HTTP Retry Configuration (using shared constants where available)
 RETRY_TOTAL = 5
 RETRY_BACKOFF_FACTOR = 1
-# STATUS_FORCELIST imported from shared.py
+
 
 # Search Queries
 SEARCH_QUERIES = [
@@ -73,9 +68,6 @@ SEARCH_QUERIES = [
 
 # File Paths
 FILE_ARXIV_COUNT = shared.path_join(PATHS["data_1-fetch"], "arxiv_1_count.csv")
-FILE_ARXIV_CATEGORY = shared.path_join(
-    PATHS["data_1-fetch"], "arxiv_2_count_by_category.csv"
-)
 FILE_ARXIV_CATEGORY_REPORT = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_2_count_by_category_report.csv"
 )
@@ -85,9 +77,6 @@ FILE_ARXIV_CATEGORY_REPORT_AGGREGATE = shared.path_join(
 FILE_ARXIV_YEAR = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_3_count_by_year.csv"
 )
-FILE_ARXIV_AUTHOR = shared.path_join(
-    PATHS["data_1-fetch"], "arxiv_4_count_by_author_count.csv"
-)
 FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
 )
@@ -95,7 +84,6 @@ FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
 FILE_PROVENANCE = shared.path_join(PATHS["data"], "arxiv_provenance.yaml")
 
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
-HEADER_CATEGORY = ["TOOL_IDENTIFIER", "CATEGORY", "COUNT"]
 HEADER_CATEGORY_REPORT = [
     "TOOL_IDENTIFIER",
     "CATEGORY_CODE",
@@ -104,7 +92,6 @@ HEADER_CATEGORY_REPORT = [
     "PERCENT",
 ]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
-HEADER_AUTHOR = ["TOOL_IDENTIFIER", "AUTHOR_COUNT", "COUNT"]
 HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
 
 QUARTER = os.path.basename(PATHS["data_quarter"])
@@ -134,52 +121,6 @@ CC_PATTERNS = [
 
 # Log the start of the script execution
 LOGGER.info("Script execution started.")
-
-
-def load_category_map(paths):
-    """Load category->label mapping from data/arxiv_category_map.yaml.
-    Returns a dict (possibly empty) and logs failures silently.
-    """
-    paths_to_check = []
-    # use the repository data directory
-    repository_data_dir = (
-        paths.get("data") if isinstance(paths, dict) else None
-    )
-    if repository_data_dir:
-        paths_to_check.append(
-            os.path.join(repository_data_dir, "arxiv_category_map.yaml")
-        )
-
-    # allow for looking two levels up (data/)
-    paths_to_check.append(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "..",
-            "data",
-            "arxiv_category_map.yaml",
-        )
-    )
-
-    for p in paths_to_check:
-        p = os.path.abspath(os.path.realpath(p))
-        try:
-            if os.path.exists(p):
-                with open(p, "r", encoding="utf-8") as fh:
-                    data = yaml.safe_load(fh)
-                if isinstance(data, dict):
-                    # Normalise keys/values to strings for readability
-                    return {str(k).strip(): str(v) for k, v in data.items()}
-        except Exception as e:
-            LOGGER = globals().get("LOGGER")
-            if LOGGER:
-                LOGGER.warning("Failed to load category map %s: %s", p, e)
-            else:
-                print(
-                    f"Warning: Failed to load category map {p}: {e}",
-                    file=sys.stderr,
-                )
-    return {}
 
 
 # parsing arguments function
@@ -229,9 +170,8 @@ def initialize_all_data_files(args):
 
     os.makedirs(PATHS["data_1-fetch"], exist_ok=True)
     initialize_data_file(FILE_ARXIV_COUNT, HEADER_COUNT)
-    initialize_data_file(FILE_ARXIV_CATEGORY, HEADER_CATEGORY)
+    initialize_data_file(FILE_ARXIV_CATEGORY_REPORT, HEADER_CATEGORY_REPORT)
     initialize_data_file(FILE_ARXIV_YEAR, HEADER_YEAR)
-    initialize_data_file(FILE_ARXIV_AUTHOR, HEADER_AUTHOR)
     initialize_data_file(FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET)
 
 
@@ -249,7 +189,12 @@ def get_requests_session():
 
 
 def normalize_license_text(raw_text):
-    """Normalize license text to standard CC license identifiers."""
+    """
+    Convert raw license text to standardized CC license identifiers.
+
+    Uses regex patterns to identify CC licenses from paper text.
+    Returns specific license (e.g., "CC BY", "CC0") or "Unknown".
+    """
     if not raw_text:
         return "Unknown"
 
@@ -261,7 +206,12 @@ def normalize_license_text(raw_text):
 
 
 def extract_license_info(entry):
-    """Extract CC license information from ArXiv entry."""
+    """
+    Extract CC license information from ArXiv paper entry.
+
+    Checks rights field first, then summary field for license patterns.
+    Returns normalized license identifier or "Unknown".
+    """
     # checking through the rights field first then summary
     if hasattr(entry, "rights") and entry.rights:
         license_info = normalize_license_text(entry.rights)
@@ -314,6 +264,12 @@ def extract_author_count_from_entry(entry):
 
 
 def bucket_author_count(n):
+    """
+    Convert author count to predefined buckets for analysis.
+
+    Buckets: "1", "2-3", "4-6", "7-10", "11+", "Unknown"
+    Reduces granularity for better statistical analysis.
+    """
     if n is None:
         return "Unknown"
     if n == 1:
@@ -330,6 +286,10 @@ def bucket_author_count(n):
 def save_count_data(
     license_counts, category_counts, year_counts, author_counts
 ):
+    """
+    Save all collected data to CSV files.
+
+    """
     # license_counts: {license: count}
     # category_counts: {license: {category_code: count}}
     # year_counts: {license: {year: count}}
@@ -342,16 +302,6 @@ def save_count_data(
         for lic, c in license_counts.items():
             writer.writerow({"TOOL_IDENTIFIER": lic, "COUNT": c})
 
-    # Save detailed category counts (code)
-    with open(FILE_ARXIV_CATEGORY, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_CATEGORY, dialect="unix")
-        writer.writeheader()
-        for lic, cats in category_counts.items():
-            for code, c in cats.items():
-                writer.writerow(
-                    {"TOOL_IDENTIFIER": lic, "CATEGORY": code, "COUNT": c}
-                )
-
     # Save category report with labels and percent
     with open(
         FILE_ARXIV_CATEGORY_REPORT, "w", newline="", encoding="utf-8"
@@ -363,14 +313,7 @@ def save_count_data(
         for lic, cats in category_counts.items():
             total_for_license = sum(cats.values()) or 1
             for code, c in cats.items():
-                label = CATEGORY_LABELS.get(
-                    code,
-                    (
-                        code.split(".")[0].upper()
-                        if code and "." in code
-                        else code
-                    ),
-                )
+                label = shared.normalize_arxiv_category(code, CATEGORY_LABELS)
                 pct = round((c / total_for_license) * 100, 2)
                 writer.writerow(
                     {
@@ -391,6 +334,7 @@ def save_count_data(
             fh,
             fieldnames=[
                 "TOOL_IDENTIFIER",
+                "CATEGORY_CODE",
                 "CATEGORY_LABEL",
                 "COUNT",
                 "PERCENT",
@@ -407,17 +351,11 @@ def save_count_data(
             others = sorted_cats[TOP_N:]
             other_count = sum(c for _, c in others)
             for code, c in top:
-                label = CATEGORY_LABELS.get(
-                    code,
-                    (
-                        code.split(".")[0].upper()
-                        if code and "." in code
-                        else code
-                    ),
-                )
+                label = shared.normalize_arxiv_category(code, CATEGORY_LABELS)
                 writer.writerow(
                     {
                         "TOOL_IDENTIFIER": lic,
+                        "CATEGORY_CODE": code,
                         "CATEGORY_LABEL": label,
                         "COUNT": c,
                         "PERCENT": round((c / total_for_license) * 100, 2),
@@ -427,6 +365,7 @@ def save_count_data(
                 writer.writerow(
                     {
                         "TOOL_IDENTIFIER": lic,
+                        "CATEGORY_CODE": "OTHER",
                         "CATEGORY_LABEL": "Other",
                         "COUNT": other_count,
                         "PERCENT": round(
@@ -443,20 +382,6 @@ def save_count_data(
             for year, c in years.items():
                 writer.writerow(
                     {"TOOL_IDENTIFIER": lic, "YEAR": year, "COUNT": c}
-                )
-
-    # Save detailed author counts (AUTHOR_COUNT as integer or Unknown)
-    with open(FILE_ARXIV_AUTHOR, "w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_AUTHOR, dialect="unix")
-        writer.writeheader()
-        for lic, acs in author_counts.items():
-            for ac, c in acs.items():
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": lic,
-                        "AUTHOR_COUNT": ac if ac is not None else "Unknown",
-                        "COUNT": c,
-                    }
                 )
 
     # Save author buckets summary
@@ -480,17 +405,17 @@ def save_count_data(
 
 
 def query_arxiv(args):
-    """Query ArXiv API for papers with potential CC licenses."""
+    """
+    Main function to query ArXiv API and collect CC license data.
+
+    """
 
     LOGGER.info("Beginning to fetch results from ArXiv API")
     session = get_requests_session()
-    try:
-        loaded = load_category_map(PATHS)
-        if loaded:
-            # overlay loaded map over default
-            CATEGORY_LABELS.update(loaded)
-    except Exception as e:
-        LOGGER.warning("Error loading external arXiv category map: %s", e)
+
+    # Load category mappings using shared function
+    CATEGORY_LABELS.update(shared.load_arxiv_categories(PATHS.get("data")))
+
     results_per_iteration = RESULTS_PER_REQUEST
 
     search_queries = SEARCH_QUERIES
@@ -584,24 +509,10 @@ def query_arxiv(args):
                 consecutive_empty_calls = 0
 
     # Save results
-
     if args.enable_save:
         save_count_data(
             license_counts, category_counts, year_counts, author_counts
         )
-
-        # Convert category codes to user-friendly names
-        try:
-            input_file = FILE_ARXIV_CATEGORY
-            output_file = shared.path_join(
-                PATHS["data_1-fetch"], "arxiv_2_count_by_category_report.csv"
-            )
-            arxiv_category_converter.convert_categories_to_friendly_names(
-                input_file, output_file, PATHS["data"]
-            )
-            LOGGER.info(f"Category conversion completed: {output_file}")
-        except Exception as e:
-            LOGGER.warning(f"Category conversion failed: {e}")
 
     # save provenance
     provenance_data = {
