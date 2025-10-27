@@ -472,7 +472,7 @@ def save_count_data(
         for lic, cats in category_counts.items():
             total_for_license = sum(cats.values()) or 1
             for code, c in cats.items():
-                label = shared.normalize_arxiv_category(code, CATEGORIES)
+                label = CATEGORIES.get(code, code)
                 pct = round((c / total_for_license) * 100, 2)
                 writer.writerow(
                     {
@@ -510,7 +510,7 @@ def save_count_data(
             others = sorted_cats[TOP_N:]
             other_count = sum(c for _, c in others)
             for code, c in top:
-                label = shared.normalize_arxiv_category(code, CATEGORIES)
+                label = CATEGORIES.get(code, code)
                 writer.writerow(
                     {
                         "TOOL_IDENTIFIER": lic,
