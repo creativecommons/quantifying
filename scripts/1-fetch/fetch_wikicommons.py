@@ -291,10 +291,6 @@ def query_wikicommons(args, session):
                 "FILE_COUNT": counts["files"],
                 "PAGE_COUNT": counts["pages"]
             })
-            
-        except shared.QuantifyingException as e:
-            LOGGER.error(f"Error processing category {category}: {e.message}")
-            raise
     
     return license_data
 
