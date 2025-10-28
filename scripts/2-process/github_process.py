@@ -121,7 +121,7 @@ def process_totals_by_restriction(args, count_data):
 
         data[key] += count
     data = pd.DataFrame(data.items(), columns=["Category", "Count"])
-    data.sort_values("Count", ascending=True, inplace=True)
+    data.sort_values("Category", ascending=True, inplace=True)
     data.reset_index(drop=True, inplace=True)
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_restriction.csv"

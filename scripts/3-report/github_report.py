@@ -26,7 +26,7 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "GitHub Data"
+SECTION = "GitHub Ddta"
 
 
 def parse_arguments():
@@ -99,23 +99,44 @@ def github_intro(args):
     name_label = "TOOL_IDENTIFIER"
     data = pd.read_csv(file_path, index_col=name_label)
     total_repositories = data.loc["Total public repositories", "COUNT"]
+    cc_total = data[data.index.str.startswith("CC")]["COUNT"].sum()
+    cc_percentage = (cc_total / total_repositories) * 100
     shared.update_readme(
         args,
         SECTION,
         "Overview",
         None,
         None,
-        "GitHub data uses the `total_count` returned by"
-        " API for search queries of the SPDX IDENTIFIER URLS"
+        "The GitHub data, below, uses the `total_count`"
+        " returned by API for search queries of the various legal tools"
         "\n"
-        f"**The results indicate that a total of {total_repositories} "
-        "repositories on GitHub use a mix of some rights reserved and "
-        "no rights reserved licenses which showcases the usage of "
-        "attribution based Creative Commons (CC) legal tool "
-        "and Public domain equivalent.**\n"
-        "/n"
+        f"**The results indicate that {cc_total}{cc_percentage}"
+        " of the {total_repositories} total public repositories"
+        " on GitHub that use a CC legal tool. ( Additionally,"
+        " many more use a non-CC use a Public domain"
+        " equivalent legal tools.**\n"
+        "\n"
+        " The Github data showcases the different level of"
+        " rights reserved on repositories We have Public"
+        " domain which includes works released under CC0, 0BSD and Unlicense"
+        " meaning developers have waived all their rights to a software."
+        " Allowing anyone to freely use, modify, and distribute the code"
+        " without restriction."
+        " See more at"
+        " [Public-domain-equivalent license]"
+        "(https://en.wikipedia.org/wiki/Public-domain-equivalent_license)"
+        " While a Permissive category of license contains works"
+        " under MIT-0 and CC BY 4.0 allows users to"
+        " reuse the code with some conditions and attribution"
+        " [Permissive license]"
+        "(https://en.wikipedia.org/wiki/Permissive_software_license)"
+        " and Copyleft contains works under CC BY-SA 4.0."
+        " which requires any derivative works to be licensed"
+        " under the same terms."
+        " [Copyleft](https://en.wikipedia.org/wiki/Copyleft)"
+        "\n"
         "Thank you GitHub for providing public access to"
-        "repository metadata through its API.",
+        " repository metadata through its API.",
     )
 
 
@@ -158,12 +179,12 @@ def plot_totals_by_license_type(args):
         title,
         image_path,
         "Plots showing totals by license type."
-        "This shows the distribution of different licenses "
-        "used in GitHub repositories. "
-        "Allowing Commons to evaluate how freely softwares on "
-        "GitHub are being used, modified, and shared "
-        "and how developers choose to share their works. "
-        "See more at [SPDX License List]"
+        " This shows the distribution of different CC license"
+        " and non CC license used in GitHub repositories."
+        " Allowing Commons to evaluate how freely softwares on"
+        " GitHub are being used, modified, and shared"
+        " and how developers choose to share their works."
+        " See more at [SPDX License List]"
         "(https://spdx.org/licenses/)",
     )
 
@@ -206,21 +227,9 @@ def plot_totals_by_restriction(args):
         title,
         image_path,
         "Plots showing totals by different levels of restrictions."
-        "Public domain includes works released under CC0, 0BSD and Unlicense "
-        "meaning developers have waived all their rights to a software. "
-        "Allowing anyone to freely use, modify, and distribute the code "
-        "without restriction. "
-        "See more at "
-        "[Public-domain-equivalent license]"
-        "(https://en.wikipedia.org/wiki/Public-domain-equivalent_license) "
-        "While Permissive contains works under MIT-0 and CC BY 4.0 "
-        "allows users to reuse the code with some conditions and attribution "
-        "[Permissive license]"
-        "(https://en.wikipedia.org/wiki/Permissive_software_license) "
-        "and Copyleft contains works under CC BY-SA 4.0. "
-        "which requires any derivative works to be licensed "
-        "under the same terms. "
-        "[Copyleft](https://en.wikipedia.org/wiki/Copyleft) ",
+        " This shows the distribution of Public domain,"
+        " Permissive, and Copyleft"
+        " licenses used in GitHub repositories.",
     )
 
 
@@ -237,7 +246,7 @@ def main():
         args,
         PATHS["repo"],
         PATHS["data_quarter"],
-        f"Add and commit Github reports for {QUARTER}",
+        f"Add and commit GitHub reports for {QUARTER}",
     )
     shared.git_push_changes(args, PATHS["repo"])
 
