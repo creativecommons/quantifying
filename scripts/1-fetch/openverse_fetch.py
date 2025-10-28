@@ -128,8 +128,8 @@ def get_all_sources_and_licenses(session, media_type):
                 valid_sources.add(source)
             else:
                 LOGGER.warning(
-                    f"Skipping source {source}: "
-                    f"not available in /{media_type}/ endpoint"
+                    f"Skipping source {source}:"
+                    f" not available in /{media_type}/ endpoint"
                 )
         LOGGER.info(
             f"Found {len(valid_sources)} valid sources for {media_type}"
@@ -161,10 +161,10 @@ def query_openverse(session):
                     "&format=json&page=1"
                 )
                 LOGGER.info(
-                    "Fetching Openverse data: "
-                    f"media_type={media_type} | "
-                    f"_nasource={source_name} | "
-                    f"license={license}"
+                    "Fetching Openverse data:"
+                    f" media_type={media_type} |"
+                    f" _nasource={source_name} |"
+                    f" license={license}"
                 )
                 try:
                     response = session.get(url)
@@ -229,7 +229,7 @@ def main():
     LOGGER.info("Starting Openverse Fetch Script...")
     records = query_openverse(session)
     write_data(args, records)
-    LOGGER.info(f"Fetched {len(records)} unique Openverse records")
+    LOGGER.info(f"Fetched {len(records)} unique Openverse records.")
 
 
 if __name__ == "__main__":
