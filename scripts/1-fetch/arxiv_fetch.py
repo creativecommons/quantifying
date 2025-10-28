@@ -38,7 +38,16 @@ LOGGER, PATHS = shared.setup(__file__)
 BASE_URL = "http://export.arxiv.org/api/query?"
 DEFAULT_FETCH_LIMIT = 800  # Default total papers to fetch
 
-
+# CSV Headers
+HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
+HEADER_CATEGORY_REPORT = [
+    "TOOL_IDENTIFIER",
+    "CATEGORY_CODE",
+    "CATEGORY_LABEL",
+    "COUNT",
+]
+HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
+HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 
 # Search Queries
 SEARCH_QUERIES = [
@@ -59,17 +68,6 @@ SEARCH_QUERIES = [
     'all:"CC 0"',
     'all:"CC-0"',
 ]
-
-# CSV Headers
-HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
-HEADER_CATEGORY_REPORT = [
-    "TOOL_IDENTIFIER",
-    "CATEGORY_CODE",
-    "CATEGORY_LABEL",
-    "COUNT",
-]
-HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
-HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
 
 # Compiled regex patterns for CC license detection
 CC_PATTERNS = [
@@ -264,7 +262,9 @@ FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
 )
 # records metadata for each run for audit, reproducibility, and provenance
-FILE_PROVENANCE = shared.path_join(PATHS["data_1-fetch"], "arxiv_provenance.yaml")
+FILE_PROVENANCE = shared.path_join(
+    PATHS["data_1-fetch"], "arxiv_provenance.yaml"
+)
 
 # Runtime variables
 QUARTER = os.path.basename(PATHS["data_quarter"])
@@ -273,7 +273,7 @@ QUARTER = os.path.basename(PATHS["data_quarter"])
 # parsing arguments function
 def parse_arguments():
     """Parse command-line options, returns parsed argument namespace.
-    
+
     Note: The --limit parameter sets the total number of papers to fetch
     across all search queries, not per query. ArXiv API recommends
     maximum of 30000 results per session for optimal performance.
@@ -287,8 +287,10 @@ def parse_arguments():
         help=(
             f"Total limit of papers to fetch across all search queries "
             f"(default: {DEFAULT_FETCH_LIMIT}). Maximum recommended: 30000. "
-            f"Note: Individual queries limited to 500 results (implementation choice). "
-            f"See ArXiv API documentation: https://info.arxiv.org/help/api/user-manual.html"
+            f"Note: Individual queries limited to 500 results "
+            f"(implementation choice). "
+            f"See ArXiv API documentation: "
+            f"https://info.arxiv.org/help/api/user-manual.html"
         ),
     )
     parser.add_argument(
@@ -602,7 +604,10 @@ def query_arxiv(args):
             if papers_found_in_batch == 0:
                 break
 
-        LOGGER.info(f"Query '{search_query}' completed: {papers_found_for_query} papers found")
+        LOGGER.info(
+            f"Query '{search_query}' completed: "
+            f"{papers_found_for_query} papers found"
+        )
 
     # Save results
     if args.enable_save:
