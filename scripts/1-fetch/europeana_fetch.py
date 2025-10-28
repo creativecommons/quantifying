@@ -45,6 +45,11 @@ FILE_WITHOUT_THEMES = shared.path_join(
 HEADER_WITH_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "THEME", "COUNT"]
 HEADER_WITHOUT_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
+# Define themes here (alphabetically for consistency)
+# Themes are listed at
+# https://europeana.atlassian.net/wiki/spaces/EF/pages/2385739812/Search+API+Documentation#Request
+# (in the Search API Request Parameter accordion)
+
 THEMES = [
     "archaeology",
     "art",
