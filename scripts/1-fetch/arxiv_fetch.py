@@ -589,11 +589,6 @@ def query_arxiv(args):
                         papers_found_in_batch += 1
                         papers_found_for_query += 1
 
-                        LOGGER.info(
-                            f"Found CC licensed paper: {license_info} - "
-                            f"{category} - {year}"
-                        )
-
                 # arXiv recommends a 3-seconds delay between consecutive
                 # api calls for efficiency
                 time.sleep(3)
