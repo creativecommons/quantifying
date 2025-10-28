@@ -290,7 +290,7 @@ def fetch_europeana_data_without_themes(session, limit=None):
         provider_count = provider_entry["count"]
         if provider_count == 0:
             continue
-
+        LOGGER.info(f"Fetching rights data for provider={provider}")
         for rights_entry in rights_fields:
             rights = rights_entry["label"]
             query = f'DATA_PROVIDER:"{provider}" AND RIGHTS:"{rights}"'
@@ -357,7 +357,7 @@ def fetch_europeana_data_with_themes(session, themes, limit=None):
         provider_count = provider_entry["count"]
         if provider_count == 0:
             continue
-
+        LOGGER.info(f"Fetching theme+rights data for provider={provider}")
         for rights_entry in rights_fields:
             rights = rights_entry["label"]
             simplified_rights = simplify_legal_tool(rights)
