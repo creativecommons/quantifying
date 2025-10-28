@@ -45,11 +45,30 @@ FILE_WITHOUT_THEMES = shared.path_join(
 HEADER_WITH_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "THEME", "COUNT"]
 HEADER_WITHOUT_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
+THEMES = [
+    "archaeology",
+    "art",
+    "fashion",
+    "industrial",
+    "manuscript",
+    "map",
+    "migration",
+    "music",
+    "nature",
+    "newspaper",
+    "photography",
+    "sport",
+    "ww1",
+]
 
-# Log start
-LOGGER.info(
-    "Optimized Europeana dual-fetch (using totalResults) script started."
-)
+RIGHTS_LABEL_MAP = {
+    "InC": "In Copyright",
+    "InC-EDU": "In Copyright – Educational Use Only",
+    "InC-OW-EU": "In Copyright – EU Only",
+    "CNE": "No Copyright – Contractual Restrictions",
+    "NoC-NC": "No Copyright – Non-Commercial Use Only",
+    "NoC-OKLR": "No Copyright – Other Known Legal Restrictions",
+}
 
 
 def parse_arguments():
@@ -58,12 +77,18 @@ def parse_arguments():
     parser.add_argument(
         "--enable-save",
         action="store_true",
-        help="Enable saving aggregated results to CSV.",
+        help="Enable saving results",
     )
     parser.add_argument(
         "--enable-git",
         action="store_true",
-        help="Enable git actions (fetch, merge, add, commit, push).",
+        help="Enable git actions (fetch, merge, add, commit, push)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="Limit number of providers for testing.",
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
@@ -84,11 +109,100 @@ def get_requests_session():
     return session
 
 
+def simplify_legal_tool(legal_tool):
+    """Simplify license URLs into human-readable labels
+
+
+    This function converts long or complex license URLs into
+    short, human-readable labels such as:
+      - "CC BY-SA 4.0"
+      - "CC BY-NC-ND 3.0 AT"
+      - "Public Domain (CC0 1.0)"
+      - "Public Domain (PDM 1.0)"
+      - "Rights Statement: In copyright"
+
+    It handles:
+    - Non-ported Creative Commons licenses (no jurisdiction)
+    - Ported Creative Commons licenses (with jurisdiction codes)
+    - Public Domain identifiers (CC0, PDM)
+    - RightsStatements.org URLs
+    - Other license URLs (returns simplified or original form)
+
+    Examples
+    --------
+     simplify_legal_tool("http://creativecommons.org/licenses/by-sa/4.0/")
+    'CC BY-SA 4.0'
+
+     simplify_legal_tool("http://creativecommons.org/licenses/by-nc-nd/3.0/at/")
+    'CC BY-NC-ND 3.0 AT'
+
+     simplify_legal_tool("http://rightsstatements.org/vocab/InC/1.0/")
+    'Rights Statement: In copyright'
+
+    simplify_legal_tool("http://creativecommons.org/publicdomain/zero/1.0/")
+    'Public Domain (CC0 1.0)'
+
+    simplify_legal_tool("http://creativecommons.org/publicdomain/mark/1.0/")
+    'Public Domain (PDM 1.0)'
+
+    simplify_legal_tool("Public Domain")
+    'Public Domain'
+
+    Parameters
+    ----------
+    legal_tool : str
+        A license string or URL, e.g., a Creative Commons license,
+        a RightsStatement.org URL,
+        or a Public Domain identifier.
+
+    Returns
+    -------
+    str
+        A short, standardized form of the license.
+    """
+
+    if not isinstance(legal_tool, str):
+        return legal_tool
+    if not legal_tool.startswith("http"):
+        return legal_tool
+
+    # Public domain handling
+    if "publicdomain" in legal_tool:
+        if "zero" in legal_tool.lower():
+            return "Public Domain (CC0 1.0)"
+        if "mark" in legal_tool.lower():
+            return "Public Domain (PDM 1.0)"
+        return "Public Domain"
+
+    # RightsStatements.org handling
+    if "rightsstatements.org" in legal_tool:
+        parts = legal_tool.strip("/").split("/")
+        code = parts[-2]
+        if code in RIGHTS_LABEL_MAP:
+            return f"Rights Statement: {RIGHTS_LABEL_MAP[code]}"
+        return f"Rights Statement: {code}"
+
+    # Creative Commons handling
+    if "creativecommons.org" in legal_tool:
+        parts = legal_tool.strip("/").split("/")
+        last_parts = parts[-3:]
+        jurisdiction = ""
+        if len(last_parts[-1]) == 2 and last_parts[-1].isalpha():
+            jurisdiction = last_parts[-1].upper()
+            last_parts = last_parts[:-1]
+        joined = " ".join(
+            part.upper() for part in last_parts if part and part != "licenses"
+        )
+        return f"CC {joined} {jurisdiction}".strip()
+
+    return legal_tool
+
+
 def get_facet_list(session, facet_field):
-    """Fetch complete facet list"""
+    """Fetch complete facet list from Europeana API for a given facet field."""
     all_values = []
     offset = 0
-    limit = 100
+    limit = 1000
 
     LOGGER.info(f"Fetching {facet_field} facet values.")
 
@@ -103,8 +217,15 @@ def get_facet_list(session, facet_field):
             "profile": "facets",
         }
 
-        resp = session.get(BASE_URL, params=params, timeout=30)
-        data = resp.json()
+        try:
+            resp = session.get(BASE_URL, params=params, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+        except requests.RequestException as e:
+            LOGGER.warning(
+                f"Failed fetching facet {facet_field} at offset {offset}: {e}"
+            )
+            break
 
         facets = data.get("facets", [])
         if not facets or not facets[0].get("fields"):
@@ -126,166 +247,130 @@ def get_facet_list(session, facet_field):
     LOGGER.info(
         f"Completed fetching {facet_field}. Total unique: {len(all_values)}"
     )
-
+    all_values.sort()
     return all_values
 
 
-def simplify_legal_tool(legal_tool):
-    """
-    Simplify and standardize license URLs (especially Creative Commons).
+def fetch_europeana_data_without_themes(session, limit=None):
+    """Fetch counts by DATA_PROVIDER and RIGHTS using facets."""
+    LOGGER.info("Fetching Europeana counts without themes.")
 
-    This function converts long or complex license URLs into
-    short, human-readable labels like "CC BY-SA 4.0" or "CC BY-NC-ND 3.0 AT".
+    params = {
+        "wskey": EUROPEANA_API_KEY,
+        "query": "*",
+        "rows": 0,
+        "profile": "facets",
+        "facet": ["DATA_PROVIDER", "RIGHTS"],
+        "f.DATA_PROVIDER.facet.limit": 1000,
+        "f.RIGHTS.facet.limit": 100,
+    }
 
-    It handles both:
-    - Non-ported Creative Commons licenses (no jurisdiction)
-    - Ported licenses (with jurisdiction codes, e.g., 'AT', 'DE', etc.)
-    - Other license URLs gracefully (returns simplified or original form)
+    try:
+        resp = session.get(BASE_URL, params=params, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.RequestException as e:
+        LOGGER.error(f"Failed to fetch facets: {e}")
+        return []
 
-    Examples
-    --------
-    >>> simplify_legal_tool("http://creativecommons.org/licenses/by-sa/4.0/")
-    'CC BY-SA 4.0'
-
-    >>> simplify_legal_tool
-    >>> ("http://creativecommons.org/licenses/by-nc-nd/3.0/at/")
-    'CC BY-NC-ND 3.0 AT'
-
-    >>> simplify_legal_tool("http://rightsstatements.org/vocab/InC/1.0/")
-    'VOCAB INC 1.0'
-
-    >>> simplify_legal_tool("Public Domain")
-    'Public Domain'
-
-    Parameters
-    ----------
-    legal_tool : str
-        A license string or URL, e.g., Creative Commons or RightsStatement.
-
-    Returns
-    -------
-    str
-        A short, standardized form of the license.
-    """
-    if not (legal_tool and isinstance(legal_tool, str)):
-        return legal_tool
-
-    if legal_tool.startswith("http"):
-        parts = legal_tool.strip("/").split("/")
-        last_parts = parts[-3:]  # allow for jurisdiction at the end
-
-        # Detect jurisdiction (2-letter code or known suffix)
-        jurisdiction = ""
-        if len(last_parts[-1]) == 2 and last_parts[-1].isalpha():
-            jurisdiction = last_parts[-1].upper()
-            last_parts = last_parts[:-1]
-
-        # Join and format
-        joined = " ".join(
-            part.upper() for part in last_parts if part and part != "licenses"
-        )
-
-        if "creativecommons.org" in legal_tool:
-            return f"CC {joined} {jurisdiction}".strip()
-        else:
-            return joined or "Unknown"
-
-    return legal_tool
-
-
-def fetch_europeana_data_without_themes(session, providers, rights_list):
-    """Fetch aggregated counts by DATA_PROVIDER and LEGAL_TOOL (no theme)
-
-    Parameters
-    ----------
-    session : requests.Session
-        A configured requests session.
-    providers : list[str]
-        List of DATA_PROVIDER names.
-    rights_list : list[str]
-        List of license/rights strings.
-
-    """
-    LOGGER.info(
-        "Fetching Europeana totalResults aggregated "
-        "by provider and rights (without themes)."
-    )
+    facets = {f["name"]: f["fields"] for f in data.get("facets", [])}
+    provider_fields = facets.get("DATA_PROVIDER", [])
+    rights_fields = facets.get("RIGHTS", [])
+    if limit:
+        provider_fields = provider_fields[:limit]
 
     output = []
-    for provider in providers:
-        for rights in rights_list:
-            params = {
+    for provider_entry in provider_fields:
+        provider = provider_entry["label"]
+        provider_count = provider_entry["count"]
+        if provider_count == 0:
+            continue
+
+        for rights_entry in rights_fields:
+            rights = rights_entry["label"]
+            query = f'DATA_PROVIDER:"{provider}" AND RIGHTS:"{rights}"'
+            params_detail = {
                 "wskey": EUROPEANA_API_KEY,
                 "rows": 0,
-                "query": f'DATA_PROVIDER:"{provider}" AND RIGHTS:"{rights}"',
+                "query": query,
             }
             try:
-                resp = session.get(BASE_URL, params=params, timeout=30)
-                resp.raise_for_status()
-                count = resp.json().get("totalResults", 0)
-
+                resp_detail = session.get(
+                    BASE_URL, params=params_detail, timeout=60
+                )
+                resp_detail.raise_for_status()
+                count = resp_detail.json().get("totalResults", 0)
                 if count > 0:
-                    simplified_rights = simplify_legal_tool(rights)
                     output.append(
                         {
                             "DATA_PROVIDER": provider,
-                            "LEGAL_TOOL": simplified_rights,
+                            "LEGAL_TOOL": simplify_legal_tool(rights),
                             "COUNT": count,
                         }
                     )
+
             except requests.RequestException as e:
                 LOGGER.warning(
                     f"Failed for provider={provider}, rights={rights}: {e}"
                 )
-            time.sleep(0.5)
-
+            time.sleep(0.2)
     LOGGER.info(f"Aggregated {len(output)} records (without themes).")
     return output
 
 
-def fetch_europeana_data_with_themes(session, providers, rights_list, themes):
-    """
-    Fetch aggregated counts by DATA_PROVIDER, LEGAL_TOOL, and THEME.
+def fetch_europeana_data_with_themes(session, themes, limit=None):
+    """Fetch counts by DATA_PROVIDER, RIGHTS, and THEME using facets."""
+    LOGGER.info("Fetching Europeana counts with themes")
 
-    Parameters
-    ----------
-    session : requests.Session
-        A configured requests session.
-    providers : list[str]
-        List of DATA_PROVIDER names.
-    rights_list : list[str]
-        List of license/rights strings.
-    themes : list[str]
-        List of themes to query.
+    params = {
+        "wskey": EUROPEANA_API_KEY,
+        "query": "*",
+        "rows": 0,
+        "profile": "facets",
+        "facet": ["DATA_PROVIDER", "RIGHTS"],
+        "f.DATA_PROVIDER.facet.limit": 1000,
+        "f.RIGHTS.facet.limit": 100,
+    }
 
-    Returns
-    -------
-    list[dict]
-        Aggregated counts with keys: DATA_PROVIDER, LEGAL_TOOL, THEME, COUNT.
-    """
-    LOGGER.info(
-        "Fetching Europeana totalResults "
-        "aggregated by provider, rights, and theme."
-    )
+    try:
+        resp = session.get(BASE_URL, params=params, timeout=60)
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.RequestException as e:
+        LOGGER.error(f"Failed to fetch facets: {e}")
+        return []
+
+    facets = {f["name"]: f["fields"] for f in data.get("facets", [])}
+    provider_fields = facets.get("DATA_PROVIDER", [])
+    rights_fields = facets.get("RIGHTS", [])
+    if limit:
+        provider_fields = provider_fields[:limit]
 
     output = []
+    for provider_entry in provider_fields:
+        provider = provider_entry["label"]
+        provider_count = provider_entry["count"]
+        if provider_count == 0:
+            continue
 
-    for provider in providers:
-        for rights in rights_list:
+        for rights_entry in rights_fields:
+            rights = rights_entry["label"]
             simplified_rights = simplify_legal_tool(rights)
-            for theme in themes:  # use the themes passed from main()
-                params = {
+
+            for theme in themes:
+                query = f'DATA_PROVIDER:"{provider}" AND RIGHTS:"{rights}"'
+                params_detail = {
                     "wskey": EUROPEANA_API_KEY,
                     "rows": 0,
-                    "query": (
-                        f'DATA_PROVIDER:"{provider}" ' f'AND RIGHTS:"{rights}"'
-                    ),
+                    "query": query,
                     "theme": theme,
                 }
                 try:
-                    resp = session.get(BASE_URL, params=params, timeout=30)
-                    resp.raise_for_status()
-                    count = resp.json().get("totalResults", 0)
+                    resp_detail = session.get(
+                        BASE_URL, params=params_detail, timeout=30
+                    )
+                    resp_detail.raise_for_status()
+                    count = resp_detail.json().get("totalResults", 0)
                     if count > 0:
                         output.append(
                             {
@@ -295,77 +380,74 @@ def fetch_europeana_data_with_themes(session, providers, rights_list, themes):
                                 "COUNT": count,
                             }
                         )
+
                 except requests.RequestException as e:
                     LOGGER.warning(
-                        f"Failed for provider={provider}, rights={rights}, "
-                        f"theme={theme}: {e}"
+                        f"Failed for provider={provider}, "
+                        f"rights={rights}, "
+                        f"theme={theme}: "
+                        f"{e}"
                     )
                 time.sleep(0.5)
-
     LOGGER.info(f"Aggregated {len(output)} records (with themes).")
     return output
 
 
-def save_csv(filepath, header, data):
-    """Save aggregated data to CSV."""
-    with open(filepath, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=header)
-        writer.writeheader()
-        writer.writerows(data)
-    LOGGER.info(f"Saved {len(data)} rows to {filepath}.")
+def write_data(args, data_no_theme, data_with_theme):
+    """Write Europeana data to CSV files."""
+    if not args.enable_save:
+        return args
+
+    os.makedirs(PATHS["data_phase"], exist_ok=True)
+
+    if data_no_theme:
+        with open(FILE_WITHOUT_THEMES, "w", newline="") as f:
+            writer = csv.DictWriter(
+                f, fieldnames=HEADER_WITHOUT_THEMES, dialect="unix"
+            )
+            writer.writeheader()
+            writer.writerows(data_no_theme)
+        LOGGER.info(
+            f"Saved {len(data_no_theme)} rows to {FILE_WITHOUT_THEMES}."
+        )
+
+    if data_with_theme:
+        with open(FILE_WITH_THEMES, "w", newline="") as f:
+            writer = csv.DictWriter(
+                f, fieldnames=HEADER_WITH_THEMES, dialect="unix"
+            )
+            writer.writeheader()
+            writer.writerows(data_with_theme)
+        LOGGER.info(
+            f"Saved {len(data_with_theme)} rows to {FILE_WITH_THEMES}."
+        )
+
+    return args
 
 
 def main():
     args = parse_arguments()
+    LOGGER.info("Beginning fetch from Europeana")
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    # --- Environment check for Europeana API key ---
     if not EUROPEANA_API_KEY:
         raise shared.QuantifyingException(
             "EUROPEANA_API_KEY not found in environment variables", 1
         )
 
     session = get_requests_session()
-
-    providers = get_facet_list(session, "DATA_PROVIDER")
-    rights_list = get_facet_list(session, "RIGHTS")
-
-    # Define themes here (alphabetically for consistency)
-    themes = [
-        "archaeology",
-        "art",
-        "fashion",
-        "industrial",
-        "manuscript",
-        "maps",
-        "migration",
-        "music",
-        "nature",
-        "newspaper",
-        "photography",
-        "sport",
-        "ww1",
-    ]
-
-    # Fetch data
     data_no_theme = fetch_europeana_data_without_themes(
-        session, providers, rights_list
+        session, limit=args.limit
     )
     data_with_theme = fetch_europeana_data_with_themes(
-        session, providers, rights_list, themes
+        session, THEMES, limit=args.limit
     )
 
-    # Save if enabled
-    if args.enable_save:
-        if data_no_theme:
-            save_csv(FILE_WITHOUT_THEMES, HEADER_WITHOUT_THEMES, data_no_theme)
-        if data_with_theme:
-            save_csv(FILE_WITH_THEMES, HEADER_WITH_THEMES, data_with_theme)
+    args = write_data(args, data_no_theme, data_with_theme)
 
-    # Git actions
-    if args.enable_git and args.enable_save:
+    if args.enable_git:
         args = shared.git_add_and_commit(
             args,
             PATHS["repo"],
@@ -374,7 +456,7 @@ def main():
         )
         shared.git_push_changes(args, PATHS["repo"])
 
-    LOGGER.info("Optimized Europeana dual-fetch completed successfully.")
+    LOGGER.info("Europeana fetch completed successfully.")
 
 
 if __name__ == "__main__":
