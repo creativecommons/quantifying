@@ -15,7 +15,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 sys.path.append(".")
-# First-party/Local
+# Third-party
 import quantify  # noqa: E402
 
 # Setup PATH_WORK_DIR, Date and LOGGER using quantify.setup()

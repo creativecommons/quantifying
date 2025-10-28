@@ -16,15 +16,12 @@ from time import sleep
 from urllib.parse import urlparse
 
 # Third-party
-import pycountry
+from babel.core import Locale
+from internetarchive import ArchiveSession
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
 from urllib3.util.retry import Retry
-
-# First-party/Local
-from internetarchive import ArchiveSession
-from shared import STATUS_FORCELIST, USER_AGENT
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -63,11 +60,11 @@ def parse_arguments():
     return args
 
 
-def get_requests_session():
+def get_archive_session():
     retry_strategy = Retry(
         total=5,
         backoff_factor=1,
-        status_forcelist=STATUS_FORCELIST,
+        status_forcelist=shared.STATUS_FORCELIST,
         allowed_methods=["GET", "POST"],
         raise_on_status=False,
     )
@@ -76,7 +73,7 @@ def get_requests_session():
     }
     session = ArchiveSession(http_adapter_kwargs=adapter_kwargs)
     session.headers.update(
-        {"User-Agent": USER_AGENT, "Accept": "application/json"}
+        {"User-Agent": shared.USER_AGENT, "Accept": "application/json"}
     )
     return session
 
@@ -99,32 +96,37 @@ def load_license_mapping():
 
 
 def normalize_language(lang):
-    if not isinstance(lang, str) or not lang.strip():
+    try:
+        # Pre-clean: lowercase, replace hyphens with underscores,
+        # strip whitespace
+        cleaned = lang.strip().lower().replace("-", "_")
+
+        # Special handling for common variants
+        alias_map = {
+            "english": "en",
+            "english_handwritten": "en",
+            "serbo_croatian": "sh",  # ISO 639-1 code for Serbo-Croatian
+            "zun": "zun",  # Zuni — not in Babel, will fallback
+            "ada": "ada",  # Ada — not in Babel, will fallback
+            "unknown": "UNKNOWN",
+        }
+        cleaned = alias_map.get(cleaned, cleaned)
+
+        # Custom name overrides for codes not supported by Babel
+        custom_names = {
+            "zun": "Zuni",
+            "ada": "Adangme",
+            "sh": "Serbo-Croatian",
+        }
+
+        try:
+            locale = Locale.parse(cleaned, sep="_")
+            return locale.get_language_name("en")
+        except Exception:
+            return custom_names.get(cleaned, "UNKNOWN")
+
+    except Exception:
         return "UNKNOWN"
-    lang = lang.strip().lower()
-
-    # Try direct alpha-2 and alpha-3 lookups
-    match = None
-    if len(lang) == 2:
-        match = pycountry.languages.get(alpha_2=lang)
-    elif len(lang) == 3:
-        match = pycountry.languages.get(alpha_3=lang)
-
-    # Fallback: scan all languages for name or bibliographic match
-    if not match:
-        for entry in pycountry.languages:
-            if (
-                hasattr(entry, "bibliographic")
-                and entry.bibliographic
-                and entry.bibliographic.lower() == lang
-            ):
-                match = entry
-                break
-            if hasattr(entry, "name") and entry.name.lower() == lang:
-                match = entry
-                break
-
-    return match.name if match and hasattr(match, "name") else "UNKNOWN"
 
 
 def normalize_license(licenseurl, license_mapping=None):
@@ -165,16 +167,17 @@ def query_internet_archive(args):
     query = "creativecommons.org"
     license_mapping = load_license_mapping()
 
-    rows = 1000
+    rows = 100000
     total_rows = 0
     total_processed = 0
     max_retries = 3
 
-    session = get_requests_session()
+    session = get_archive_session()
     while True:
         # Loop until no more results are returned by the API
         LOGGER.info(f"Fetching {rows} items starting at {total_rows}...")
         results = None
+
         for attempt in range(max_retries):
             try:
                 # Use search_items for simpler pagination management
@@ -208,27 +211,25 @@ def query_internet_archive(args):
             break
 
         for result in results:
-            # Extract license URL
+            # Extract and normalize license URL
             licenseurl = result.get("licenseurl", "")
             if isinstance(licenseurl, list):
                 licenseurl = licenseurl[0] if licenseurl else "UNKNOWN"
+            if not licenseurl:
+                licenseurl = "UNKNOWN"
 
             normalized_url = normalize_license(licenseurl, license_mapping)
             if normalized_url == "UNKNOWN":
-                LOGGER.warning(
-                    f"Unmapped normalized URL: {licenseurl} → {normalized_url}"
-                )
                 unmapped_licenseurl_counter[licenseurl] += 1
                 continue  # Skip this result
 
-            # Extract language
+            # Extract and normalize language
             raw_language = result.get("language", "UNKNOWN")
             if isinstance(raw_language, list):
                 raw_language = raw_language[0] if raw_language else "UNKNOWN"
 
             normalized_lang = normalize_language(raw_language)
             if normalized_lang == "UNKNOWN":
-                LOGGER.error(f"Unmapped language: {raw_language}")
                 unmapped_language_counter[raw_language] += 1
                 continue  # Skip this result
 
@@ -254,11 +255,19 @@ def query_internet_archive(args):
 
     LOGGER.info(
         "Finished processing.\n"
-        "Number of unmapped languages: "
+        "Number of unmapped licenses: "
         f"{sum(unmapped_licenseurl_counter.values())}\n"
         "Number of unmapped languages: "
         f"{sum(unmapped_language_counter.values())}"
     )
+
+    # Log unmapped languages once at the end
+    if unmapped_language_counter:
+        for lang, count in unmapped_language_counter.items():
+            cleaned = lang.strip().lower().replace("-", "_")
+            LOGGER.warning(
+                f"Unmapped language: {lang} (cleaned: {cleaned}): {count}"
+            )
 
     return license_counter, language_counter
 
@@ -278,15 +287,32 @@ def write_all(args, license_counter, language_counter):
 
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
+    # Sort license data by license name
+    sorted_license_rows = sorted(
+        [(license, count) for license, count in license_counter.items()],
+        key=lambda x: x[0],
+    )
+
+    # Sort language data by license then language
+    sorted_language_rows = sorted(
+        [
+            (license, language, count)
+            for (license, language), count in language_counter.items()
+        ],
+        key=lambda x: (x[0], x[1]),
+    )
+
     write_csv(
         FILE1_COUNT,
         HEADER1,
-        [(k, v) for k, v in license_counter.items()],
+        sorted_license_rows,
+        # [(k, v) for k, v in license_counter.items()],
     )
     write_csv(
         FILE2_LANGUAGE,
         HEADER2,
-        [(k[0], k[1], v) for k, v in language_counter.items()],
+        sorted_language_rows,
+        # [(k[0], k[1], v) for k, v in language_counter.items()],
     )
 
     return args
