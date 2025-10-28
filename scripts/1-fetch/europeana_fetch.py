@@ -318,7 +318,7 @@ def fetch_europeana_data_without_themes(session, limit=None):
                 LOGGER.warning(
                     f"Failed for provider={provider}, rights={rights}: {e}"
                 )
-            time.sleep(0.2)
+            time.sleep(0.01)
     LOGGER.info(f"Aggregated {len(output)} records (without themes).")
     return output
 
@@ -393,7 +393,7 @@ def fetch_europeana_data_with_themes(session, themes, limit=None):
                         f"theme={theme}: "
                         f"{e}"
                     )
-                time.sleep(0.5)
+                time.sleep(0.01)
     LOGGER.info(f"Aggregated {len(output)} records (with themes).")
     return output
 
@@ -443,6 +443,11 @@ def main():
         )
 
     session = get_requests_session()
+
+    providers_full = get_facet_list(session, "DATA_PROVIDER")
+    rights_full = get_facet_list(session, "RIGHTS")
+    LOGGER.info(f"Facet providers loaded: {len(providers_full)}")
+    LOGGER.info(f"Facet rights loaded: {len(rights_full)}")
     data_no_theme = fetch_europeana_data_without_themes(
         session, limit=args.limit
     )
@@ -451,15 +456,13 @@ def main():
     )
 
     args = write_data(args, data_no_theme, data_with_theme)
-
-    if args.enable_git:
-        args = shared.git_add_and_commit(
-            args,
-            PATHS["repo"],
-            PATHS["data_quarter"],
-            f"Add Europeana files (with and without themes) for {QUARTER}",
-        )
-        shared.git_push_changes(args, PATHS["repo"])
+    args = shared.git_add_and_commit(
+        args,
+        PATHS["repo"],
+        PATHS["data_quarter"],
+        f"Add Europeana files (with and without themes) for {QUARTER}",
+    )
+    shared.git_push_changes(args, PATHS["repo"])
 
     LOGGER.info("Europeana fetch completed successfully.")
 
