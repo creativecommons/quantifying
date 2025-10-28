@@ -20,7 +20,7 @@ import traceback
 import pandas as pd
 
 sys.path.append(".")
-# Third-party
+# First-party/Local
 import quantify  # noqa: E402
 
 # Setup only LOGGER using quantify.setup()

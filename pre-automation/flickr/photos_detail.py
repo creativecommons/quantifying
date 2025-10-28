@@ -20,7 +20,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 sys.path.append(".")
-# Third-party
+# First-party/Local
 import quantify  # noqa: E402
 
 # Setup paths, and LOGGER using quantify.setup()
