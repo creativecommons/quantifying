@@ -269,9 +269,6 @@ FILE_PROVENANCE = shared.path_join(PATHS["data_1-fetch"], "arxiv_provenance.yaml
 # Runtime variables
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
-# Log the start of the script execution
-LOGGER.info("Script execution started.")
-
 
 # parsing arguments function
 def parse_arguments():
@@ -630,6 +627,7 @@ def query_arxiv(args):
 
 def main():
     """Main function."""
+    LOGGER.info("Script execution started.")
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
