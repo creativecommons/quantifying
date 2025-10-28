@@ -67,7 +67,6 @@ HEADER_CATEGORY_REPORT = [
     "CATEGORY_CODE",
     "CATEGORY_LABEL",
     "COUNT",
-    "PERCENT",
 ]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
@@ -257,9 +256,6 @@ CATEGORIES = {
 FILE_ARXIV_COUNT = shared.path_join(PATHS["data_1-fetch"], "arxiv_1_count.csv")
 FILE_ARXIV_CATEGORY_REPORT = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_2_count_by_category_report.csv"
-)
-FILE_ARXIV_CATEGORY_REPORT_AGGREGATE = shared.path_join(
-    PATHS["data_1-fetch"], "arxiv_2_count_by_category_report_agg.csv"
 )
 FILE_ARXIV_YEAR = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_3_count_by_year.csv"
@@ -456,7 +452,7 @@ def save_count_data(
         for lic, c in license_counts.items():
             writer.writerow({"TOOL_IDENTIFIER": lic, "COUNT": c})
 
-    # Save category report with labels and percent
+    # Save category report with labels
     with open(
         FILE_ARXIV_CATEGORY_REPORT, "w", newline="", encoding="utf-8"
     ) as fh:
@@ -465,65 +461,14 @@ def save_count_data(
         )
         writer.writeheader()
         for lic, cats in category_counts.items():
-            total_for_license = sum(cats.values()) or 1
             for code, c in cats.items():
                 label = CATEGORIES.get(code, code)
-                pct = round((c / total_for_license) * 100, 2)
                 writer.writerow(
                     {
                         "TOOL_IDENTIFIER": lic,
                         "CATEGORY_CODE": code,
                         "CATEGORY_LABEL": label,
                         "COUNT": c,
-                        "PERCENT": pct,
-                    }
-                )
-
-    # Save aggregated category report (top N per license, rest -> Other)
-    with open(
-        FILE_ARXIV_CATEGORY_REPORT_AGGREGATE, "w", newline="", encoding="utf-8"
-    ) as fh:
-        writer = csv.DictWriter(
-            fh,
-            fieldnames=[
-                "TOOL_IDENTIFIER",
-                "CATEGORY_CODE",
-                "CATEGORY_LABEL",
-                "COUNT",
-                "PERCENT",
-            ],
-            dialect="unix",
-        )
-        writer.writeheader()
-        for lic, cats in category_counts.items():
-            total_for_license = sum(cats.values()) or 1
-            sorted_cats = sorted(
-                cats.items(), key=lambda x: x[1], reverse=True
-            )
-            top = sorted_cats[:10]
-            others = sorted_cats[10:]
-            other_count = sum(c for _, c in others)
-            for code, c in top:
-                label = CATEGORIES.get(code, code)
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": lic,
-                        "CATEGORY_CODE": code,
-                        "CATEGORY_LABEL": label,
-                        "COUNT": c,
-                        "PERCENT": round((c / total_for_license) * 100, 2),
-                    }
-                )
-            if other_count:
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": lic,
-                        "CATEGORY_CODE": "OTHER",
-                        "CATEGORY_LABEL": "Other",
-                        "COUNT": other_count,
-                        "PERCENT": round(
-                            (other_count / total_for_license) * 100, 2
-                        ),
                     }
                 )
 
