@@ -597,9 +597,12 @@ def query_arxiv(args):
                 # arXiv recommends a 3-seconds delay between consecutive
                 # api calls for efficiency
                 time.sleep(3)
+            except requests.HTTPError as e:
+                raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
             except requests.RequestException as e:
-                LOGGER.error(f"Request failed: {e}")
-                break
+                raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+            except KeyError as e:
+                raise shared.QuantifyingException(f"KeyError: {e}", 1)
 
             if papers_found_in_batch == 0:
                 break
