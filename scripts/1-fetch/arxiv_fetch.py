@@ -36,14 +36,9 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 # API Configuration
 BASE_URL = "http://export.arxiv.org/api/query?"
-API_DELAY_SECONDS = 3  # ArXiv recommended delay between API calls
-RESULTS_PER_REQUEST = 50  # Number of results per API request
-MAX_RESULTS_PER_QUERY = 500  # Maximum results to fetch per search query
 DEFAULT_FETCH_LIMIT = 800  # Default total papers to fetch
 
-# HTTP Retry Configuration
-RETRY_TOTAL = 5
-RETRY_BACKOFF_FACTOR = 1
+
 
 # Search Queries
 SEARCH_QUERIES = [
@@ -337,8 +332,8 @@ def initialize_all_data_files(args):
 def get_requests_session():
     """Create request session with retry logic"""
     retry_strategy = Retry(
-        total=RETRY_TOTAL,
-        backoff_factor=RETRY_BACKOFF_FACTOR,
+        total=5,
+        backoff_factor=1,
         status_forcelist=shared.STATUS_FORCELIST,
     )
     session = requests.Session()
@@ -485,7 +480,6 @@ def save_count_data(
                 )
 
     # Save aggregated category report (top N per license, rest -> Other)
-    TOP_N = 10
     with open(
         FILE_ARXIV_CATEGORY_REPORT_AGGREGATE, "w", newline="", encoding="utf-8"
     ) as fh:
@@ -506,8 +500,8 @@ def save_count_data(
             sorted_cats = sorted(
                 cats.items(), key=lambda x: x[1], reverse=True
             )
-            top = sorted_cats[:TOP_N]
-            others = sorted_cats[TOP_N:]
+            top = sorted_cats[:10]
+            others = sorted_cats[10:]
             other_count = sum(c for _, c in others)
             for code, c in top:
                 label = CATEGORIES.get(code, code)
@@ -572,7 +566,7 @@ def query_arxiv(args):
     LOGGER.info("Beginning to fetch results from ArXiv API")
     session = get_requests_session()
 
-    results_per_iteration = RESULTS_PER_REQUEST
+    results_per_iteration = 50
 
     search_queries = SEARCH_QUERIES
 
@@ -593,7 +587,7 @@ def query_arxiv(args):
 
         for start in range(
             0,
-            min(args.limit - total_fetched, MAX_RESULTS_PER_QUERY),
+            min(args.limit - total_fetched, 500),
             results_per_iteration,
         ):
             encoded_query = urllib.parse.quote_plus(search_query)
@@ -647,7 +641,7 @@ def query_arxiv(args):
 
                 # arXiv recommends a 3-seconds delay between consecutive
                 # api calls for efficiency
-                time.sleep(API_DELAY_SECONDS)
+                time.sleep(3)
             except requests.RequestException as e:
                 LOGGER.error(f"Request failed: {e}")
                 break
