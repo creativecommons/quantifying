@@ -26,7 +26,7 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "GitHub Ddta"
+SECTION = "GitHub data"
 
 
 def parse_arguments():
@@ -100,7 +100,7 @@ def github_intro(args):
     data = pd.read_csv(file_path, index_col=name_label)
     total_repositories = data.loc["Total public repositories", "COUNT"]
     cc_total = data[data.index.str.startswith("CC")]["COUNT"].sum()
-    cc_percentage = (cc_total / total_repositories) * 100
+    cc_percentage = f"{(cc_total / total_repositories) * 100:.2f}%"
     shared.update_readme(
         args,
         SECTION,
@@ -108,11 +108,11 @@ def github_intro(args):
         None,
         None,
         "The GitHub data, below, uses the `total_count`"
-        " returned by API for search queries of the various legal tools"
+        " returned by API for search queries of the various legal tools."
         "\n"
-        f"**The results indicate that {cc_total}{cc_percentage}"
-        " of the {total_repositories} total public repositories"
-        " on GitHub that use a CC legal tool. ( Additionally,"
+        f"**The results indicate that {cc_total} ({cc_percentage})"
+        f"** of the {total_repositories} total public repositories"
+        " on GitHub that use a CC legal tool. Additionally,"
         " many more use a non-CC use a Public domain"
         " equivalent legal tools.**\n"
         "\n"
@@ -135,8 +135,8 @@ def github_intro(args):
         " under the same terms."
         " [Copyleft](https://en.wikipedia.org/wiki/Copyleft)"
         "\n"
-        "Thank you GitHub for providing public access to"
-        " repository metadata through its API.",
+        "Thank you GitHub for providing public API"
+        " access to repository metadata!",
     )
 
 
