@@ -18,7 +18,7 @@ import seaborn as sns
 from wordcloud import STOPWORDS, WordCloud  # noqa: E402
 
 sys.path.append(".")
-# First-party/Local
+# Third-party
 import quantify  # noqa: E402
 
 # Warning suppression /!\ Caution /!\

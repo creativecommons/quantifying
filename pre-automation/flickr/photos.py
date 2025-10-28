@@ -14,7 +14,7 @@ import flickrapi
 from dotenv import load_dotenv
 
 sys.path.append(".")
-# First-party/Local
+# Third-party
 import quantify  # noqa: E402
 
 # Setup paths, and LOGGER using quantify.setup()
