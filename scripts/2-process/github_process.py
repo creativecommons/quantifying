@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This file is dedicated to processing Github data
+This file is dedicated to processing GitHub data
 for analysis and comparison between quarters.
 """
 # Standard library
