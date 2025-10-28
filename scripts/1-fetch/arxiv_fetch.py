@@ -272,14 +272,24 @@ QUARTER = os.path.basename(PATHS["data_quarter"])
 
 # parsing arguments function
 def parse_arguments():
-    """Parse command-line options, returns parsed argument namespace."""
+    """Parse command-line options, returns parsed argument namespace.
+    
+    Note: The --limit parameter sets the total number of papers to fetch
+    across all search queries, not per query. ArXiv API recommends
+    maximum of 30000 results per session for optimal performance.
+    """
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--limit",
         type=int,
         default=DEFAULT_FETCH_LIMIT,
-        help=f"Limit papers to fetch (default: {DEFAULT_FETCH_LIMIT})",
+        help=(
+            f"Total limit of papers to fetch across all search queries "
+            f"(default: {DEFAULT_FETCH_LIMIT}). Maximum recommended: 30000. "
+            f"Note: Individual queries limited to 500 results (implementation choice). "
+            f"See ArXiv API documentation: https://info.arxiv.org/help/api/user-manual.html"
+        ),
     )
     parser.add_argument(
         "--enable-save",
