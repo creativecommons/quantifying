@@ -535,7 +535,7 @@ def query_arxiv(args):
             break
 
         LOGGER.info(f"Searching for: {search_query}")
-        consecutive_empty_calls = 0
+        papers_found_for_query = 0
 
         for start in range(
             0,
@@ -585,6 +585,7 @@ def query_arxiv(args):
 
                         total_fetched += 1
                         papers_found_in_batch += 1
+                        papers_found_for_query += 1
 
                         LOGGER.info(
                             f"Found CC licensed paper: {license_info} - "
@@ -599,16 +600,9 @@ def query_arxiv(args):
                 break
 
             if papers_found_in_batch == 0:
-                consecutive_empty_calls += 1
-                if consecutive_empty_calls >= 2:
-                    LOGGER.info(
-                        f"No new papers in 2 consecutive calls for "
-                        f"query: {search_query}. "
-                        f"Moving over to the next query."
-                    )
-                    break
-            else:
-                consecutive_empty_calls = 0
+                break
+
+        LOGGER.info(f"Query '{search_query}' completed: {papers_found_for_query} papers found")
 
     # Save results
     if args.enable_save:
