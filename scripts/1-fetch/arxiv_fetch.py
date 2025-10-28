@@ -264,7 +264,7 @@ FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
 )
 # records metadata for each run for audit, reproducibility, and provenance
-FILE_PROVENANCE = shared.path_join(PATHS["data"], "arxiv_provenance.yaml")
+FILE_PROVENANCE = shared.path_join(PATHS["data_1-fetch"], "arxiv_provenance.yaml")
 
 # Runtime variables
 QUARTER = os.path.basename(PATHS["data_quarter"])
@@ -620,7 +620,6 @@ def query_arxiv(args):
 
     # write provenance YAML for auditing
     try:
-        os.makedirs(os.path.dirname(FILE_PROVENANCE), exist_ok=True)
         with open(FILE_PROVENANCE, "w", encoding="utf-8") as fh:
             yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
     except Exception as e:
