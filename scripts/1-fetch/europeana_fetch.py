@@ -45,6 +45,7 @@ FILE_WITHOUT_THEMES = shared.path_join(
 HEADER_WITH_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "THEME", "COUNT"]
 HEADER_WITHOUT_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
+TIMEOUT = 25
 # Define themes here (alphabetically for consistency)
 # Themes are listed at
 # https://europeana.atlassian.net/wiki/spaces/EF/pages/2385739812/Search+API+Documentation#Request
@@ -223,7 +224,7 @@ def get_facet_list(session, facet_field):
         }
 
         try:
-            resp = session.get(BASE_URL, params=params, timeout=30)
+            resp = session.get(BASE_URL, params=params, timeout=TIMEOUT)
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as e:
@@ -271,7 +272,7 @@ def fetch_europeana_data_without_themes(session, limit=None):
     }
 
     try:
-        resp = session.get(BASE_URL, params=params, timeout=30)
+        resp = session.get(BASE_URL, params=params, timeout=TIMEOUT)
         resp.raise_for_status()
         data = resp.json()
     except requests.RequestException as e:
@@ -301,7 +302,7 @@ def fetch_europeana_data_without_themes(session, limit=None):
             }
             try:
                 resp_detail = session.get(
-                    BASE_URL, params=params_detail, timeout=60
+                    BASE_URL, params=params_detail, timeout=TIMEOUT
                 )
                 resp_detail.raise_for_status()
                 count = resp_detail.json().get("totalResults", 0)
@@ -338,7 +339,7 @@ def fetch_europeana_data_with_themes(session, themes, limit=None):
     }
 
     try:
-        resp = session.get(BASE_URL, params=params, timeout=60)
+        resp = session.get(BASE_URL, params=params, timeout=TIMEOUT)
         resp.raise_for_status()
         data = resp.json()
     except requests.RequestException as e:
@@ -372,7 +373,7 @@ def fetch_europeana_data_with_themes(session, themes, limit=None):
                 }
                 try:
                     resp_detail = session.get(
-                        BASE_URL, params=params_detail, timeout=30
+                        BASE_URL, params=params_detail, timeout=TIMEOUT
                     )
                     resp_detail.raise_for_status()
                     count = resp_detail.json().get("totalResults", 0)
