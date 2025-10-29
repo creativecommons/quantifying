@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+babel = "*"
 flickrapi = "*"
 GitPython = "*"
 google-api-python-client = "*"
@@ -22,7 +23,6 @@ requests = ">=2.31.0"
 seaborn = "*"
 urllib3 = ">=2.5.0"
 wordcloud = "*"
-babel = "*"
 
 [dev-packages]
 black = "*"

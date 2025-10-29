@@ -63,7 +63,7 @@ def parse_arguments():
 def get_archive_session():
     retry_strategy = Retry(
         total=5,
-        backoff_factor=1,
+        backoff_factor=10,
         status_forcelist=shared.STATUS_FORCELIST,
         allowed_methods=["GET", "POST"],
         raise_on_status=False,
@@ -84,8 +84,8 @@ def load_license_mapping():
     file_path = shared.path_join(
         PATHS["data"], "license_url_to_identifier_mapping.csv"
     )
-    with open(file_path, newline="") as f:
-        reader = csv.DictReader(f)
+    with open(file_path, "r", encoding="utf-8") as file_obj:
+        reader = csv.DictReader(file_obj)
         for row in reader:
             raw_url = row["LICENSE_URL"]
             label = row["LICENSE"].strip()
@@ -167,7 +167,7 @@ def query_internet_archive(args):
     query = "creativecommons.org"
     license_mapping = load_license_mapping()
 
-    rows = 100000
+    rows = 50
     total_rows = 0
     total_processed = 0
     max_retries = 3
@@ -273,8 +273,8 @@ def query_internet_archive(args):
 
 
 def write_csv(file_path, header, rows):
-    with open(file_path, "w", newline="") as f:
-        writer = csv.writer(f, dialect="unix")
+    with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
+        writer = csv.writer(file_obj, dialect="unix")
         writer.writerow(header)
         for row in rows:
             writer.writerow(row)
@@ -306,13 +306,11 @@ def write_all(args, license_counter, language_counter):
         FILE1_COUNT,
         HEADER1,
         sorted_license_rows,
-        # [(k, v) for k, v in license_counter.items()],
     )
     write_csv(
         FILE2_LANGUAGE,
         HEADER2,
         sorted_language_rows,
-        # [(k[0], k[1], v) for k, v in language_counter.items()],
     )
 
     return args

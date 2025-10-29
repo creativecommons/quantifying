@@ -102,3 +102,23 @@ language edition of wikipedia. It runs on the Meta-Wiki API.
 - No API key required
 - Query limit: It is rate-limited only to prevent abuse
 - Data available through XML or JSON format
+
+## Internet Archive
+
+**Description:**
+The Internet Archive is a nonprofit digital library offering free access to millions of books, movies, software, music, and websites. This project uses the Internet Archive’s metadata API to fetch items that reference Creative Commons licenses.
+
+**API documentation link:**
+- [InternetArchive: A Python Interface to archive.org](https://internetarchive.readthedocs.io/en/stable/internetarchive.html)
+- [The Internet Archive Python Library](https://archive.org/developers/internetarchive/)
+
+**API information:**
+- No API key required
+- Query limit: None specified, but rate-limiting may apply (1000000 max at a time)
+- Data available through JSON format
+
+**Notes:**
+- This project queries for items containing `text:creativecommons.org` in their metadata.
+- The script extracts and normalizes license URLs, language codes, and country fields.
+- Aggregated counts are saved to CSV files for licenses and languages.
+- License normalization uses a canonical mapping defined in `license_url_to_identifier_mapping.csv`.
