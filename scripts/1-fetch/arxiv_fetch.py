@@ -312,7 +312,7 @@ def parse_arguments():
 def initialize_data_file(file_path, headers):
     """Initialize CSV file with headers if it doesn't exist."""
     if not os.path.isfile(file_path):
-        with open(file_path, "w", newline="", encoding="utf-8") as file_obj:
+        with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
             writer = csv.DictWriter(
                 file_obj, fieldnames=headers, dialect="unix"
             )
@@ -455,7 +455,7 @@ def save_count_data(
     # author_counts: {license: {author_count(int|None): count}}
 
     # Save license counts
-    with open(FILE_ARXIV_COUNT, "w", newline="", encoding="utf-8") as fh:
+    with open(FILE_ARXIV_COUNT, "w", encoding="utf-8", newline="\n") as fh:
         writer = csv.DictWriter(fh, fieldnames=HEADER_COUNT, dialect="unix")
         writer.writeheader()
         for lic, c in license_counts.items():
@@ -463,7 +463,7 @@ def save_count_data(
 
     # Save category report with labels
     with open(
-        FILE_ARXIV_CATEGORY_REPORT, "w", newline="", encoding="utf-8"
+        FILE_ARXIV_CATEGORY_REPORT, "w", encoding="utf-8", newline="\n"
     ) as fh:
         writer = csv.DictWriter(
             fh, fieldnames=HEADER_CATEGORY_REPORT, dialect="unix"
@@ -482,7 +482,7 @@ def save_count_data(
                 )
 
     # Save year counts
-    with open(FILE_ARXIV_YEAR, "w", newline="", encoding="utf-8") as fh:
+    with open(FILE_ARXIV_YEAR, "w", encoding="utf-8", newline="\n") as fh:
         writer = csv.DictWriter(fh, fieldnames=HEADER_YEAR, dialect="unix")
         writer.writeheader()
         for lic, years in year_counts.items():
@@ -493,7 +493,7 @@ def save_count_data(
 
     # Save author buckets summary
     with open(
-        FILE_ARXIV_AUTHOR_BUCKET, "w", newline="", encoding="utf-8"
+        FILE_ARXIV_AUTHOR_BUCKET, "w", encoding="utf-8", newline="\n"
     ) as fh:
         writer = csv.DictWriter(
             fh, fieldnames=HEADER_AUTHOR_BUCKET, dialect="unix"
@@ -624,7 +624,7 @@ def query_arxiv(args):
 
     # write provenance YAML for auditing
     try:
-        with open(FILE_PROVENANCE, "w", encoding="utf-8") as fh:
+        with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as fh:
             yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
     except Exception as e:
         LOGGER.warning("Failed to write provenance file: %s", e)
