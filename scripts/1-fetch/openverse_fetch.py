@@ -83,10 +83,10 @@ def parse_arguments():
     return args
 
 
-def get_requests_session():
+def get_openverse_session():
     max_retries = Retry(
         total=5,
-        backoff_factor=5,
+        backoff_factor=10,
         status_forcelist=shared.STATUS_FORCELIST,
     )
     session = requests.Session()
@@ -163,7 +163,7 @@ def query_openverse(session):
                 LOGGER.info(
                     "Fetching Openverse data:"
                     f" media_type={media_type} |"
-                    f" _nasource={source_name} |"
+                    f" source={source_name} |"
                     f" license={license}"
                 )
                 try:
@@ -212,9 +212,9 @@ def write_data(args, data):
     if not args.enable_save:
         return
     os.makedirs(PATHS["data_phase"], exist_ok=True)
-    with open(FILE_PATH, "w", newline="", encoding="utf-8") as f:
+    with open(FILE_PATH, "w", encoding="utf-8", newline="") as file_obj:
         writer = csv.DictWriter(
-            f,
+            file_obj,
             fieldnames=OPENVERSE_FIELDS,
             dialect="unix",
         )
@@ -225,7 +225,7 @@ def write_data(args, data):
 
 def main():
     args = parse_arguments()
-    session = get_requests_session()
+    session = get_openverse_session()
     LOGGER.info("Starting Openverse Fetch Script...")
     records = query_openverse(session)
     write_data(args, records)
