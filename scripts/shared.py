@@ -131,6 +131,7 @@ def paths_update(logger, paths, old_quarter, new_quarter):
 
 class ColoredFormatter(logging.Formatter):
     """Adds colors to log messages."""
+
     # https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
     COLORS = {
         logging.DEBUG: "\033[90m",  # bright black
