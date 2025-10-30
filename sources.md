@@ -102,3 +102,20 @@ language edition of wikipedia. It runs on the Meta-Wiki API.
 - No API key required
 - Query limit: It is rate-limited only to prevent abuse
 - Data available through XML or JSON format
+
+## EUROPEANA DATA API
+
+**Description:**
+The **Europeana Search API** provides access to digital cultural heritage metadata records aggregated from museums, libraries, and archives across Europe. This project uses the API to fetch aggregated counts of cultural heritage records by data provider, rights statement, and theme.
+
+**Official API Documentation:**
+- [Search API Documentation](https://europeana.atlassian.net/wiki/spaces/EF/pages/2385739812/Search+API+Documentation)
+
+**API information:**
+- API key required
+- Query parameters allow:
+  - Full-text searching (`query`)
+  - Retrieving metadata facets (`profile=facets`)
+  - Filtering by data provider, rights statement, and theme
+- Data available through JSON format
+- Offset-based pagination
