@@ -23,6 +23,36 @@ tool paths.
 [prioritized-tool-urls]: data/prioritized-tool-urls.txt
 
 
+## Flickr
+
+**Description:** _With over 5 billion photos (many with valuable metadata such
+as tags, geolocation, and Exif data), the Flickr community creates wonderfully
+rich data. The Flickr API is how you can access that data. In fact, almost all
+the functionality that runs flickr.com is available through the API._ ([Flickr:
+The Flickr Developer Guide](https://www.flickr.com/services/developer/))
+
+**API documentation link:**
+- [API documentation - Flickr Services](https://www.flickr.com/services/api/)
+
+**API information:**
+- API key required
+- Query limit: 3600 requests per hour
+- Data available through CSV format
+
+## GitHub
+
+**Description:** A development platform for hosting and managing code.
+
+**API documentation link:**
+- [GitHub REST API v3](https://docs.github.com/en/rest)
+
+**API information:**
+- API key not required but recommended by GitHub
+- Query limit: 60 requests per hour if unauthenticated,
+  5000 requests per hour if authenticated
+- Data available through JSON format
+
+
 ## GCS (Google Custom Search) JSON API
 
 **Description:** The Custom Search JSON API allows user-defined detailed query
@@ -68,40 +98,17 @@ and access towards related query data using a programmable search engine.
 [reference-appendix]: https://developers.google.com/custom-search/docs/xml_results_appendices
 
 
-## GitHub
+## Internet Archive Python Interface
 
-**Description:** A development platform for hosting and managing code.
-
-**API documentation link:**
-- [GitHub REST API v3](https://docs.github.com/en/rest)
-
-**API information:**
-- API key not required but recommended by GitHub
-- Query limit: 60 requests per hour if unauthenticated,
-  5000 requests per hour if authenticated
-- Data available through JSON format
-
-## Wikipedia
-
-**Description:** The Wikipedia API allows users to query statistics of pages,
-categories, revisions from a public API endpoint. We have included two urls in
-the project: The `WIKIPEDIA_BASE_URL` AND `WIKIPEDIA_MATRIX_URL`. The
-`WIKIPEDIA_BASE_URL` provides access to articles, categories, and metadata from
-the English version of Wikipedia. It runs on the MediaWiki Action API, but this
-instance only provides English Wikipedia data. Then the `WIKIPEDIA_MATRIX_URL`
-provides access to information of all wikimedia projects including the different
-language edition of wikipedia. It runs on the Meta-Wiki API.
+**Description:** A python interface to archive.org to achieve API requests
+towards internet archive.
 
 **API documentation link:**
-[WIKIPEDIA_BASE_URL documentation](https://en.wikipedia.org/w/api.php)
-[WIKIPEDIA_BASE_URL reference page](https://www.mediawiki.org/wiki/API:Main_page)
-[WIKIPEDIA_MATRIX_URL documentation](https://meta.wikimedia.org/w/api.php)
-[WIKIPEDIA_MATRIX_URL reference page](https://www.mediawiki.org/wiki/API:Sitematrix)
+- [internetarchive.Search - Internetarchive: A Python Interface to
+  archive.org][ia-search]
 
 **API information:**
 - No API key required
-- Query limit: It is rate-limited only to prevent abuse
-- Data available through XML or JSON format
 - No query limits
 
 [ia-search]: https://internetarchive.readthedocs.io/en/stable/internetarchive.html#internetarchive.Search
@@ -168,11 +175,10 @@ adjust video parameters, and obtain search results.
   - Query limit: depends on the type and number of requests
   - Data available through JSON format
 
-## EUROPEANA DATA API
+  ## EUROPEANA DATA API
 
 **Description:**
-The **Europeana Search API** provides access to digital cultural heritage metadata records aggregated from museums, libraries, and archives across Europe.
-This project uses the API to fetch aggregated counts of cultural heritage records by data provider, rights statement, and theme.
+The **Europeana Search API** provides access to digital cultural heritage metadata records aggregated from museums, libraries, and archives across Europe. This project uses the API to fetch aggregated counts of cultural heritage records by data provider, rights statement, and theme.
 
 **Official API Documentation:**
 - [Search API Documentation](https://europeana.atlassian.net/wiki/spaces/EF/pages/2385739812/Search+API+Documentation)
