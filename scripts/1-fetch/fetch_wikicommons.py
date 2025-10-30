@@ -31,10 +31,6 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 BASE_URL = "https://commons.wikimedia.org/w/api.php"
-FILE1_COUNT = shared.path_join(PATHS["data_phase"], "wikicommons_1_count.csv")
-HEADER1_COUNT = ["LICENSE", "FILE_COUNT", "PAGE_COUNT"]
-QUARTER = os.path.basename(PATHS["data_quarter"])
-
 # Creative Commons license categories to query
 CC_LICENSE_CATEGORIES = [
     "CC BY 4.0",
@@ -70,6 +66,9 @@ CC_LICENSE_CATEGORIES = [
     "CC0 1.0",
     "Public Domain Mark 1.0",
 ]
+FILE1_COUNT = shared.path_join(PATHS["data_phase"], "wikicommons_1_count.csv")
+HEADER1_COUNT = ["LICENSE", "FILE_COUNT", "PAGE_COUNT"]
+QUARTER = os.path.basename(PATHS["data_quarter"])
 
 # Log the start of the script execution
 LOGGER.info("Script execution started.")
@@ -283,7 +282,7 @@ def query_wikicommons(args, session):
     
     for category in CC_LICENSE_CATEGORIES:
         LOGGER.info(f"Processing category: {category}")
-        
+
             counts = recursively_count_category(session, category)
             license_data.append({
                 "LICENSE": category,
