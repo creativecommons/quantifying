@@ -31,7 +31,6 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 BASE_URL = "https://commons.wikimedia.org/w/api.php"
-# Creative Commons license categories to query
 CC_LICENSE_CATEGORIES = [
     "CC BY 4.0",
     "CC BY-SA 4.0", 
@@ -147,7 +146,7 @@ def get_category_info(session, category_name):
         pages = data.get("query", {}).get("pages", {})
         if not pages:
             LOGGER.warning(f"No data found for category: {category_name}")
-            return None
+            return {"files": 0, "pages": 0}
             
         # Get the first (and usually only) page result
         page_data = list(pages.values())[0]
