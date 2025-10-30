@@ -94,7 +94,7 @@ def parse_arguments():
 def check_for_completion():
     """Check if data fetch is already completed for this quarter."""
     try:
-        with open(FILE1_COUNT, "r") as file_obj:
+        with open(FILE1_COUNT, "r", encoding="utf-8") as file_obj:
             reader = csv.DictReader(file_obj, dialect="unix")
             if len(list(reader)) >= len(CC_LICENSE_CATEGORIES):
                 raise shared.QuantifyingException(
@@ -259,7 +259,7 @@ def write_data(args, license_data):
         LOGGER.error("Unable to fetch all records. Aborting.")
         return args
 
-    with open(FILE1_COUNT, "w", newline="\n", encoding="utf-8") as file_obj:
+    with open(FILE1_COUNT, "w", encoding="utf-8", newline="\n") as file_obj:
         writer = csv.DictWriter(
             file_obj, fieldnames=HEADER1_COUNT, dialect="unix"
         )
