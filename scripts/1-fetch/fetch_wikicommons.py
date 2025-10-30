@@ -95,7 +95,7 @@ def parse_arguments():
 def check_for_completion():
     """Check if data fetch is already completed for this quarter."""
     try:
-        with open(FILE1_COUNT, "r", newline="") as file_obj:
+        with open(FILE1_COUNT, "r") as file_obj:
             reader = csv.DictReader(file_obj, dialect="unix")
             if len(list(reader)) >= len(CC_LICENSE_CATEGORIES):
                 raise shared.QuantifyingException(
