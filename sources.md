@@ -175,7 +175,7 @@ adjust video parameters, and obtain search results.
   - Query limit: depends on the type and number of requests
   - Data available through JSON format
 
-  ## EUROPEANA DATA API
+## EUROPEANA DATA API
 
 **Description:**
 The **Europeana Search API** provides access to digital cultural heritage metadata records aggregated from museums, libraries, and archives across Europe. This project uses the API to fetch aggregated counts of cultural heritage records by data provider, rights statement, and theme.
