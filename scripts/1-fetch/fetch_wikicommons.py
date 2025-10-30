@@ -284,7 +284,6 @@ def query_wikicommons(args, session):
     for category in CC_LICENSE_CATEGORIES:
         LOGGER.info(f"Processing category: {category}")
         
-        try:
             counts = recursively_count_category(session, category)
             license_data.append({
                 "LICENSE": category,
