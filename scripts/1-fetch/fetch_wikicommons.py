@@ -70,10 +70,6 @@ FILE1_COUNT = shared.path_join(PATHS["data_phase"], "wikicommons_1_count.csv")
 HEADER1_COUNT = ["LICENSE", "FILE_COUNT", "PAGE_COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
-# Log the start of the script execution
-LOGGER.info("Script execution started.")
-
-
 def parse_arguments():
     """
     Parse command-line options, returns parsed argument namespace.
@@ -295,6 +291,7 @@ def query_wikicommons(args, session):
 
 def main():
     """Main function to orchestrate the WikiCommons data fetch."""
+    LOGGER.info("Script execution started.")
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     check_for_completion()
