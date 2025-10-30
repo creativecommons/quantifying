@@ -111,10 +111,8 @@ language edition of wikipedia. It runs on the Meta-Wiki API.
 **API documentation link:**
 - [arXiv API User Manual](https://arxiv.org/help/api/user-manual)
 - [arXiv API Reference](https://arxiv.org/help/api)
-- Base URL: `http://export.arxiv.org/api/query`
+- [Base URL](http://export.arxiv.org/api/query)
 - [arXiv Subject Classifications](https://arxiv.org/category_taxonomy)
-- [OAI-PMH Interface](https://oaipmh.arxiv.org/oai?verb=Identify) - For bulk metadata harvesting
-- [Bulk Data Access via S3](https://info.arxiv.org/help/bulk_data_s3.html) - For full-text PDF and source files
 - [Terms of Use for arXiv APIs](https://info.arxiv.org/help/api/tou.html)
 
 **API information:**
