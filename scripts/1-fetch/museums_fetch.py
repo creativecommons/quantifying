@@ -24,25 +24,28 @@ from urllib3.util.retry import Retry
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # First-party/Local
-from scripts import shared
+import shared  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
-FILE_RECORDS = os.path.join(
-    PATHS["data_phase"], "museums_victoria_raw.csv"
-)
+FILE_RECORDS = os.path.join(PATHS["data_phase"], "museums_raw.csv")
 HEADER_RECORDS = [
-    'ID',
-    'TITLE',
-    'RECORD TYPE',
-    'CONTENT LICENCE SHORT NAME',
-    'MEDIA JSON'
+    "ID",
+    "TITLE",
+    "RECORD TYPE",
+    "CONTENT LICENCE SHORT NAME",
+    "MEDIA JSON",
 ]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 BASE_URL = "https://collections.museumsvictoria.com.au/api/search"
-RECORD_TYPES = ['article', 'item', 'species', 'specimen']  # Type of record to return
+RECORD_TYPES = [
+    "article",
+    "item",
+    "species",
+    "specimen",
+]  # Type of record to return
 MAX_PER_PAGE = 100  # Pagination limit as defined by the API documentation
 
 
@@ -56,13 +59,11 @@ def parse_arguments():
         "--enable-save",
         action="store_true",
         help="Enable saving results",
-        default="true"
     )
     parser.add_argument(
         "--enable-git",
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
-        default="true"
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
@@ -89,13 +90,13 @@ def get_requests_session():
 def sanitize_string(s):
     """Replaces newline and carriage return characters with a space."""
     if isinstance(s, str):
-        return s.replace('\n', ' ').replace('\r', '')
+        return s.replace("\n", " ").replace("\r", "")
     return s
 
 
 def initialize_data_file(file_path, header):
     if not os.path.isfile(file_path):
-        with open(file_path, "w", newline="") as file_obj:
+        with open(file_path, "w", newline="\n", encoding="utf-8") as file_obj:
             writer = csv.DictWriter(
                 file_obj, fieldnames=header, dialect="unix"
             )
@@ -111,18 +112,27 @@ def write_data(args, data):
     LOGGER.info("Saving fetched data")
     os.makedirs(PATHS["data_phase"], exist_ok=True)
     for record in data:
-        media = record.get('media')
-        media_json_string = json.dumps([{"type": i.get('type'), "licence": i.get('licence')} for i in media])
-        content_license_short_name = record.get('licence', {}).get('shortName', 'Not Found')
+        media = record.get("media")
+        media_json_string = json.dumps(
+            [
+                {"type": i.get("type"), "licence": i.get("licence")}
+                for i in media
+            ]
+        )
+        content_license_short_name = record.get("licence", {}).get(
+            "shortName", "Not Found"
+        )
         row = {
-            'ID': record.get('id'),
-            'TITLE': record.get('title'),
-            'RECORD TYPE': record.get('recordType'),
-            'CONTENT LICENCE SHORT NAME': sanitize_string(content_license_short_name),
-            'MEDIA JSON': sanitize_string(media_json_string),
+            "ID": record.get("id"),
+            "TITLE": record.get("title"),
+            "RECORD TYPE": record.get("recordType"),
+            "CONTENT LICENCE SHORT NAME": sanitize_string(
+                content_license_short_name
+            ),
+            "MEDIA JSON": sanitize_string(media_json_string),
         }
         initialize_data_file(FILE_RECORDS, HEADER_RECORDS)
-        with open(FILE_RECORDS, "a", newline="") as file:
+        with open(FILE_RECORDS, "a", newline="\n", encoding="utf-8") as file:
             writer = csv.DictWriter(
                 file, fieldnames=HEADER_RECORDS, dialect="unix"
             )
@@ -148,36 +158,32 @@ def fetch_museums_victoria_data(args, session):
         while True:
             # 1. Construct the API query parameters
             params = {
-                'recordtype': record_type,
-                'perpage': 20,
+                "recordtype": record_type,
+                "perpage": 20,
                 # 'perpage': MAX_PER_PAGE,
                 # 'page': current_page,
-                'page': 1,
-                'envelope': 'true'
+                "page": 1,
+                "envelope": "true",
             }
-
-            # 2. Make the GET request
             try:
                 r = session.get(BASE_URL, params=params, timeout=30)
                 r.raise_for_status()
                 data = r.json()
-                results = data.get('response', [])
-            except requests.exceptions.RequestException as e:
-                LOGGER.error(f"Error fetching page {current_page} for {record_type}: {e}")
-                break
+                results = data.get("response", [])
+            except requests.HTTPError as e:
+                raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
+            except requests.RequestException as e:
+                raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+            except KeyError as e:
+                raise shared.QuantifyingException(f"KeyError: {e}", 1)
 
                 # 3. Handle data and pagination metadata
             write_data(args, results)
 
             # Initialize total_pages on the first request for this record type
             if total_pages is None:
-                headers = data.get('headers', {})
-                total_results = int(headers.get('totalPages', '0'))
-                total_pages = 1
-                # total_pages = int(headers.get('totalResults', '0'))
-                LOGGER.info(
-                    f"Total {record_type} records with images: {total_results} across {total_pages} pages."
-                )
+                headers = data.get("headers", {})
+                total_pages = int(headers.get("totalResults", "0"))
 
             # 4. Check for next page and break the loop if done
             current_page += 1

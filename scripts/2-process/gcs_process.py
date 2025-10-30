@@ -20,7 +20,7 @@ from pygments.lexers import PythonTracebackLexer
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # First-party/Local
-from scripts import shared
+import shared  # noqa: E402
 
 # import shared  # noqa: E402
 
@@ -46,7 +46,7 @@ def parse_arguments():
         "--enable-save",
         action="store_true",
         help="Enable saving results (default: False)",
-        default='true'
+        default="true",
     )
     parser.add_argument(
         "--enable-git",

@@ -67,8 +67,3 @@ jobs:
             --enable-save --enable-git
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
-
-      - name: Fetch from Museum Victoria
-        run: |
-          ./scripts/1-fetch/museums_victoria_fetch.py \
-          --enable-save --enable-git
