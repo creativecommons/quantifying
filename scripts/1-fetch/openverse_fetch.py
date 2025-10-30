@@ -83,7 +83,7 @@ def parse_arguments():
     return args
 
 
-def get_requests_session():
+def get_request_session():
     max_retries = Retry(
         total=5,
         backoff_factor=10,
@@ -225,7 +225,7 @@ def write_data(args, data):
 
 def main():
     args = parse_arguments()
-    session = get_requests_session()
+    session = get_request_session()
     LOGGER.info("Starting Openverse Fetch Script...")
     records = query_openverse(session)
     write_data(args, records)
