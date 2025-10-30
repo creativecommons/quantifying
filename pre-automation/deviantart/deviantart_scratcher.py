@@ -20,9 +20,13 @@ sys.path.append(".")
 import quantify  # noqa: E402
 
 # Setup paths, Date and LOGGER using quantify.setup()
-PATH_REPO_ROOT, PATH_WORK_DIR, PATH_DOTENV, DATETIME_TODAY, LOGGER = (
-    quantify.setup(__file__)
-)
+(
+    PATH_REPO_ROOT,
+    PATH_WORK_DIR,
+    PATH_DOTENV,
+    DATETIME_TODAY,
+    LOGGER,
+) = quantify.setup(__file__)
 
 # Load environment variables
 load_dotenv(PATH_DOTENV)

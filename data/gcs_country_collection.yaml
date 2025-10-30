@@ -1,0 +1,488 @@
+# Based on:
+# https://developers.google.com/custom-search/docs/xml_results_appendices#language-collection-values
+#
+# Reformatted with ./dev/reformat_collection_values_to_yaml.sh
+- country: Afghanistan
+  cr: countryAF
+- country: Albania
+  cr: countryAL
+- country: Algeria
+  cr: countryDZ
+- country: American Samoa
+  cr: countryAS
+- country: Andorra
+  cr: countryAD
+- country: Angola
+  cr: countryAO
+- country: Anguilla
+  cr: countryAI
+- country: Antarctica
+  cr: countryAQ
+- country: Antigua and Barbuda
+  cr: countryAG
+- country: Argentina
+  cr: countryAR
+- country: Armenia
+  cr: countryAM
+- country: Aruba
+  cr: countryAW
+- country: Australia
+  cr: countryAU
+- country: Austria
+  cr: countryAT
+- country: Azerbaijan
+  cr: countryAZ
+- country: Bahamas
+  cr: countryBS
+- country: Bahrain
+  cr: countryBH
+- country: Bangladesh
+  cr: countryBD
+- country: Barbados
+  cr: countryBB
+- country: Belarus
+  cr: countryBY
+- country: Belgium
+  cr: countryBE
+- country: Belize
+  cr: countryBZ
+- country: Benin
+  cr: countryBJ
+- country: Bermuda
+  cr: countryBM
+- country: Bhutan
+  cr: countryBT
+- country: Bolivia
+  cr: countryBO
+- country: Bosnia and Herzegovina
+  cr: countryBA
+- country: Botswana
+  cr: countryBW
+- country: Bouvet Island
+  cr: countryBV
+- country: Brazil
+  cr: countryBR
+- country: British Indian Ocean Territory
+  cr: countryIO
+- country: Brunei Darussalam
+  cr: countryBN
+- country: Bulgaria
+  cr: countryBG
+- country: Burkina Faso
+  cr: countryBF
+- country: Burundi
+  cr: countryBI
+- country: Cambodia
+  cr: countryKH
+- country: Cameroon
+  cr: countryCM
+- country: Canada
+  cr: countryCA
+- country: Cape Verde
+  cr: countryCV
+- country: Cayman Islands
+  cr: countryKY
+- country: Central African Republic
+  cr: countryCF
+- country: Chad
+  cr: countryTD
+- country: Chile
+  cr: countryCL
+- country: China
+  cr: countryCN
+- country: Christmas Island
+  cr: countryCX
+- country: Cocos (Keeling) Islands
+  cr: countryCC
+- country: Colombia
+  cr: countryCO
+- country: Comoros
+  cr: countryKM
+- country: Congo
+  cr: countryCG
+- country: Congo, the Democratic Republic of the
+  cr: countryCD
+- country: Cook Islands
+  cr: countryCK
+- country: Costa Rica
+  cr: countryCR
+- country: Cote D'ivoire
+  cr: countryCI
+- country: Croatia (Hrvatska)
+  cr: countryHR
+- country: Cuba
+  cr: countryCU
+- country: Cyprus
+  cr: countryCY
+- country: Czech Republic
+  cr: countryCZ
+- country: Denmark
+  cr: countryDK
+- country: Djibouti
+  cr: countryDJ
+- country: Dominica
+  cr: countryDM
+- country: Dominican Republic
+  cr: countryDO
+- country: East Timor
+  cr: countryTP
+- country: Ecuador
+  cr: countryEC
+- country: Egypt
+  cr: countryEG
+- country: El Salvador
+  cr: countrySV
+- country: Equatorial Guinea
+  cr: countryGQ
+- country: Eritrea
+  cr: countryER
+- country: Estonia
+  cr: countryEE
+- country: Ethiopia
+  cr: countryET
+- country: European Union
+  cr: countryEU
+- country: Falkland Islands (Malvinas)
+  cr: countryFK
+- country: Faroe Islands
+  cr: countryFO
+- country: Fiji
+  cr: countryFJ
+- country: Finland
+  cr: countryFI
+- country: France
+  cr: countryFR
+- country: France, Metropolitan
+  cr: countryFX
+- country: French Guiana
+  cr: countryGF
+- country: French Polynesia
+  cr: countryPF
+- country: French Southern Territories
+  cr: countryTF
+- country: Gabon
+  cr: countryGA
+- country: Gambia
+  cr: countryGM
+- country: Georgia
+  cr: countryGE
+- country: Germany
+  cr: countryDE
+- country: Ghana
+  cr: countryGH
+- country: Gibraltar
+  cr: countryGI
+- country: Greece
+  cr: countryGR
+- country: Greenland
+  cr: countryGL
+- country: Grenada
+  cr: countryGD
+- country: Guadeloupe
+  cr: countryGP
+- country: Guam
+  cr: countryGU
+- country: Guatemala
+  cr: countryGT
+- country: Guinea
+  cr: countryGN
+- country: Guinea-Bissau
+  cr: countryGW
+- country: Guyana
+  cr: countryGY
+- country: Haiti
+  cr: countryHT
+- country: Heard Island and Mcdonald Islands
+  cr: countryHM
+- country: Holy See (Vatican City State)
+  cr: countryVA
+- country: Honduras
+  cr: countryHN
+- country: Hong Kong
+  cr: countryHK
+- country: Hungary
+  cr: countryHU
+- country: Iceland
+  cr: countryIS
+- country: India
+  cr: countryIN
+- country: Indonesia
+  cr: countryID
+- country: Iran, Islamic Republic of
+  cr: countryIR
+- country: Iraq
+  cr: countryIQ
+- country: Ireland
+  cr: countryIE
+- country: Israel
+  cr: countryIL
+- country: Italy
+  cr: countryIT
+- country: Jamaica
+  cr: countryJM
+- country: Japan
+  cr: countryJP
+- country: Jordan
+  cr: countryJO
+- country: Kazakhstan
+  cr: countryKZ
+- country: Kenya
+  cr: countryKE
+- country: Kiribati
+  cr: countryKI
+- country: Korea, Democratic People's Republic of
+  cr: countryKP
+- country: Korea, Republic of
+  cr: countryKR
+- country: Kuwait
+  cr: countryKW
+- country: Kyrgyzstan
+  cr: countryKG
+- country: Lao People's Democratic Republic
+  cr: countryLA
+- country: Latvia
+  cr: countryLV
+- country: Lebanon
+  cr: countryLB
+- country: Lesotho
+  cr: countryLS
+- country: Liberia
+  cr: countryLR
+- country: Libyan Arab Jamahiriya
+  cr: countryLY
+- country: Liechtenstein
+  cr: countryLI
+- country: Lithuania
+  cr: countryLT
+- country: Luxembourg
+  cr: countryLU
+- country: Macao
+  cr: countryMO
+- country: Macedonia, the Former Yugosalv Republic of
+  cr: countryMK
+- country: Madagascar
+  cr: countryMG
+- country: Malawi
+  cr: countryMW
+- country: Malaysia
+  cr: countryMY
+- country: Maldives
+  cr: countryMV
+- country: Mali
+  cr: countryML
+- country: Malta
+  cr: countryMT
+- country: Marshall Islands
+  cr: countryMH
+- country: Martinique
+  cr: countryMQ
+- country: Mauritania
+  cr: countryMR
+- country: Mauritius
+  cr: countryMU
+- country: Mayotte
+  cr: countryYT
+- country: Mexico
+  cr: countryMX
+- country: Micronesia, Federated States of
+  cr: countryFM
+- country: Moldova, Republic of
+  cr: countryMD
+- country: Monaco
+  cr: countryMC
+- country: Mongolia
+  cr: countryMN
+- country: Montserrat
+  cr: countryMS
+- country: Morocco
+  cr: countryMA
+- country: Mozambique
+  cr: countryMZ
+- country: Myanmar
+  cr: countryMM
+- country: Namibia
+  cr: countryNA
+- country: Nauru
+  cr: countryNR
+- country: Nepal
+  cr: countryNP
+- country: Netherlands
+  cr: countryNL
+- country: Netherlands Antilles
+  cr: countryAN
+- country: New Caledonia
+  cr: countryNC
+- country: New Zealand
+  cr: countryNZ
+- country: Nicaragua
+  cr: countryNI
+- country: Niger
+  cr: countryNE
+- country: Nigeria
+  cr: countryNG
+- country: Niue
+  cr: countryNU
+- country: Norfolk Island
+  cr: countryNF
+- country: Northern Mariana Islands
+  cr: countryMP
+- country: Norway
+  cr: countryNO
+- country: Oman
+  cr: countryOM
+- country: Pakistan
+  cr: countryPK
+- country: Palau
+  cr: countryPW
+- country: Palestinian Territory
+  cr: countryPS
+- country: Panama
+  cr: countryPA
+- country: Papua New Guinea
+  cr: countryPG
+- country: Paraguay
+  cr: countryPY
+- country: Peru
+  cr: countryPE
+- country: Philippines
+  cr: countryPH
+- country: Pitcairn
+  cr: countryPN
+- country: Poland
+  cr: countryPL
+- country: Portugal
+  cr: countryPT
+- country: Puerto Rico
+  cr: countryPR
+- country: Qatar
+  cr: countryQA
+- country: Reunion
+  cr: countryRE
+- country: Romania
+  cr: countryRO
+- country: Russian Federation
+  cr: countryRU
+- country: Rwanda
+  cr: countryRW
+- country: Saint Helena
+  cr: countrySH
+- country: Saint Kitts and Nevis
+  cr: countryKN
+- country: Saint Lucia
+  cr: countryLC
+- country: Saint Pierre and Miquelon
+  cr: countryPM
+- country: Saint Vincent and the Grenadines
+  cr: countryVC
+- country: Samoa
+  cr: countryWS
+- country: San Marino
+  cr: countrySM
+- country: Sao Tome and Principe
+  cr: countryST
+- country: Saudi Arabia
+  cr: countrySA
+- country: Senegal
+  cr: countrySN
+- country: Serbia and Montenegro
+  cr: countryCS
+- country: Seychelles
+  cr: countrySC
+- country: Sierra Leone
+  cr: countrySL
+- country: Singapore
+  cr: countrySG
+- country: Slovakia
+  cr: countrySK
+- country: Slovenia
+  cr: countrySI
+- country: Solomon Islands
+  cr: countrySB
+- country: Somalia
+  cr: countrySO
+- country: South Africa
+  cr: countryZA
+- country: South Georgia and the South Sandwich Islands
+  cr: countryGS
+- country: Spain
+  cr: countryES
+- country: Sri Lanka
+  cr: countryLK
+- country: Sudan
+  cr: countrySD
+- country: Suriname
+  cr: countrySR
+- country: Svalbard and Jan Mayen
+  cr: countrySJ
+- country: Swaziland
+  cr: countrySZ
+- country: Sweden
+  cr: countrySE
+- country: Switzerland
+  cr: countryCH
+- country: Syrian Arab Republic
+  cr: countrySY
+- country: Taiwan, Province of China
+  cr: countryTW
+- country: Tajikistan
+  cr: countryTJ
+- country: Tanzania, United Republic of
+  cr: countryTZ
+- country: Thailand
+  cr: countryTH
+- country: Togo
+  cr: countryTG
+- country: Tokelau
+  cr: countryTK
+- country: Tonga
+  cr: countryTO
+- country: Trinidad and Tobago
+  cr: countryTT
+- country: Tunisia
+  cr: countryTN
+- country: Turkey
+  cr: countryTR
+- country: Turkmenistan
+  cr: countryTM
+- country: Turks and Caicos Islands
+  cr: countryTC
+- country: Tuvalu
+  cr: countryTV
+- country: Uganda
+  cr: countryUG
+- country: Ukraine
+  cr: countryUA
+- country: United Arab Emirates
+  cr: countryAE
+- country: United Kingdom
+  cr: countryUK
+- country: United States
+  cr: countryUS
+- country: United States Minor Outlying Islands
+  cr: countryUM
+- country: Uruguay
+  cr: countryUY
+- country: Uzbekistan
+  cr: countryUZ
+- country: Vanuatu
+  cr: countryVU
+- country: Venezuela
+  cr: countryVE
+- country: Vietnam
+  cr: countryVN
+- country: Virgin Islands, British
+  cr: countryVG
+- country: Virgin Islands, U.S.
+  cr: countryVI
+- country: Wallis and Futuna
+  cr: countryWF
+- country: Western Sahara
+  cr: countryEH
+- country: Yemen
+  cr: countryYE
+- country: Yugoslavia
+  cr: countryYU
+- country: Zambia
+  cr: countryZM
+- country: Zimbabwe
+  cr: countryZW
