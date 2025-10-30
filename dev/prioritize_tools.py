@@ -42,7 +42,7 @@ def get_tool_urls():
     file_path = shared.path_join(PATHS["data"], "legal-tool-paths.txt")
     prefix = "//creativecommons.org/"
     tool_urls = []
-    with open(file_path, "r") as file_obj:
+    with open(file_path, "r", encoding="utf-8") as file_obj:
         for line in file_obj:
             tool_urls.append(f"{prefix}{line.strip()}")
     return tool_urls
@@ -112,7 +112,7 @@ def save_tools_list(tool_urls):
     LOGGER.info("Saving prioritized CC Legal Tool URLs")
     file_path = shared.path_join(PATHS["data"], "prioritized-tool-urls.txt")
     tool_urls.append("")  # ensure file has end of file newline
-    with open(file_path, "w") as file_obj:
+    with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
         file_obj.writelines("\n".join(tool_urls))
 
 

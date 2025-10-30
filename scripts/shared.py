@@ -239,7 +239,7 @@ def update_readme(
     entry_end_line = f"<!-- {entry_title} End -->\n"
 
     if os.path.exists(readme_path):
-        with open(readme_path, "r") as f:
+        with open(readme_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
     else:
         lines = []
@@ -327,7 +327,7 @@ def update_readme(
         )
 
     # Write back to the README.md file
-    with open(readme_path, "w") as f:
+    with open(readme_path, "w", encoding="utf-8", newline="\n") as f:
         f.writelines(lines)
 
     logger.info(f"README path: {readme_path.replace(paths['repo'], '.')}")
