@@ -4,7 +4,6 @@ Process Google Custom Search (GCS) data.
 """
 # Standard library
 import argparse
-import csv
 import json
 import os
 import sys
@@ -21,9 +20,7 @@ from pygments.lexers import PythonTracebackLexer
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # First-party/Local
-from scripts import shared
-
-# import shared  # noqa: E402
+import shared  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
@@ -36,13 +33,20 @@ RAW_CSV_FILEPATH = shared.path_join(
 
 DATA_PHASE = PATHS["data_phase"]
 
-REPORT_OVERALL = shared.path_join(DATA_PHASE, 'museums_victoria_overall.csv')
-REPORT_BY_DOMAIN = shared.path_join(DATA_PHASE, 'museums_victoria_by_record_type.csv')
-REPORT_BY_MEDIA = shared.path_join(DATA_PHASE, 'museums_victoria_by_media_type.csv')
-REPORT_BY_RESTRICTION = shared.path_join(DATA_PHASE, 'museums_victoria_by_restriction.csv')
+REPORT_OVERALL = shared.path_join(DATA_PHASE, "museums_victoria_overall.csv")
+REPORT_BY_DOMAIN = shared.path_join(
+    DATA_PHASE, "museums_victoria_by_record_type.csv"
+)
+REPORT_BY_MEDIA = shared.path_join(
+    DATA_PHASE, "museums_victoria_by_media_type.csv"
+)
+REPORT_BY_RESTRICTION = shared.path_join(
+    DATA_PHASE, "museums_victoria_by_restriction.csv"
+)
 
 
 # --- Helper Function for Categorical Analysis (Matching GCS Logic) ---
+
 
 def get_restriction_level(tool):
     """
@@ -51,7 +55,11 @@ def get_restriction_level(tool):
     tool = tool.upper().strip()
     if any(keyword in tool for keyword in ["PDM", "CC0", "PUBLICDOMAIN"]):
         return "level 0 - unrestricted"
-    if ("BY" in tool or "SA" in tool) and "NC" not in tool and "ND" not in tool:
+    if (
+        ("BY" in tool or "SA" in tool)
+        and "NC" not in tool
+        and "ND" not in tool
+    ):
         return "level 1 - few restrictions"
     elif "NC" in tool or "SAMPLING" in tool:
         return "level 2 - some restrictions"
@@ -74,13 +82,13 @@ def parse_arguments():
         "--enable-save",
         action="store_true",
         help="Enable saving results (default: False)",
-        default='true'
+        default="true",
     )
     parser.add_argument(
         "--enable-git",
         action="store_true",
         help="Enable git actions such as fetch, merge, add, commit, and push"
-             " (default: False)",
+        " (default: False)",
     )
     args = parser.parse_args()
     global PATHS
@@ -99,9 +107,9 @@ def read_raw_data(args):
 
 def normalize_data(args, data):
     """
-        Unpacks the 'media_json' column, creating one row per media asset
-        with its license and media type.
-        """
+    Unpacks the 'media_json' column, creating one row per media asset
+    with its license and media type.
+    """
     if not args.enable_save:
         return
     os.makedirs(PATHS["data_phase"], exist_ok=True)
@@ -109,9 +117,9 @@ def normalize_data(args, data):
     LOGGER.info("Starting data normalization: Unpacking media_json...")
     normalized_rows = []
     for _, row in data.iterrows():
-        media_json_string = row['MEDIA JSON']
+        media_json_string = row["MEDIA JSON"]
 
-        if pd.isna(media_json_string) or media_json_string.strip() == '':
+        if pd.isna(media_json_string) or media_json_string.strip() == "":
             media_list = []
         else:
             try:
@@ -119,53 +127,82 @@ def normalize_data(args, data):
             except (TypeError, json.JSONDecodeError):
                 media_list = []
 
-        record_type = row['RECORD TYPE']
+        record_type = row["RECORD TYPE"]
 
         for media_item in media_list:
-            license_short_name = media_item.get('licence', {}).get('shortName', 'Not Found')
-            media_type = media_item.get('type', 'Unknown').lower()
-            if not license_short_name or license_short_name == 'Not Found':
-                license_short_name = 'All Rights Reserved'
-            normalized_rows.append({
-                'RECORD TYPE': record_type,
-                'TOOL IDENTIFIER': license_short_name,
-                'MEDIA TYPE': media_type
-            })
+            license_short_name = media_item.get("licence", {}).get(
+                "shortName", "Not Found"
+            )
+            media_type = media_item.get("type", "Unknown").lower()
+            if not license_short_name or license_short_name == "Not Found":
+                license_short_name = "All Rights Reserved"
+            normalized_rows.append(
+                {
+                    "RECORD TYPE": record_type,
+                    "TOOL IDENTIFIER": license_short_name,
+                    "MEDIA TYPE": media_type,
+                }
+            )
 
     df_normalized = pd.DataFrame(normalized_rows)
-    LOGGER.info(f"Normalization complete. Total media assets extracted: {len(df_normalized)}")
+    LOGGER.info(
+        f"Normalization complete. "
+        f"Total media assets extracted: {len(df_normalized)}"
+    )
     return df_normalized
 
 
 def process_totals_overall(df_normalized):
-    """Generates the overall total license count and percentage distribution."""
+    """Generates the overall total license count
+    and percentage distribution."""
 
-    df_report = df_normalized.groupby('TOOL IDENTIFIER').size().reset_index(name='TOTAL COUNT')
-    total_count = df_report['TOTAL COUNT'].sum()
-    df_report['PERCENTAGE'] = (df_report['TOTAL COUNT'] / total_count) * 100
+    df_report = (
+        df_normalized.groupby("TOOL IDENTIFIER")
+        .size()
+        .reset_index(name="TOTAL COUNT")
+    )
+    total_count = df_report["TOTAL COUNT"].sum()
+    df_report["PERCENTAGE"] = (df_report["TOTAL COUNT"] / total_count) * 100
 
-    df_report.sort_values(by='TOTAL COUNT', ascending=False, inplace=True)
+    df_report.sort_values(by="TOTAL COUNT", ascending=False, inplace=True)
     df_report.reset_index(drop=True, inplace=True)
     df_report.index = df_report.index + 1
-    df_report['PLAN INDEX'] = df_report.index
+    df_report["PLAN INDEX"] = df_report.index
 
-    df_report = df_report[['PLAN INDEX', 'TOOL IDENTIFIER', 'TOTAL COUNT', 'PERCENTAGE']]
+    df_report = df_report[
+        ["PLAN INDEX", "TOOL IDENTIFIER", "TOTAL COUNT", "PERCENTAGE"]
+    ]
     df_report.to_csv(REPORT_OVERALL, index=False)
     return df_report
 
 
 def process_totals_by_domain(df_normalized):
-    """Generates license counts grouped by RECORD_TYPE (Domain/Endeavor proxy)."""
-    df_report = df_normalized.groupby(['RECORD TYPE', 'TOOL IDENTIFIER']).size().reset_index(name='COUNT')
+    df_report = (
+        df_normalized.groupby(["RECORD TYPE", "TOOL IDENTIFIER"])
+        .size()
+        .reset_index(name="COUNT")
+    )
 
-    df_report['PROPORTION OF DOMAIN'] = df_report.groupby('RECORD TYPE')['COUNT'].transform(lambda x: x / x.sum())
+    df_report["PROPORTION OF DOMAIN"] = df_report.groupby("RECORD TYPE")[
+        "COUNT"
+    ].transform(lambda x: x / x.sum())
 
-    df_report.sort_values(by=['RECORD TYPE', 'COUNT'], ascending=[True, False], inplace=True)
+    df_report.sort_values(
+        by=["RECORD TYPE", "COUNT"], ascending=[True, False], inplace=True
+    )
     df_report.reset_index(drop=True, inplace=True)
     df_report.index = df_report.index + 1
-    df_report['PLAN INDEX'] = df_report.index
+    df_report["PLAN INDEX"] = df_report.index
 
-    df_report = df_report[['PLAN INDEX', 'RECORD TYPE', 'TOOL IDENTIFIER', 'COUNT', 'PROPORTION OF DOMAIN']]
+    df_report = df_report[
+        [
+            "PLAN INDEX",
+            "RECORD TYPE",
+            "TOOL IDENTIFIER",
+            "COUNT",
+            "PROPORTION OF DOMAIN",
+        ]
+    ]
     df_report.to_csv(REPORT_BY_DOMAIN, index=False)
     return df_report
 
@@ -174,15 +211,31 @@ def process_totals_by_media_type(df_normalized):
     """Generates license counts grouped by MEDIA_TYPE (Image, Audio, Video)."""
 
     # Group by MEDIA_TYPE and TOOL_IDENTIFIER
-    df_report = df_normalized.groupby(['MEDIA TYPE', 'TOOL IDENTIFIER']).size().reset_index(name='COUNT')
-    df_report['PROPORTION OF TYPE'] = df_report.groupby('MEDIA TYPE')['COUNT'].transform(lambda x: x / x.sum())
+    df_report = (
+        df_normalized.groupby(["MEDIA TYPE", "TOOL IDENTIFIER"])
+        .size()
+        .reset_index(name="COUNT")
+    )
+    df_report["PROPORTION OF TYPE"] = df_report.groupby("MEDIA TYPE")[
+        "COUNT"
+    ].transform(lambda x: x / x.sum())
 
-    df_report.sort_values(by=['MEDIA TYPE', 'COUNT'], ascending=[True, False], inplace=True)
+    df_report.sort_values(
+        by=["MEDIA TYPE", "COUNT"], ascending=[True, False], inplace=True
+    )
     df_report.reset_index(drop=True, inplace=True)
     df_report.index = df_report.index + 1
-    df_report['PLAN INDEX'] = df_report.index
+    df_report["PLAN INDEX"] = df_report.index
 
-    df_report = df_report[['PLAN INDEX', 'MEDIA TYPE', 'TOOL IDENTIFIER', 'COUNT', 'PROPORTION OF TYPE']]
+    df_report = df_report[
+        [
+            "PLAN INDEX",
+            "MEDIA TYPE",
+            "TOOL IDENTIFIER",
+            "COUNT",
+            "PROPORTION OF TYPE",
+        ]
+    ]
     df_report.to_csv(REPORT_BY_MEDIA, index=False)
     return df_report
 
@@ -192,24 +245,37 @@ def process_totals_by_restriction(df_normalized):
     Generates totals grouped by license restriction level (GCS Analogue).
     """
     # Add the restriction level column
-    df_normalized['RESTRICTION LEVEL'] = df_normalized['TOOL IDENTIFIER'].apply(get_restriction_level)
+    df_normalized["RESTRICTION LEVEL"] = df_normalized[
+        "TOOL IDENTIFIER"
+    ].apply(get_restriction_level)
 
-    df_report = df_normalized.groupby('RESTRICTION LEVEL').size().reset_index(name='COUNT')
-    total_count = df_report['COUNT'].sum()
-    df_report['PERCENTAGE'] = (df_report['COUNT'] / total_count) * 100
+    df_report = (
+        df_normalized.groupby("RESTRICTION LEVEL")
+        .size()
+        .reset_index(name="COUNT")
+    )
+    total_count = df_report["COUNT"].sum()
+    df_report["PERCENTAGE"] = (df_report["COUNT"] / total_count) * 100
 
     # Sort explicitly by restriction level for logical flow
-    level_order = ["level 0 - unrestricted", "level 1 - few restrictions", "level 2 - some restrictions",
-                   "level 3 - many restrictions"]
-    df_report['RESTRICTION LEVEL'] = pd.Categorical(df_report['RESTRICTION LEVEL'], categories=level_order,
-                                                    ordered=True)
+    level_order = [
+        "level 0 - unrestricted",
+        "level 1 - few restrictions",
+        "level 2 - some restrictions",
+        "level 3 - many restrictions",
+    ]
+    df_report["RESTRICTION LEVEL"] = pd.Categorical(
+        df_report["RESTRICTION LEVEL"], categories=level_order, ordered=True
+    )
     df_report.sort_values("RESTRICTION LEVEL", inplace=True)
 
     df_report.reset_index(drop=True, inplace=True)
     df_report.index = df_report.index + 1
-    df_report['PLAN INDEX'] = df_report.index
+    df_report["PLAN INDEX"] = df_report.index
 
-    df_report = df_report[['PLAN INDEX', 'RESTRICTION LEVEL', 'COUNT', 'PERCENTAGE']]
+    df_report = df_report[
+        ["PLAN INDEX", "RESTRICTION LEVEL", "COUNT", "PERCENTAGE"]
+    ]
     df_report.to_csv(REPORT_BY_RESTRICTION, index=False)
     return df_report
 
