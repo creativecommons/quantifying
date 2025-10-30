@@ -1,0 +1,46 @@
+name: Process Data
+
+on:
+  schedule:
+    # at 02:15 on days 15-28 in second month of each quarter
+    - cron: '15 2 15-28 2,5,8,11 *'
+  workflow_dispatch:
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+
+    # CC Technology team members:
+    #   See cc-quantifying-bot GitHub entry in Bitwarden for information on
+    #   BOT_ secrets
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "${{ secrets.BOT_NAME }}"
+          git config user.email "${{ secrets.BOT_EMAIL }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv sync --system
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=./scripts" >> $GITHUB_ENV
+
+      - name: Run process script
+        run: |
+          # ADD SCRIPT INVOCATION HERE
+
+# vim: ft=yaml

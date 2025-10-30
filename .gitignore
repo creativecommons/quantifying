@@ -144,3 +144,6 @@ Thumbs.db
 # secrets
 .env
 query_secrets.py
+
+# backup files
+*.bak
