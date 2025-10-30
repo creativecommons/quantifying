@@ -83,7 +83,7 @@ def write_data(args, tool_data):
     LOGGER.info("Saving fetched data")
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    with open(FILE_LANGUAGES, "w", newline="", encoding="utf-8") as file_obj:
+    with open(FILE_LANGUAGES, "w", encoding="utf-8", newline="\n") as file_obj:
         writer = csv.DictWriter(
             file_obj, fieldnames=HEADER_LANGUAGES, dialect="unix"
         )

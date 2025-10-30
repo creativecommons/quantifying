@@ -110,7 +110,7 @@ def write_data(args, tool_data):
         LOGGER.error("Unable to fetch all records. Aborting.")
         return args
 
-    with open(FILE1_COUNT, "w", newline="") as file_obj:
+    with open(FILE1_COUNT, "w", encoding="utf-8", newline="\n") as file_obj:
         writer = csv.DictWriter(
             file_obj, fieldnames=HEADER1_COUNT, dialect="unix"
         )
