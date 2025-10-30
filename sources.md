@@ -168,7 +168,6 @@ adjust video parameters, and obtain search results.
   - Query limit: depends on the type and number of requests
   - Data available through JSON format
 
-
 ## EUROPEANA DATA API
 
 **Description:**
