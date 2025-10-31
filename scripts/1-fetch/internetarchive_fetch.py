@@ -11,6 +11,7 @@ import re
 import sys
 import textwrap
 import traceback
+import unicodedata
 from collections import Counter
 from time import sleep
 from urllib.parse import urlparse
@@ -18,6 +19,7 @@ from urllib.parse import urlparse
 # Third-party
 from babel.core import Locale
 from internetarchive import ArchiveSession
+from iso639 import Language
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -32,7 +34,7 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
-# Constants
+# CSV paths
 FILE1_COUNT = os.path.join(PATHS["data_phase"], "internetarchive_1_count.csv")
 FILE2_LANGUAGE = os.path.join(
     PATHS["data_phase"], "internetarchive_2_count_by_language.csv"
@@ -43,6 +45,8 @@ HEADER1 = ["LICENSE", "COUNT"]
 HEADER2 = ["LICENSE", "LANGUAGE", "COUNT"]
 
 QUARTER = os.path.basename(PATHS["data_quarter"])
+
+ISO639_CACHE = {}
 
 
 def parse_arguments():
@@ -95,40 +99,6 @@ def load_license_mapping():
     return license_mapping
 
 
-def normalize_language(lang):
-    try:
-        # Pre-clean: lowercase, replace hyphens with underscores,
-        # strip whitespace
-        cleaned = lang.strip().lower().replace("-", "_")
-
-        # Special handling for common variants
-        alias_map = {
-            "english": "en",
-            "english_handwritten": "en",
-            "serbo_croatian": "sh",  # ISO 639-1 code for Serbo-Croatian
-            "zun": "zun",  # Zuni — not in Babel, will fallback
-            "ada": "ada",  # Ada — not in Babel, will fallback
-            "unknown": "UNKNOWN",
-        }
-        cleaned = alias_map.get(cleaned, cleaned)
-
-        # Custom name overrides for codes not supported by Babel
-        custom_names = {
-            "zun": "Zuni",
-            "ada": "Adangme",
-            "sh": "Serbo-Croatian",
-        }
-
-        try:
-            locale = Locale.parse(cleaned, sep="_")
-            return locale.get_language_name("en")
-        except Exception:
-            return custom_names.get(cleaned, "UNKNOWN")
-
-    except Exception:
-        return "UNKNOWN"
-
-
 def normalize_license(licenseurl, license_mapping=None):
     """Normalize licenseurl and map to standard license label."""
     if not isinstance(licenseurl, str) or not licenseurl.strip():
@@ -157,6 +127,174 @@ def normalize_license(licenseurl, license_mapping=None):
     return label
 
 
+def normalize_key(s):
+    """Normalize string for dictionary keys:
+    NFKD, remove diacritics, punctuation, collapse spaces, lowercase."""
+    if not s:
+        return ""
+    s = str(s)
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    s = re.sub(
+        r"[^\w\s\+\-/]", " ", s, flags=re.UNICODE
+    )  # keep + / - for splits
+    # s = re.sub(r"\s+", " ", s).strip().lower()
+    return s
+
+
+def iso639_lookup(term):
+    """Return a Language object or None; cache results.
+    Accepts raw user input."""
+    if not term:
+        return None
+    key = term.strip().lower()
+    if key in ISO639_CACHE:
+        return ISO639_CACHE[key]
+    try:
+        result = Language.match(term, exact=False)
+    except Exception:
+        result = None
+    # result normalization: pick first if list-like
+    lang = None
+    if result:
+        if isinstance(result, (list, tuple)):
+            lang = result[0] if result else None
+        else:
+            lang = result
+    ISO639_CACHE[key] = lang
+    return lang
+
+
+# strip common noise like "subtitles", "subtitle",
+#  "(English)", "english patch", "handwritten"
+def strip_noise(s):
+    s = re.sub(
+        r"\b(subtitles?|subtitle|sub-titles|subbed|with subtitles?)\b",
+        " ",
+        s,
+        flags=re.I,
+    )
+    s = re.sub(r"\b(english patch|english patch\))\b", " ", s, flags=re.I)
+    s = re.sub(
+        r"\b(handwritten|hand write|hand-written|hand written)\b",
+        " ",
+        s,
+        flags=re.I,
+    )
+    s = re.sub(
+        r"\b(no voice|no spoken word|no speech|instrumental)\b",
+        " ",
+        s,
+        flags=re.I,
+    )
+    s = re.sub(r"[()\"\']", " ", s)
+    return s
+
+
+def is_multi_language(raw_language):
+    """Detects multi-language strings."""
+    return bool(
+        re.search(
+            r",|;|\band\b|\bwith\b|\/|&\s+", raw_language, flags=re.IGNORECASE
+        )
+    )
+
+
+def normalize_language(raw_language):
+    if not raw_language:
+        return "Undetermined"
+
+    raw = str(raw_language).strip()
+    if is_multi_language(raw):
+        # LOGGER.info("Multi-language detected: %s → raw)
+        return "Multiple languages"
+
+    # strip noise and normalize (subtitles, parentheticals)
+    cleaned_for_match = strip_noise(raw)
+    cleaned = normalize_key(cleaned_for_match.replace("-", " "))
+
+    ALIAS_MAP = {
+        "english": "English",
+        "engrish": "English",
+        "english_handwritten": "English",
+        "enlgish": "English",
+        "american english": "English",
+        "en_us": "English",
+        "en_es": "English",
+        "Eglish": "English",
+        "English (US)": "English",
+        "sgn": "Sign languages",
+        "русский": "Russian",
+        "france": "French",
+        "français": "French",
+        "francais": "French",
+        "italiano": "Italian",
+        "ilokano": "Ilokano",
+        "viẹetnamese": "Vietnamese",
+        "português": "Portuguese",
+        "pt-br": "Portuguese",
+        "espanol": "Spanish",
+        "español": "Spanish",
+        "castellano": "Spanish",
+        "es_formal": "Spanish",
+        "es_es": "Spanish",
+        "mandarin": "Chinese",
+        "nederlands": "Dutch",
+        "dutch": "Dutch",
+        "swahili": "Swahili",
+        "no language (english)": "Undetermined",
+        "whatever we play it to be": "Undetermined",
+        "english & chinese subbed": "Multiple languages",
+        "mis": "Uncoded languages",
+        "n/a": "Undetermined",
+        "none": "Undetermined",
+        "und": "Undetermined",
+        "unknown": "Undetermined",
+        "und": "Undetermined",
+        "no language (english)": "Undetermined",
+        "no speech": "Undetermined",
+        "no spoken language": "Undetermined",
+        "multi": "Multiple Languages",
+        "multilanguage": "Multiple languages",
+        "multiple": "Multiple Languages",
+        "music": "Undetermined",
+    }
+    ALIAS_MAP = {normalize_key(k): v for k, v in ALIAS_MAP.items()}
+
+    # Use normalized ALIAS_MAP
+    if cleaned in ALIAS_MAP:
+        return ALIAS_MAP[cleaned]
+
+    # Try python-iso639
+    lang = iso639_lookup(cleaned)
+    if lang:
+        # Returning English name;
+        # fallback to alpha2 or alpha3 if name missing
+        name = getattr(lang, "name", None)
+        if name:
+            return name
+        if getattr(lang, "alpha2", None):
+            return lang.alpha2
+        if getattr(lang, "alpha3", None):
+            return lang.alpha3
+
+    # if looks like 2 or 3-letter code fallback, ask iso639
+    if re.fullmatch(r"[a-z]{2,3}", cleaned):
+        lang_obj = iso639_lookup(cleaned)
+        if lang_obj and getattr(lang_obj, "name", None):
+            return lang_obj.name
+
+    try:
+        locale = Locale.parse(cleaned, sep="_")
+        eng = locale.get_language_name("en")
+        if eng:
+            return eng
+    except Exception:
+        pass
+
+    return "Undetermined"
+
+
 def query_internet_archive(args):
     license_counter = Counter()
     language_counter = Counter()
@@ -167,7 +305,7 @@ def query_internet_archive(args):
     query = "creativecommons.org"
     license_mapping = load_license_mapping()
 
-    rows = 100000
+    rows = 1000000
     total_rows = 0
     total_processed = 0
     max_retries = 3
@@ -224,12 +362,14 @@ def query_internet_archive(args):
                 continue  # Skip this result
 
             # Extract and normalize language
-            raw_language = result.get("language", "UNKNOWN")
+            raw_language = result.get("language", "Undetermined")
             if isinstance(raw_language, list):
-                raw_language = raw_language[0] if raw_language else "UNKNOWN"
+                raw_language = (
+                    raw_language[0] if raw_language else "Undetermined"
+                )
 
             normalized_lang = normalize_language(raw_language)
-            if normalized_lang == "UNKNOWN":
+            if normalized_lang == "Undetermined":
                 unmapped_language_counter[raw_language] += 1
                 continue  # Skip this result
 

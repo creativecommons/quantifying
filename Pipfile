@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+babel = "*"
 flickrapi = "*"
 GitPython = "*"
 google-api-python-client = "*"
@@ -18,11 +19,11 @@ pillow = ">=11.3.0"  # Ensure dependency is secure
 Pyarrow = "*"
 Pygments = "*"
 python-dotenv = "*"
+python-iso639 = "*"
 requests = ">=2.31.0"
 seaborn = "*"
 urllib3 = ">=2.5.0"
 wordcloud = "*"
-babel = "*"
 
 [dev-packages]
 black = "*"
