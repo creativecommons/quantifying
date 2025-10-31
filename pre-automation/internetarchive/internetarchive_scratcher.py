@@ -10,13 +10,15 @@ import traceback
 
 # Third-party
 import pandas as pd
-from internetarchive.search import Search
-from internetarchive.session import ArchiveSession
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+# First-party/Local
+from internetarchive.search import Search
+from internetarchive.session import ArchiveSession
+
 sys.path.append(".")
-# Third-party
+# First-party/Local
 import quantify  # noqa: E402
 
 # Setup paths, Date and LOGGER using quantify.setup()
