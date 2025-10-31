@@ -15,6 +15,7 @@ import sys
 import textwrap
 import time
 import traceback
+from operator import itemgetter
 
 # Third-party
 import requests
@@ -42,7 +43,7 @@ FILE_WITH_THEMES = shared.path_join(
 FILE_WITHOUT_THEMES = shared.path_join(
     PATHS["data_phase"], "europeana_without_themes.csv"
 )
-HEADER_WITH_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "THEME", "COUNT"]
+HEADER_WITH_THEMES = ["DATA_PROVIDER", "THEME", "LEGAL_TOOL", "COUNT"]
 HEADER_WITHOUT_THEMES = ["DATA_PROVIDER", "LEGAL_TOOL", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 TIMEOUT = 25
@@ -205,12 +206,16 @@ def simplify_legal_tool(legal_tool):
 
 
 def get_facet_list(session, facet_field):
-    """Fetch complete facet list from Europeana API for a given facet field."""
+    """
+    Fetch complete facet list from Europeana API for a given facet field,
+    returning both label and count, sorted by count descending.
+    Returns: list of dicts: [{'label': ..., 'count': ...}]
+    """
     all_values = []
     offset = 0
     limit = 1000
 
-    LOGGER.info(f"Fetching {facet_field} facet values.")
+    LOGGER.info(f"Fetching {facet_field} facet values with counts.")
 
     while True:
         params = {
@@ -238,13 +243,13 @@ def get_facet_list(session, facet_field):
             break
 
         fields = facets[0]["fields"]
-        new_values = [f["label"] for f in fields if f.get("label")]
+        for f in fields:
+            label = f.get("label")
+            count = f.get("count", 0)
+            if label and not any(d["label"] == label for d in all_values):
+                all_values.append({"label": label, "count": count})
 
-        for v in new_values:
-            if v not in all_values:
-                all_values.append(v)
-
-        if len(new_values) < limit:
+        if len(fields) < limit:
             break
 
         offset += limit
@@ -253,118 +258,98 @@ def get_facet_list(session, facet_field):
     LOGGER.info(
         f"Completed fetching {facet_field}. Total unique: {len(all_values)}"
     )
-    all_values.sort()
+
+    # Sort by count descending
+    all_values.sort(key=lambda x: x["count"], reverse=True)
     return all_values
 
 
-def fetch_europeana_data_without_themes(session, limit=None):
-    """Fetch counts by DATA_PROVIDER and RIGHTS using facets."""
-    LOGGER.info("Fetching Europeana counts without themes.")
-
-    params = {
-        "wskey": EUROPEANA_API_KEY,
-        "query": "*",
-        "rows": 0,
-        "profile": "facets",
-        "facet": ["DATA_PROVIDER", "RIGHTS"],
-        "f.DATA_PROVIDER.facet.limit": 1000,
-        "f.RIGHTS.facet.limit": 100,
-    }
-
-    try:
-        resp = session.get(BASE_URL, params=params, timeout=TIMEOUT)
-        resp.raise_for_status()
-        data = resp.json()
-    except requests.RequestException as e:
-        LOGGER.error(f"Failed to fetch facets: {e}")
-        return []
-
-    facets = {f["name"]: f["fields"] for f in data.get("facets", [])}
-    provider_fields = facets.get("DATA_PROVIDER", [])
-    rights_fields = facets.get("RIGHTS", [])
-    if limit:
-        provider_fields = provider_fields[:limit]
-
+def fetch_europeana_data_without_themes(
+    session, providers_full, rights_full, limit=None
+):
+    """
+    Fetch counts per DATA_PROVIDER × RIGHTS using pre-fetched facets.
+    """
     output = []
-    for provider_entry in provider_fields:
-        provider = provider_entry["label"]
-        provider_count = provider_entry["count"]
-        if provider_count == 0:
-            continue
-        LOGGER.info(f"Fetching rights data for provider={provider}")
-        for rights_entry in rights_fields:
-            rights = rights_entry["label"]
-            query = f'DATA_PROVIDER:"{provider}" AND RIGHTS:"{rights}"'
+
+    # Filter non-zero providers
+    providers_nonzero = [p["label"] for p in providers_full if p["count"] > 0]
+    if limit:
+        providers_nonzero = providers_nonzero[:limit]
+
+    # Filter non-zero rights
+    rights_nonzero = [r["label"] for r in rights_full if r["count"] > 0]
+
+    for i, provider in enumerate(providers_nonzero, start=1):
+        LOGGER.info(
+            f"[{i}/{len(providers_nonzero)}] "
+            f"Fetching counts for provider={provider}"
+        )
+
+        for rights_url in rights_nonzero:
+            simplified_rights = simplify_legal_tool(rights_url)
+            query = f'DATA_PROVIDER:"{provider}" AND RIGHTS:"{rights_url}"'
             params_detail = {
                 "wskey": EUROPEANA_API_KEY,
                 "rows": 0,
                 "query": query,
             }
             try:
-                resp_detail = session.get(
+                resp = session.get(
                     BASE_URL, params=params_detail, timeout=TIMEOUT
                 )
-                resp_detail.raise_for_status()
-                count = resp_detail.json().get("totalResults", 0)
+                resp.raise_for_status()
+                count = resp.json().get("totalResults", 0)
                 if count > 0:
                     output.append(
                         {
                             "DATA_PROVIDER": provider,
-                            "LEGAL_TOOL": simplify_legal_tool(rights),
+                            "LEGAL_TOOL": simplified_rights,
                             "COUNT": count,
                         }
                     )
-
             except requests.RequestException as e:
                 LOGGER.warning(
-                    f"Failed for provider={provider}, rights={rights}: {e}"
+                    f"Failed for provider={provider}, rights={rights_url}: {e}"
                 )
             time.sleep(0.01)
-    LOGGER.info(f"Aggregated {len(output)} records (without themes).")
+
+    # Sort by DATA_PROVIDER, LEGAL_TOOL
+    output = sorted(output, key=itemgetter("DATA_PROVIDER", "LEGAL_TOOL"))
+
+    LOGGER.info(
+        f"Aggregated {len(output)} records for provider-rights counts."
+    )
     return output
 
 
-def fetch_europeana_data_with_themes(session, themes, limit=None):
-    """Fetch counts by DATA_PROVIDER, RIGHTS, and THEME using facets."""
-    LOGGER.info("Fetching Europeana counts with themes")
-
-    params = {
-        "wskey": EUROPEANA_API_KEY,
-        "query": "*",
-        "rows": 0,
-        "profile": "facets",
-        "facet": ["DATA_PROVIDER", "RIGHTS"],
-        "f.DATA_PROVIDER.facet.limit": 1000,
-        "f.RIGHTS.facet.limit": 100,
-    }
-
-    try:
-        resp = session.get(BASE_URL, params=params, timeout=TIMEOUT)
-        resp.raise_for_status()
-        data = resp.json()
-    except requests.RequestException as e:
-        LOGGER.error(f"Failed to fetch facets: {e}")
-        return []
-
-    facets = {f["name"]: f["fields"] for f in data.get("facets", [])}
-    provider_fields = facets.get("DATA_PROVIDER", [])
-    rights_fields = facets.get("RIGHTS", [])
-    if limit:
-        provider_fields = provider_fields[:limit]
-
+def fetch_europeana_data_with_themes(
+    session, providers_full, rights_full, themes, limit=None
+):
+    """
+    Fetch counts per DATA_PROVIDER × RIGHTS × THEME
+    Uses pre-fetched providers_full and rights_full lists.
+    """
     output = []
-    for provider_entry in provider_fields:
-        provider = provider_entry["label"]
-        provider_count = provider_entry["count"]
-        if provider_count == 0:
-            continue
-        LOGGER.info(f"Fetching theme+rights data for provider={provider}")
-        for rights_entry in rights_fields:
-            rights = rights_entry["label"]
-            simplified_rights = simplify_legal_tool(rights)
 
+    # Filter non-zero providers
+    providers_nonzero = [p["label"] for p in providers_full if p["count"] > 0]
+    if limit:
+        providers_nonzero = providers_nonzero[:limit]
+
+    # Filter non-zero rights
+    rights_nonzero = [r["label"] for r in rights_full if r["count"] > 0]
+
+    for i, provider in enumerate(providers_nonzero, start=1):
+        LOGGER.info(
+            f"[{i}/{len(providers_nonzero)}]"
+            f"Fetching rights+theme counts for provider={provider}"
+        )
+
+        for rights_url in rights_nonzero:
+            simplified_rights = simplify_legal_tool(rights_url)
             for theme in themes:
-                query = f'DATA_PROVIDER:"{provider}" AND RIGHTS:"{rights}"'
+                query = f'DATA_PROVIDER:"{provider}" AND RIGHTS:"{rights_url}"'
                 params_detail = {
                     "wskey": EUROPEANA_API_KEY,
                     "rows": 0,
@@ -372,30 +357,35 @@ def fetch_europeana_data_with_themes(session, themes, limit=None):
                     "theme": theme,
                 }
                 try:
-                    resp_detail = session.get(
+                    resp = session.get(
                         BASE_URL, params=params_detail, timeout=TIMEOUT
                     )
-                    resp_detail.raise_for_status()
-                    count = resp_detail.json().get("totalResults", 0)
+                    resp.raise_for_status()
+                    count = resp.json().get("totalResults", 0)
                     if count > 0:
                         output.append(
                             {
                                 "DATA_PROVIDER": provider,
-                                "LEGAL_TOOL": simplified_rights,
                                 "THEME": theme,
+                                "LEGAL_TOOL": simplified_rights,
                                 "COUNT": count,
                             }
                         )
-
                 except requests.RequestException as e:
                     LOGGER.warning(
-                        f"Failed for provider={provider}, "
-                        f"rights={rights}, "
-                        f"theme={theme}: "
-                        f"{e}"
+                        f"Failed for provider={provider},"
+                        f"rights={rights_url}, theme={theme}: {e}"
                     )
                 time.sleep(0.01)
-    LOGGER.info(f"Aggregated {len(output)} records (with themes).")
+
+    # Sort by DATA_PROVIDER, THEME, LEGAL_TOOL
+    output = sorted(
+        output, key=itemgetter("DATA_PROVIDER", "THEME", "LEGAL_TOOL")
+    )
+
+    LOGGER.info(
+        f"Aggregated {len(output)} records for provider-rights-theme counts."
+    )
     return output
 
 
@@ -445,17 +435,22 @@ def main():
 
     session = get_requests_session()
 
+    # Fetch facet lists once, including counts
     providers_full = get_facet_list(session, "DATA_PROVIDER")
     rights_full = get_facet_list(session, "RIGHTS")
+
     LOGGER.info(f"Facet providers loaded: {len(providers_full)}")
     LOGGER.info(f"Facet rights loaded: {len(rights_full)}")
+
+    # Pass facets to fetch functions
     data_no_theme = fetch_europeana_data_without_themes(
-        session, limit=args.limit
+        session, providers_full, rights_full, limit=args.limit
     )
     data_with_theme = fetch_europeana_data_with_themes(
-        session, THEMES, limit=args.limit
+        session, providers_full, rights_full, THEMES, limit=args.limit
     )
 
+    # Write to CSV and optionally push to git
     args = write_data(args, data_no_theme, data_with_theme)
     args = shared.git_add_and_commit(
         args,
