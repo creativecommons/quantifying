@@ -251,15 +251,15 @@ CATEGORIES = {
 }
 
 # File Paths
-FILE_ARXIV_COUNT = shared.path_join(PATHS["data_1-fetch"], "arxiv_1_count.csv")
+FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
+    PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
+)
 FILE_ARXIV_CATEGORY_REPORT = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_2_count_by_category_report.csv"
 )
+FILE_ARXIV_COUNT = shared.path_join(PATHS["data_1-fetch"], "arxiv_1_count.csv")
 FILE_ARXIV_YEAR = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_3_count_by_year.csv"
-)
-FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
-    PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
 )
 # records metadata for each run for audit, reproducibility, and provenance
 FILE_PROVENANCE = shared.path_join(
