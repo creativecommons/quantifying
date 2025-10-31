@@ -426,20 +426,22 @@ def bucket_author_count(n):
     """
     Convert author count to predefined buckets for analysis.
 
-    Buckets: "1", "2-3", "4-6", "7-10", "11+", "Unknown"
+    Buckets: "1", "2", "3", "4", "5+", "Unknown"
     Reduces granularity for better statistical analysis.
     """
     if n is None:
         return "Unknown"
     if n == 1:
         return "1"
-    if 2 <= n <= 3:
-        return "2-3"
-    if 4 <= n <= 6:
-        return "4-6"
-    if 7 <= n <= 10:
-        return "7-10"
-    return "11+"
+    if n == 2:
+        return "2"
+    if n == 3:
+        return "3"
+    if n == 4:
+        return "4"
+    if n >= 5:
+        return "5+"
+    return "Unknown"
 
 
 def save_count_data(
