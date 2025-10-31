@@ -429,8 +429,6 @@ def bucket_author_count(n):
     Buckets: "1", "2", "3", "4", "5+", "Unknown"
     Reduces granularity for better statistical analysis.
     """
-    if n is None:
-        return "Unknown"
     if n == 1:
         return "1"
     if n == 2:
