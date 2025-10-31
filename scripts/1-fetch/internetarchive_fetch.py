@@ -214,7 +214,6 @@ def normalize_language(raw_language):
     cleaned = normalize_key(cleaned_for_match.replace("-", " "))
 
     ALIAS_MAP = {
-        "english": "English",
         "engrish": "English",
         "english_handwritten": "English",
         "enlgish": "English",
@@ -240,17 +239,14 @@ def normalize_language(raw_language):
         "es_es": "Spanish",
         "mandarin": "Chinese",
         "nederlands": "Dutch",
-        "dutch": "Dutch",
         "swahili": "Swahili",
         "no language (english)": "Undetermined",
         "whatever we play it to be": "Undetermined",
         "english & chinese subbed": "Multiple languages",
-        "mis": "Uncoded languages",
         "n/a": "Undetermined",
         "none": "Undetermined",
         "und": "Undetermined",
         "unknown": "Undetermined",
-        "und": "Undetermined",
         "no language (english)": "Undetermined",
         "no speech": "Undetermined",
         "no spoken language": "Undetermined",
