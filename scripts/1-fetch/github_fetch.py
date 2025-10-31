@@ -110,7 +110,7 @@ def write_data(args, tool_data):
         LOGGER.error("Unable to fetch all records. Aborting.")
         return args
 
-    with open(FILE1_COUNT, "w", newline="") as file_obj:
+    with open(FILE1_COUNT, "w", encoding="utf-8", newline="\n") as file_obj:
         writer = csv.DictWriter(
             file_obj, fieldnames=HEADER1_COUNT, dialect="unix"
         )
@@ -150,13 +150,10 @@ def query_github(args, session):
             )
             LOGGER.info(f"count: {count}")
         except requests.HTTPError as e:
-            LOGGER.error(f"HTTP Error: {e}")
             raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
         except requests.RequestException as e:
-            LOGGER.error(f"Request Exception: {e}")
             raise shared.QuantifyingException(f"Request Exception: {e}", 1)
         except KeyError as e:
-            LOGGER.error(f"KeyError: {e}.")
             raise shared.QuantifyingException(f"KeyError: {e}", 1)
     return tool_data
 
