@@ -17,8 +17,6 @@ import requests
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -80,23 +78,11 @@ def check_for_completion():
         pass  # File may not be found without --enable-save, etc.
 
 
-def get_requests_session():
-    max_retries = Retry(
-        total=5,
-        backoff_factor=10,
-        status_forcelist=shared.STATUS_FORCELIST,
-    )
-    session = requests.Session()
-    session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    headers = {
-        "accept": "application/vnd.github+json",
-        "User-Agent": shared.USER_AGENT,
-    }
-    if GH_TOKEN:
-        headers["authorization"] = f"Bearer {GH_TOKEN}"
-    session.headers.update(headers)
-
-    return session
+session = shared.get_requests_session(
+    headers={"accept": "application/vnd.github+json"},
+    auth_token=GH_TOKEN,
+    auth_prefix="Bearer",
+)
 
 
 def write_data(args, tool_data):
@@ -162,7 +148,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     check_for_completion()
-    session = get_requests_session()
+    session = shared.get_requests_session()
     tool_data = query_github(args, session)
     args = write_data(args, tool_data)
     args = shared.git_add_and_commit(

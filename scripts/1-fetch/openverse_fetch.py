@@ -25,8 +25,6 @@ import requests
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -83,18 +81,7 @@ def parse_arguments():
     return args
 
 
-def get_requests_session():
-    max_retries = Retry(
-        total=5,
-        backoff_factor=10,
-        status_forcelist=shared.STATUS_FORCELIST,
-    )
-    session = requests.Session()
-    session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    session.headers.update(
-        {"accept": "application/json", "User-Agent": shared.USER_AGENT}
-    )
-    return session
+session = shared.get_requests_session(accept_header="application/json")
 
 
 def get_all_sources_and_licenses(session, media_type):
@@ -225,7 +212,7 @@ def write_data(args, data):
 
 def main():
     args = parse_arguments()
-    session = get_requests_session()
+    session = shared.get_requests_session()
     LOGGER.info("Starting Openverse Fetch Script...")
     records = query_openverse(session)
     write_data(args, records)

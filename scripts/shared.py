@@ -5,8 +5,10 @@ import sys
 from datetime import datetime, timezone
 
 # Third-party
+import requests
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from pandas import PeriodIndex
+from requests.adapters import HTTPAdapter, Retry
 
 # Constants
 STATUS_FORCELIST = [
@@ -29,6 +31,34 @@ class QuantifyingException(Exception):
         self.exit_code = exit_code if exit_code is not None else 1
         self.message = message
         super().__init__(self.message)
+
+
+def get_requests_session(
+    accept_header: str | None = None,
+    auth_token: str | None = None,
+    mount_https: bool = True,
+) -> requests.Session:
+    """Create a reusable requests session with retry logic."""
+    retry_strategy = Retry(
+        total=5,
+        backoff_factor=10,
+        status_forcelist=STATUS_FORCELIST,
+    )
+
+    session = requests.Session()
+    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
+
+    headers = {"User-Agent": USER_AGENT}
+    if accept_header:
+        headers["accept"] = accept_header
+    if auth_token:
+        headers["authorization"] = f"Bearer {auth_token}"
+    # Mount retry adapter for HTTPS
+    if mount_https:
+        session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
+
+    session.headers.update(headers)
+    return session
 
 
 def git_fetch_and_merge(args, repo_path, branch=None):

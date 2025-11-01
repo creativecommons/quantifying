@@ -22,8 +22,6 @@ import yaml
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -335,17 +333,7 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET)
 
 
-def get_requests_session():
-    """Create request session with retry logic"""
-    retry_strategy = Retry(
-        total=5,
-        backoff_factor=10,
-        status_forcelist=shared.STATUS_FORCELIST,
-    )
-    session = requests.Session()
-    session.headers.update({"User-Agent": shared.USER_AGENT})
-    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
-    return session
+session = shared.get_requests_session()
 
 
 def normalize_license_text(raw_text):
@@ -533,7 +521,7 @@ def query_arxiv(args):
     """
 
     LOGGER.info("Beginning to fetch results from ArXiv API")
-    session = get_requests_session()
+    session = shared.get_requests_session()
 
     results_per_iteration = 50
 
