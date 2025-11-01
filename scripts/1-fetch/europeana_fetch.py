@@ -95,7 +95,7 @@ def parse_arguments():
         "--limit",
         type=int,
         default=5,
-        help="Limit number of providers for testing.",
+        help="Limit number of data providers",
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
@@ -106,7 +106,7 @@ def parse_arguments():
 def get_requests_session():
     """Create a requests session with retry."""
     max_retries = Retry(
-        total=5, backoff_factor=5, status_forcelist=shared.STATUS_FORCELIST
+        total=5, backoff_factor=10, status_forcelist=shared.STATUS_FORCELIST
     )
     session = requests.Session()
     session.mount("https://", HTTPAdapter(max_retries=max_retries))
@@ -260,7 +260,7 @@ def get_facet_list(session, facet_field):
     )
 
     # Sort by count descending
-    all_values.sort(key=lambda x: x["count"], reverse=True)
+    all_values.sort(key=itemgetter("count"), reverse=True)
     return all_values
 
 
@@ -438,9 +438,6 @@ def main():
     # Fetch facet lists once, including counts
     providers_full = get_facet_list(session, "DATA_PROVIDER")
     rights_full = get_facet_list(session, "RIGHTS")
-
-    LOGGER.info(f"Facet providers loaded: {len(providers_full)}")
-    LOGGER.info(f"Facet rights loaded: {len(rights_full)}")
 
     # Pass facets to fetch functions
     data_no_theme = fetch_europeana_data_without_themes(
