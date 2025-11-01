@@ -13,6 +13,7 @@ import time
 import traceback
 import urllib.parse
 from collections import Counter, defaultdict
+from operator import itemgetter
 
 # Third-party
 import feedparser
@@ -455,13 +456,30 @@ def save_count_data(
     # author_counts: {license: {author_count(int|None): count}}
 
     # Save license counts
+    data = []
+    for lic, c in license_counts.items():
+        data.append({"TOOL_IDENTIFIER": lic, "COUNT": c})
+    data.sort(key=itemgetter("TOOL_IDENTIFIER"))
     with open(FILE_ARXIV_COUNT, "w", encoding="utf-8", newline="\n") as fh:
         writer = csv.DictWriter(fh, fieldnames=HEADER_COUNT, dialect="unix")
         writer.writeheader()
-        for lic, c in license_counts.items():
-            writer.writerow({"TOOL_IDENTIFIER": lic, "COUNT": c})
+        for row in data:
+            writer.writerow(row)
 
     # Save category report with labels
+    data = []
+    for lic, cats in category_counts.items():
+        for code, c in cats.items():
+            label = CATEGORIES.get(code, code)
+            data.append(
+                {
+                    "TOOL_IDENTIFIER": lic,
+                    "CATEGORY_CODE": code,
+                    "CATEGORY_LABEL": label,
+                    "COUNT": c,
+                }
+            )
+    data.sort(key=itemgetter("TOOL_IDENTIFIER", "CATEGORY_CODE"))
     with open(
         FILE_ARXIV_CATEGORY_REPORT, "w", encoding="utf-8", newline="\n"
     ) as fh:
@@ -469,29 +487,34 @@ def save_count_data(
             fh, fieldnames=HEADER_CATEGORY_REPORT, dialect="unix"
         )
         writer.writeheader()
-        for lic, cats in category_counts.items():
-            for code, c in cats.items():
-                label = CATEGORIES.get(code, code)
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": lic,
-                        "CATEGORY_CODE": code,
-                        "CATEGORY_LABEL": label,
-                        "COUNT": c,
-                    }
-                )
+        for row in data:
+            writer.writerow(row)
 
     # Save year counts
+    data = []
+    for lic, years in year_counts.items():
+        for year, c in years.items():
+            data.append({"TOOL_IDENTIFIER": lic, "YEAR": year, "COUNT": c})
+    data.sort(key=itemgetter("TOOL_IDENTIFIER", "YEAR"))
     with open(FILE_ARXIV_YEAR, "w", encoding="utf-8", newline="\n") as fh:
         writer = csv.DictWriter(fh, fieldnames=HEADER_YEAR, dialect="unix")
         writer.writeheader()
-        for lic, years in year_counts.items():
-            for year, c in years.items():
-                writer.writerow(
-                    {"TOOL_IDENTIFIER": lic, "YEAR": year, "COUNT": c}
-                )
+        for row in data:
+            writer.writerow(row)
 
     # Save author buckets summary
+    data = []
+    for lic, acs in author_counts.items():
+        # build buckets across licenses
+        bucket_counts = Counter()
+        for ac, c in acs.items():
+            b = bucket_author_count(ac)
+            bucket_counts[b] += c
+        for b, c in bucket_counts.items():
+            data.append(
+                {"TOOL_IDENTIFIER": lic, "AUTHOR_BUCKET": b, "COUNT": c}
+            )
+    data.sort(key=itemgetter("TOOL_IDENTIFIER", "AUTHOR_BUCKET"))
     with open(
         FILE_ARXIV_AUTHOR_BUCKET, "w", encoding="utf-8", newline="\n"
     ) as fh:
@@ -499,16 +522,8 @@ def save_count_data(
             fh, fieldnames=HEADER_AUTHOR_BUCKET, dialect="unix"
         )
         writer.writeheader()
-        # build buckets across licenses
-        for lic, acs in author_counts.items():
-            bucket_counts = Counter()
-            for ac, c in acs.items():
-                b = bucket_author_count(ac)
-                bucket_counts[b] += c
-            for b, c in bucket_counts.items():
-                writer.writerow(
-                    {"TOOL_IDENTIFIER": lic, "AUTHOR_BUCKET": b, "COUNT": c}
-                )
+        for row in data:
+            writer.writerow(row)
 
 
 def query_arxiv(args):
