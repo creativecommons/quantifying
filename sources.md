@@ -23,6 +23,26 @@ tool paths.
 [prioritized-tool-urls]: data/prioritized-tool-urls.txt
 
 
+## EUROPEANA DATA API
+
+**Description:**
+The **Europeana Search API** provides access to digital cultural heritage metadata records aggregated from museums, libraries, and archives across Europe. This project uses the API to fetch aggregated counts of cultural heritage records by data provider, rights statement, and theme.
+
+**Official API Documentation:**
+- [Search API Documentation](https://europeana.atlassian.net/wiki/spaces/EF/pages/2385739812/Search+API+Documentation)
+  - Themes are listed in the Search API Request Parameter accordion
+
+**API information:**
+- API key required
+- Minimum 0.003 seconds between queries
+- Query parameters allow:
+  - Full-text searching (`query`)
+  - Retrieving metadata facets (`profile=facets`)
+  - Filtering by data provider, rights statement, and theme
+- Data available through JSON format
+- Offset-based pagination
+
+
 ## GCS (Google Custom Search) JSON API
 
 **Description:** The Custom Search JSON API allows user-defined detailed query
