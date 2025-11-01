@@ -122,3 +122,22 @@ language edition of wikipedia. It runs on the Meta-Wiki API.
 - No API key required
 - Query limit: It is rate-limited only to prevent abuse
 - Data available through XML or JSON format
+
+
+## arXiv
+
+**Description:** arXiv is a free distribution service and an open-access archive for scholarly articles in physics, mathematics, computer science, quantitative biology, quantitative finance, statistics, electrical engineering and systems science, and economics. All arXiv articles are available under various open licenses or are in the public domain.
+
+**API documentation link:**
+- [arXiv API User Manual](https://arxiv.org/help/api/user-manual)
+- [arXiv API Reference](https://arxiv.org/help/api)
+- [Base URL](http://export.arxiv.org/api/query)
+- [arXiv Subject Classifications](https://arxiv.org/category_taxonomy)
+- [Terms of Use for arXiv APIs](https://info.arxiv.org/help/api/tou.html)
+
+**API information:**
+- No API key required
+- Query limit: No official limit, but requests should be made responsibly
+- Data available through Atom XML format
+- Supports search by fields: title (ti), author (au), abstract (abs), comment (co), journal reference (jr), subject category (cat), report number (rn), id, all (searches all fields), and submittedDate (date filter)
+- Metadata includes licensing information for each paper
