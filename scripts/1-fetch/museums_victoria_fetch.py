@@ -13,6 +13,7 @@ import traceback
 from collections import defaultdict
 
 # Third-party
+from operator import itemgetter
 import requests
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
@@ -43,7 +44,6 @@ FILE3_RECORD = shared.path_join(
 HEADER1_COUNT = ["TOOL IDENTIFIER", "COUNT"]
 HEADER2_MEDIA = ["TOOL IDENTIFIER", "MEDIA TYPE", "COUNT"]
 HEADER3_RECORD = ["TOOL IDENTIFIER", "RECORD TYPE", "COUNT"]
-MAX_PER_PAGE = 100  # Pagination limit as defined by the API documentation
 QUARTER = os.path.basename(PATHS["data_quarter"])
 RECORD_TYPES = [
     "article",
@@ -69,6 +69,12 @@ def parse_arguments():
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Maximum number of records to fetch per each record type",
+    )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
@@ -89,13 +95,6 @@ def get_requests_session():
     # Museums Victoria API requires a User-Agent header
     session.headers.update({"User-Agent": shared.USER_AGENT})
     return session
-
-
-def sanitize_string(s):
-    """Replaces newline and carriage return characters with a space."""
-    if isinstance(s, str):
-        return s.replace("\n", " ").replace("\r", "")
-    return s
 
 
 def initialize_data_file(file_path, header):
@@ -163,7 +162,7 @@ def write_counts_to_csv(args, data: dict):
             writer.writerows(rows)
 
 
-def fetch_museums_victoria_data(session):
+def fetch_museums_victoria_data(args, session):
     """
     Fetches all records with images from the Museums Victoria API by iterating
     through all record types and handling pagination.
@@ -172,23 +171,33 @@ def fetch_museums_victoria_data(session):
     record_counts = defaultdict(lambda: defaultdict(int))
     media_counts = defaultdict(lambda: defaultdict(int))
     licences_count = defaultdict(int)
+    total_records_processed = 0
 
     # Iterate through each record type
     for record_type in RECORD_TYPES:
         current_page = 1
         total_pages = None
+        per_page = 100
+        if args.limit is not None:
+            per_page = args.limit
+            if total_records_processed >= args.limit:
+                LOGGER.info(
+                    f"Limit Reached: {total_records_processed} processed. Skipping remaining record types."
+                )
+                break
 
-        LOGGER.info(f"--- Starting fetch for: {record_type.upper()} ---")
-
+        LOGGER.info(
+            f"fetching page {current_page} of {record_type}s "
+            f"(records {(current_page * per_page) - per_page}-"
+            f"{current_page * per_page})"
+        )
         while True:
             # 1. Construct the API query parameters
             params = {
-                "recordtype": record_type,
-                # "perpage": 20,
-                "perpage": MAX_PER_PAGE,
-                "page": current_page,
-                # "page": 1,
                 "envelope": "true",
+                "page": current_page,
+                "perpage": per_page,
+                "recordtype": record_type,
             }
             try:
                 r = session.get(BASE_URL, params=params, timeout=30)
@@ -202,6 +211,7 @@ def fetch_museums_victoria_data(session):
             data = r.json()
             results = data.get("response", [])
             for res in results:
+                total_records_processed += 1
                 media_list = res.get("media", [])
                 for media_item in media_list:
                     licence_data = media_item.get("licence")
@@ -219,17 +229,29 @@ def fetch_museums_victoria_data(session):
                     record_counts[record_type][license_short_name] += 1
             if total_pages is None:
                 headers = data.get("headers", {})
-                # total_pages = 1
                 total_pages = int(headers.get("totalResults", "0"))
 
+            if args.limit is not None and total_records_processed >= per_page:
+                break
             current_page += 1
+
             if current_page > total_pages:
                 break
+
     return {
-        FILE1_COUNT: licences_count,
-        FILE2_MEDIA: media_counts,
-        FILE3_RECORD: record_counts,
+        FILE1_COUNT: dict(sorted(licences_count.items())),
+        FILE2_MEDIA: sort_nested_defaultdict(media_counts),
+        FILE3_RECORD: sort_nested_defaultdict(record_counts),
     }
+
+def sort_nested_defaultdict(d):
+    """Convert defaultdicts to regular dicts and sort all keys recursively."""
+    if isinstance(d, defaultdict):
+        d = {k: sort_nested_defaultdict(v) for k, v in sorted(d.items())}
+    elif isinstance(d, dict):
+        d = {k: sort_nested_defaultdict(v) for k, v in sorted(d.items())}
+    return d
+
 
 
 def main():
@@ -238,7 +260,7 @@ def main():
     shared.git_fetch_and_merge(args, PATHS["repo"])
     initialize_all_data_files(args)
     session = get_requests_session()
-    data = fetch_museums_victoria_data(session)
+    data = fetch_museums_victoria_data(args, session)
     write_counts_to_csv(args, data)
     args = shared.git_add_and_commit(
         args,
