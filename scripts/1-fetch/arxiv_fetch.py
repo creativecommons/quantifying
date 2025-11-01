@@ -338,7 +338,7 @@ def get_requests_session():
     """Create request session with retry logic"""
     retry_strategy = Retry(
         total=5,
-        backoff_factor=1,
+        backoff_factor=10,
         status_forcelist=shared.STATUS_FORCELIST,
     )
     session = requests.Session()
