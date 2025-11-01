@@ -6,11 +6,11 @@ Fetch CC Legal Tool usage from the Museums Victoria Collections API.
 # Standard library
 import argparse
 import csv
-import json
 import os
 import sys
 import textwrap
 import traceback
+from collections import defaultdict
 
 # Third-party
 import requests
@@ -31,14 +31,18 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 BASE_URL = "https://collections.museumsvictoria.com.au/api/search"
-FILE_RECORDS = os.path.join(PATHS["data_phase"], "museums_raw.csv")
-HEADER_RECORDS = [
-    "ID",
-    "TITLE",
-    "RECORD TYPE",
-    "CONTENT LICENCE SHORT NAME",
-    "MEDIA JSON",
-]
+FILE1_COUNT = shared.path_join(
+    PATHS["data_phase"], "museums_victoria_1_count.csv"
+)
+FILE2_MEDIA = shared.path_join(
+    PATHS["data_phase"], "museums_victoria_2_count_by_media.csv"
+)
+FILE3_RECORD = shared.path_join(
+    PATHS["data_phase"], "museums_victoria_3_count_by_record.csv"
+)
+HEADER1_COUNT = ["TOOL IDENTIFIER", "COUNT"]
+HEADER2_MEDIA = ["TOOL IDENTIFIER", "MEDIA TYPE", "COUNT"]
+HEADER3_RECORD = ["TOOL IDENTIFIER", "RECORD TYPE", "COUNT"]
 MAX_PER_PAGE = 100  # Pagination limit as defined by the API documentation
 QUARTER = os.path.basename(PATHS["data_quarter"])
 RECORD_TYPES = [
@@ -103,50 +107,71 @@ def initialize_data_file(file_path, header):
             writer.writeheader()
 
 
-def write_data(args, data):
-    """
-    Saves the fetched records to a CSV file.
-    """
+def initialize_all_data_files(args):
     if not args.enable_save:
-        return args
-    LOGGER.info("Saving fetched data")
+        return
+
+    # Create data directory for this phase
     os.makedirs(PATHS["data_phase"], exist_ok=True)
-    for record in data:
-        media = record.get("media")
-        media_json_string = json.dumps(
-            [
-                {"type": i.get("type"), "licence": i.get("licence")}
-                for i in media
+
+    initialize_data_file(FILE1_COUNT, HEADER1_COUNT)
+    initialize_data_file(FILE2_MEDIA, HEADER2_MEDIA)
+    initialize_data_file(FILE3_RECORD, HEADER3_RECORD)
+
+
+def write_counts_to_csv(args, data: dict):
+    if not args.enable_save:
+        return
+    for data in data.items():
+        rows = []
+        file_path = data[0]
+        if file_path == FILE2_MEDIA:
+            fieldnames = HEADER2_MEDIA
+            for media_type in data[1].items():
+                rows.extend(
+                    {
+                        "TOOL IDENTIFIER": row[0],
+                        "MEDIA TYPE": media_type[0],
+                        "COUNT": row[1],
+                    }
+                    for row in media_type[1].items()
+                )
+        elif file_path == FILE3_RECORD:
+            fieldnames = HEADER3_RECORD
+            for record_type in data[1].items():
+                rows.extend(
+                    {
+                        "TOOL IDENTIFIER": row[0],
+                        "RECORD TYPE": record_type[0],
+                        "COUNT": row[1],
+                    }
+                    for row in record_type[1].items()
+                )
+        else:
+            fieldnames = HEADER1_COUNT
+            rows = [
+                {
+                    "TOOL IDENTIFIER": row[0],
+                    "COUNT": row[1],
+                }
+                for row in data[1].items()
             ]
-        )
-        content_license_short_name = record.get("licence", {}).get(
-            "shortName", "Not Found"
-        )
-        row = {
-            "ID": record.get("id"),
-            "TITLE": record.get("title"),
-            "RECORD TYPE": record.get("recordType"),
-            "CONTENT LICENCE SHORT NAME": sanitize_string(
-                content_license_short_name
-            ),
-            "MEDIA JSON": sanitize_string(media_json_string),
-        }
-        initialize_data_file(FILE_RECORDS, HEADER_RECORDS)
-        with open(FILE_RECORDS, "a", encoding="utf-8", newline="\n") as file:
+        with open(file_path, "a", encoding="utf-8", newline="\n") as file_obj:
             writer = csv.DictWriter(
-                file, fieldnames=HEADER_RECORDS, dialect="unix"
+                file_obj, fieldnames=fieldnames, dialect="unix"
             )
-            writer.writerow(row)
-        LOGGER.info(f"Successfully saved records to {FILE_RECORDS}")
-
-    return args
+            writer.writerows(rows)
 
 
-def fetch_museums_victoria_data(args, session):
+def fetch_museums_victoria_data(session):
     """
     Fetches all records with images from the Museums Victoria API by iterating
     through all record types and handling pagination.
     """
+
+    record_counts = defaultdict(lambda: defaultdict(int))
+    media_counts = defaultdict(lambda: defaultdict(int))
+    licences_count = defaultdict(int)
 
     # Iterate through each record type
     for record_type in RECORD_TYPES:
@@ -168,36 +193,53 @@ def fetch_museums_victoria_data(args, session):
             try:
                 r = session.get(BASE_URL, params=params, timeout=30)
                 r.raise_for_status()
-                data = r.json()
-                results = data.get("response", [])
             except requests.HTTPError as e:
                 raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
             except requests.RequestException as e:
                 raise shared.QuantifyingException(f"Request Exception: {e}", 1)
             except KeyError as e:
                 raise shared.QuantifyingException(f"KeyError: {e}", 1)
+            data = r.json()
+            results = data.get("response", [])
+            for res in results:
+                media_list = res.get("media", [])
+                for media_item in media_list:
+                    licence_data = media_item.get("licence")
 
-                # 3. Handle data and pagination metadata
-            write_data(args, results)
+                    # COUNTING THE UNIQUE LICENCE TYPES
+                    license_short_name = licence_data.get("shortName")
+                    if license_short_name:
+                        licences_count[license_short_name] += 1
 
-            # Initialize total_pages on the first request for this record type
+                    # COUNTING LICENSES BY MEDIA TYPES
+                    media_type = media_item.get("type")
+                    media_counts[media_type][license_short_name] += 1
+
+                    # COUNTING LICENSES BY RECORD TYPES
+                    record_counts[record_type][license_short_name] += 1
             if total_pages is None:
                 headers = data.get("headers", {})
                 # total_pages = 1
                 total_pages = int(headers.get("totalResults", "0"))
 
-            # 4. Check for next page and break the loop if done
             current_page += 1
             if current_page > total_pages:
                 break
+    return {
+        FILE1_COUNT: licences_count,
+        FILE2_MEDIA: media_counts,
+        FILE3_RECORD: record_counts,
+    }
 
 
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    initialize_all_data_files(args)
     session = get_requests_session()
-    fetch_museums_victoria_data(args, session)
+    data = fetch_museums_victoria_data(session)
+    write_counts_to_csv(args, data)
     args = shared.git_add_and_commit(
         args,
         PATHS["repo"],
