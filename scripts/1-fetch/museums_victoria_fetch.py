@@ -13,7 +13,6 @@ import traceback
 from collections import defaultdict
 
 # Third-party
-from operator import itemgetter
 import requests
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
@@ -171,7 +170,7 @@ def fetch_museums_victoria_data(args, session):
     record_counts = defaultdict(lambda: defaultdict(int))
     media_counts = defaultdict(lambda: defaultdict(int))
     licences_count = defaultdict(int)
-    total_records_processed = 0
+    records_processed = 0
 
     # Iterate through each record type
     for record_type in RECORD_TYPES:
@@ -180,9 +179,10 @@ def fetch_museums_victoria_data(args, session):
         per_page = 100
         if args.limit is not None:
             per_page = args.limit
-            if total_records_processed >= args.limit:
+            if records_processed >= args.limit:
                 LOGGER.info(
-                    f"Limit Reached: {total_records_processed} processed. Skipping remaining record types."
+                    f"Limit Reached: {records_processed} processed. "
+                    f"Skipping remaining record types."
                 )
                 break
 
@@ -211,7 +211,7 @@ def fetch_museums_victoria_data(args, session):
             data = r.json()
             results = data.get("response", [])
             for res in results:
-                total_records_processed += 1
+                records_processed += 1
                 media_list = res.get("media", [])
                 for media_item in media_list:
                     licence_data = media_item.get("licence")
@@ -231,7 +231,7 @@ def fetch_museums_victoria_data(args, session):
                 headers = data.get("headers", {})
                 total_pages = int(headers.get("totalResults", "0"))
 
-            if args.limit is not None and total_records_processed >= per_page:
+            if args.limit is not None and records_processed >= per_page:
                 break
             current_page += 1
 
@@ -244,6 +244,7 @@ def fetch_museums_victoria_data(args, session):
         FILE3_RECORD: sort_nested_defaultdict(record_counts),
     }
 
+
 def sort_nested_defaultdict(d):
     """Convert defaultdicts to regular dicts and sort all keys recursively."""
     if isinstance(d, defaultdict):
@@ -251,7 +252,6 @@ def sort_nested_defaultdict(d):
     elif isinstance(d, dict):
         d = {k: sort_nested_defaultdict(v) for k, v in sorted(d.items())}
     return d
-
 
 
 def main():
