@@ -81,9 +81,6 @@ def parse_arguments():
     return args
 
 
-session = shared.get_requests_session(accept_header="application/json")
-
-
 def get_all_sources_and_licenses(session, media_type):
     """
     Fetch all available sources for a given media_type.
@@ -212,8 +209,8 @@ def write_data(args, data):
 
 def main():
     args = parse_arguments()
-    session = shared.get_requests_session()
     LOGGER.info("Starting Openverse Fetch Script...")
+    session = shared.get_requests_session(accept_header="application/json")
     records = query_openverse(session)
     write_data(args, records)
     LOGGER.info(f"Fetched {len(records)} unique Openverse records.")

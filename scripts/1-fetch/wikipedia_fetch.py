@@ -63,9 +63,6 @@ def parse_arguments():
     return args
 
 
-session = shared.get_requests_session()
-
-
 def write_data(args, tool_data):
     if not args.enable_save:
         return args

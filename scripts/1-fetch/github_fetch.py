@@ -78,13 +78,6 @@ def check_for_completion():
         pass  # File may not be found without --enable-save, etc.
 
 
-session = shared.get_requests_session(
-    headers={"accept": "application/vnd.github+json"},
-    auth_token=GH_TOKEN,
-    auth_prefix="Bearer",
-)
-
-
 def write_data(args, tool_data):
     if not args.enable_save:
         return args
@@ -148,7 +141,11 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     check_for_completion()
-    session = shared.get_requests_session()
+    session = shared.get_requests_session(
+        headers={"accept": "application/vnd.github+json"},
+        auth_token=GH_TOKEN,
+        auth_prefix="Bearer",
+    )
     tool_data = query_github(args, session)
     args = write_data(args, tool_data)
     args = shared.git_add_and_commit(
