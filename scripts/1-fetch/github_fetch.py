@@ -141,11 +141,12 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     check_for_completion()
-    session = shared.get_requests_session(
-        headers={"accept": "application/vnd.github+json"},
-        auth_token=GH_TOKEN,
-        auth_prefix="Bearer",
+    session = shared.get_session(
+        accept_header="application/vnd.github+json",
     )
+    if GH_TOKEN:
+        session.headers.update({"authorization": f"Bearer {GH_TOKEN}"})
+
     tool_data = query_github(args, session)
     args = write_data(args, tool_data)
     args = shared.git_add_and_commit(

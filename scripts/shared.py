@@ -33,12 +33,8 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
-def get_requests_session(
-    accept_header: str | None = None,
-    auth_token: str | None = None,
-    mount_https: bool = True,
-) -> requests.Session:
-    """Create a reusable requests session with retry logic."""
+def get_session(accept_header=None):
+    """Create a reusable HTTP session with retry logic."""
     retry_strategy = Retry(
         total=5,
         backoff_factor=10,
@@ -46,18 +42,13 @@ def get_requests_session(
     )
 
     session = requests.Session()
-    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
 
     headers = {"User-Agent": USER_AGENT}
     if accept_header:
         headers["accept"] = accept_header
-    if auth_token:
-        headers["authorization"] = f"Bearer {auth_token}"
-    # Mount retry adapter for HTTPS
-    if mount_https:
-        session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
-
     session.headers.update(headers)
+
+    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
     return session
 
 

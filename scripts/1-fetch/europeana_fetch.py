@@ -419,7 +419,7 @@ def main():
             "EUROPEANA_API_KEY not found in environment variables", 1
         )
 
-    session = shared.get_requests_session(accept_header="application/json")
+    session = shared.get_session(accept_header="application/json")
 
     # Fetch facet lists once, including counts
     providers_full = get_facet_list(session, "DATA_PROVIDER")

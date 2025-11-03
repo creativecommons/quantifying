@@ -518,7 +518,7 @@ def query_arxiv(args):
     """
 
     LOGGER.info("Beginning to fetch results from ArXiv API")
-    session = shared.get_requests_session()
+    session = shared.get_session()
 
     results_per_iteration = 50
 
