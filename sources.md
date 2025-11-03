@@ -123,7 +123,14 @@ and access towards related query data using a programmable search engine.
 
 ## Openverse
 
-**Description:** Openverse is a search engine for openly licensed media, including images and audio. It provides access to over 700 million works from more than 20 sources, all of which are under Creative Commons licenses or in the public domain. The API allows querying for media by source, license type, and other parameters. Because anonymous Openverse API access returns a maximum of ~240 result count per source-license combination, the `openverse_fetch.py` script currently provides approximate counts. It does not include pagination or license_version breakdown.
+**Description:** Openverse is a search engine for openly licensed media,
+including images and audio. It provides access to over 700 million works from
+more than 20 sources, all of which are under Creative Commons licenses or in the
+public domain. The API allows querying for media by source, license type, and
+other parameters. Because anonymous Openverse API access returns a maximum of
+~240 result count per source-license combination, the `openverse_fetch.py`
+script currently provides approximate counts. It does not include pagination or
+license_version breakdown.
 
 **API documentation link:**
 - [Openverse API Documentation](https://api.openverse.org/v1/)
