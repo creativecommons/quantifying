@@ -53,6 +53,25 @@ The Flickr Developer Guide](https://www.flickr.com/services/developer/))
 - Data available through JSON format
 
 
+## Openverse
+
+**Description:** Openverse is a search engine for openly licensed media, including images and audio. It provides access to over 700 million works from more than 20 sources, all of which are under Creative Commons licenses or in the public domain. The API allows querying for media by source, license type, and other parameters. Because anonymous Openverse API access returns a maximum of ~240 result count per source-license combination, the `openverse_fetch.py` script currently provides approximate counts. It does not include pagination or license_version breakdown.
+
+**API documentation link:**
+- [Openverse API Documentation](https://api.openverse.org/v1/)
+- [Openverse API Reference](https://wordpress.org/openverse/api/)
+- [Base URL](https://api.openverse.org/v1)
+- [Openverse Frontend](https://openverse.org/)
+
+**API information:**
+- No API key required for basic access
+- Query limit: Rate-limited to prevent abuse (anonymous access provides ~240 results per source-license combination)
+- Data available through JSON format
+- Supports filtering by source, license, media type (images, audio)
+- Media types: `images`, `audio`
+- Supported licenses: `by`, `by-nc`, `by-nc-nd`, `by-nc-sa`, `by-nd`, `by-sa`, `cc0`, `nc-sampling+`, `pdm`, `sampling+`
+
+
 ## GCS (Google Custom Search) JSON API
 
 **Description:** The Custom Search JSON API allows user-defined detailed query
