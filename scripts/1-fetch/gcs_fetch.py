@@ -104,7 +104,7 @@ def get_search_service():
 
 def initialize_data_file(file_path, header):
     if not os.path.isfile(file_path):
-        with open(file_path, "w", newline="") as file_obj:
+        with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
             writer = csv.DictWriter(
                 file_obj, fieldnames=header, dialect="unix"
             )
@@ -127,7 +127,7 @@ def get_last_completed_plan_index():
     last_completed_plan_index = 0
     for file_path in [FILE1_COUNT, FILE2_LANGUAGE, FILE3_COUNTRY]:
         try:
-            with open(file_path, "r", newline="") as file_obj:
+            with open(file_path, "r", encoding="utf-8") as file_obj:
                 reader = csv.DictReader(file_obj, dialect="unix")
                 for row in reader:
                     pass  # skip through to last row
@@ -147,7 +147,7 @@ def get_last_completed_plan_index():
 def load_plan():
     plan = []
     file_path = shared.path_join(PATHS["data"], "gcs_query_plan.csv")
-    with open(file_path, "r", newline="") as file_obj:
+    with open(file_path, "r", encoding="utf-8") as file_obj:
         plan = list(csv.DictReader(file_obj, dialect="unix"))
     return plan
 
@@ -181,7 +181,7 @@ def append_data(args, plan_row, index, count):
             "TOOL_IDENTIFIER": plan_row["TOOL_IDENTIFIER"],
             "COUNT": count,
         }
-    with open(file_path, "a", newline="") as file_obj:
+    with open(file_path, "a", encoding="utf-8", newline="\n") as file_obj:
         writer = csv.DictWriter(
             file_obj, fieldnames=fieldnames, dialect="unix"
         )

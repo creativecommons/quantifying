@@ -117,7 +117,7 @@ def get_tool_urls():
     file_path = shared.path_join(PATHS["data"], "legal-tool-paths.txt")
     prefix = "//creativecommons.org/"
     tool_urls = []
-    with open(file_path, "r") as file_obj:
+    with open(file_path, "r", encoding="utf-8") as file_obj:
         for line in file_obj:
             tool_urls.append(f"{prefix}{line.strip()}")
     LOGGER.info("Prioritizing CC Legal Tool URLs")
@@ -127,14 +127,14 @@ def get_tool_urls():
 
 def load_countries():
     file_path = shared.path_join(PATHS["data"], "gcs_country_collection.yaml")
-    with open(file_path, "r") as file_obj:
+    with open(file_path, "r", encoding="utf-8") as file_obj:
         countries = yaml.safe_load(file_obj)
     return countries
 
 
 def load_languages():
     file_path = shared.path_join(PATHS["data"], "gcs_language_collection.yaml")
-    with open(file_path, "r") as file_obj:
+    with open(file_path, "r", encoding="utf-8") as file_obj:
         languages = yaml.safe_load(file_obj)
     return languages
 
@@ -209,7 +209,7 @@ def save_plan(plan):
         "LANGUAGE",
         "LR",
     ]
-    with open(file_path, "w") as file_obj:
+    with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
         writer = csv.DictWriter(
             file_obj, fieldnames=fieldnames, dialect="unix"
         )
