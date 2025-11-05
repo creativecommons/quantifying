@@ -35,20 +35,20 @@ class QuantifyingException(Exception):
 
 def get_session(accept_header=None):
     """Create a reusable HTTP session with retry logic."""
+    session = Session()
+
     retry_strategy = Retry(
         total=5,
         backoff_factor=10,
         status_forcelist=STATUS_FORCELIST,
     )
-
-    session = Session()
+    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
 
     headers = {"User-Agent": USER_AGENT}
     if accept_header:
         headers["accept"] = accept_header
     session.headers.update(headers)
 
-    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
     return session
 
 
