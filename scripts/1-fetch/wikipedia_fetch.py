@@ -158,7 +158,8 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    tool_data = query_wikipedia_languages(shared.get_session())
+    session = shared.get_session()
+    tool_data = query_wikipedia_languages(session)
     args = write_data(args, tool_data)
     args = shared.git_add_and_commit(
         args,
