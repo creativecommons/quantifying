@@ -17,9 +17,9 @@ from time import sleep
 from urllib.parse import urlparse
 
 # Third-party
-from babel.core import Locale
+from babel import Locale
 from internetarchive import ArchiveSession
-from iso639 import Language
+from iso639 import Lang
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -112,7 +112,7 @@ def normalize_license(licenseurl, license_mapping=None):
         .replace("www.", "")
     )
     path = parsed.path.rstrip("/")
-    path = re.sub(r"/(deed|legalcode)(\.[a-zA-Z_-]+)?$", "", path)
+    path = re.sub(r"/(deed|legalcode)(\.[a-zA-Z_-]+)?$|[/'\"\W]+$", "", path)
 
     # Reconstruct normalized URL
     normalized_url = f"https://{parsed.netloc}{path}"
@@ -138,55 +138,78 @@ def normalize_key(s):
     s = re.sub(
         r"[^\w\s\+\-/]", " ", s, flags=re.UNICODE
     )  # keep + / - for splits
-    # s = re.sub(r"\s+", " ", s).strip().lower()
-    return s
+    if re.fullmatch(r"[a-zA-Z]{2,3}[-_][a-zA-Z]{2,3}", s.strip()):
+        s = s.replace("_", "-")
+    return s.strip().lower()
 
 
 def iso639_lookup(term):
-    """Return a Language object or None; cache results.
+    """Return a Language object or None;
+    cache results.
     Accepts raw user input."""
     if not term:
         return None
-    key = term.strip().lower()
+    key = term.strip().lower().replace("_", "-")
     if key in ISO639_CACHE:
         return ISO639_CACHE[key]
+
+    # Try direct code match
     try:
-        result = Language.match(term, exact=False)
+        result = Lang(key)
+        ISO639_CACHE[key] = result
+        return result
     except Exception:
-        result = None
-    # result normalization: pick first if list-like
-    lang = None
-    if result:
-        if isinstance(result, (list, tuple)):
-            lang = result[0] if result else None
-        else:
-            lang = result
-    ISO639_CACHE[key] = lang
-    return lang
+        pass
+
+    # fallback to title-case name lookup
+    try:
+        result = Lang(term.strip().title())
+        if result:
+            ISO639_CACHE[key] = result
+            return result
+    except Exception:
+        pass
+
+    return None
 
 
 # strip common noise like "subtitles", "subtitle",
-#  "(English)", "english patch", "handwritten"
+# "(English)", "english patch", "handwritten", etc
 def strip_noise(s):
-    s = re.sub(
-        r"\b(subtitles?|subtitle|sub-titles|subbed|with subtitles?)\b",
-        " ",
-        s,
-        flags=re.I,
-    )
-    s = re.sub(r"\b(english patch|english patch\))\b", " ", s, flags=re.I)
-    s = re.sub(
-        r"\b(handwritten|hand write|hand-written|hand written)\b",
-        " ",
-        s,
-        flags=re.I,
-    )
-    s = re.sub(
-        r"\b(no voice|no spoken word|no speech|instrumental)\b",
-        " ",
-        s,
-        flags=re.I,
-    )
+    # Helper to find words with flexible boundaries
+    def word_regex(word):
+        return r"(\b|(?<=[\-_]))" + re.escape(word) + r"\b"
+
+    noise_words = [
+        "subtitles?",
+        "subtitle",
+        "sub-titles",
+        "subbed",
+        "with subtitles?",
+        "english patch",
+        "handwritten",
+        "hand write",
+        "hand-written",
+        "hand written",
+        "-handwritten",
+        "no voice",
+        "no spoken word",
+        "no speech",
+        "instrumental",
+        "universal",
+        "language",
+        "=",
+        "simple",
+        "spoken",
+        "-spoken",
+    ]
+
+    # Combine all noise words into one regex
+    combined_regex = r"|".join(word_regex(w) for w in noise_words)
+
+    s = re.sub(combined_regex, " ", s, flags=re.I)
+
+    # Original regex for symbols
     s = re.sub(r"[()\"\']", " ", s)
     return s
 
@@ -195,7 +218,9 @@ def is_multi_language(raw_language):
     """Detects multi-language strings."""
     return bool(
         re.search(
-            r",|;|\band\b|\bwith\b|\/|&\s+", raw_language, flags=re.IGNORECASE
+            r",|;|\band\b|\bor\b|\bwith\b|\/|&\s+",
+            raw_language,
+            flags=re.IGNORECASE,
         )
     )
 
@@ -205,49 +230,76 @@ def normalize_language(raw_language):
         return "Undetermined"
 
     raw = str(raw_language).strip()
+
+    # check multi-language
     if is_multi_language(raw):
-        # LOGGER.info("Multi-language detected: %s → raw)
         return "Multiple languages"
 
-    # strip noise and normalize (subtitles, parentheticals)
-    cleaned_for_match = strip_noise(raw)
-    cleaned = normalize_key(cleaned_for_match.replace("-", " "))
+    # strip noise and normalize
+    cleaned = normalize_key(strip_noise(raw))
 
+    # --- Try ISO639 first ---
+    lang_obj = iso639_lookup(raw) or iso639_lookup(cleaned)
+    if lang_obj and getattr(lang_obj, "name", None):
+        return lang_obj.name
+
+    # Try Babel
+    for cand in [raw, cleaned]:
+        if not cand:
+            continue
+        try:
+            cand_locale = cand.replace("-", "_")
+            locale = Locale.parse(cand_locale, sep="_")
+            return locale.get_language_name("en")
+        except Exception:
+            pass
+
+    # --- Try Alias Map ---
     ALIAS_MAP = {
         "engrish": "English",
         "english_handwritten": "English",
         "enlgish": "English",
         "american english": "English",
-        "en_us": "English",
-        "en_es": "English",
-        "Eglish": "English",
-        "English (US)": "English",
+        "english - american": "English",
+        "american": "English",
+        "uk english": "English",
+        "eglish": "English",
+        "egligh": "English",
+        "english (us)": "English",
+        "us-en": "English",
         "sgn": "Sign languages",
+        "anglais": "English",
+        "us english": "English",
+        "indian english": "English",
+        "hwbrew": "Hebrew",
+        "polska": "Polish",
+        "bosanski": "Bosnian",
+        "український": "Ukrainian",
+        "chinese sub": "Chinese",
+        "spain": "Spanish",
+        "português e espanhol": "Multiple languages",
         "русский": "Russian",
+        "deutsch": "German",
         "france": "French",
-        "français": "French",
         "francais": "French",
         "italiano": "Italian",
         "ilokano": "Ilokano",
         "viẹetnamese": "Vietnamese",
         "português": "Portuguese",
-        "pt-br": "Portuguese",
+        "pt_br": "Portuguese",
         "espanol": "Spanish",
-        "español": "Spanish",
         "castellano": "Spanish",
-        "es_formal": "Spanish",
-        "es_es": "Spanish",
+        "greek": "Greek",
         "mandarin": "Chinese",
         "nederlands": "Dutch",
         "swahili": "Swahili",
         "no language (english)": "Undetermined",
         "whatever we play it to be": "Undetermined",
+        "en_us es_es": "Multiple languages",
         "english & chinese subbed": "Multiple languages",
         "n/a": "Undetermined",
         "none": "Undetermined",
-        "und": "Undetermined",
         "unknown": "Undetermined",
-        "no language (english)": "Undetermined",
         "no speech": "Undetermined",
         "no spoken language": "Undetermined",
         "multi": "Multiple Languages",
@@ -257,36 +309,8 @@ def normalize_language(raw_language):
     }
     ALIAS_MAP = {normalize_key(k): v for k, v in ALIAS_MAP.items()}
 
-    # Use normalized ALIAS_MAP
     if cleaned in ALIAS_MAP:
         return ALIAS_MAP[cleaned]
-
-    # Try python-iso639
-    lang = iso639_lookup(cleaned)
-    if lang:
-        # Returning English name;
-        # fallback to alpha2 or alpha3 if name missing
-        name = getattr(lang, "name", None)
-        if name:
-            return name
-        if getattr(lang, "alpha2", None):
-            return lang.alpha2
-        if getattr(lang, "alpha3", None):
-            return lang.alpha3
-
-    # if looks like 2 or 3-letter code fallback, ask iso639
-    if re.fullmatch(r"[a-z]{2,3}", cleaned):
-        lang_obj = iso639_lookup(cleaned)
-        if lang_obj and getattr(lang_obj, "name", None):
-            return lang_obj.name
-
-    try:
-        locale = Locale.parse(cleaned, sep="_")
-        eng = locale.get_language_name("en")
-        if eng:
-            return eng
-    except Exception:
-        pass
 
     return "Undetermined"
 
@@ -355,7 +379,7 @@ def query_internet_archive(args):
             normalized_url = normalize_license(licenseurl, license_mapping)
             if normalized_url == "UNKNOWN":
                 unmapped_licenseurl_counter[licenseurl] += 1
-                continue  # Skip this result
+                continue  # Skip
 
             # Extract and normalize language
             raw_language = result.get("language", "Undetermined")
@@ -367,7 +391,6 @@ def query_internet_archive(args):
             normalized_lang = normalize_language(raw_language)
             if normalized_lang == "Undetermined":
                 unmapped_language_counter[raw_language] += 1
-                continue  # Skip this result
 
             license_counter[(normalized_url)] += 1
             language_counter[(normalized_url, normalized_lang)] += 1
@@ -385,22 +408,28 @@ def query_internet_archive(args):
         # If the results is less than the requested rows, implies the end
         if len(results) < rows:
             LOGGER.info(
-                "Fewer results returned than requested." "Pagination complete."
+                "Fewer results returned than requested. Pagination complete."
             )
             break
 
     LOGGER.info(
         "Finished processing.\n"
         "Number of unmapped licenses: "
-        f"{sum(unmapped_licenseurl_counter.values())}\n"
-        "Number of unmapped languages: "
-        f"{sum(unmapped_language_counter.values())}"
+        f"{sum(unmapped_licenseurl_counter.values())}"
     )
 
     # Log unmapped languages once at the end
+    if unmapped_licenseurl_counter:
+        for license, count in unmapped_licenseurl_counter.items():
+            LOGGER.warning(f"Unmapped llicense: {license} : {count}")
+
+    LOGGER.info(
+        "\n Number of unmapped languages: "
+        f"{sum(unmapped_language_counter.values())}"
+    )
     if unmapped_language_counter:
         for lang, count in unmapped_language_counter.items():
-            cleaned = lang.strip().lower().replace("-", "_")
+            cleaned = normalize_key(strip_noise(lang))
             LOGGER.warning(
                 f"Unmapped language: {lang} (cleaned: {cleaned}): {count}"
             )
