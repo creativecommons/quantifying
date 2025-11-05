@@ -5,9 +5,9 @@ import sys
 from datetime import datetime, timezone
 
 # Third-party
-import requests
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from pandas import PeriodIndex
+from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 
 # Constants
@@ -41,7 +41,7 @@ def get_session(accept_header=None):
         status_forcelist=STATUS_FORCELIST,
     )
 
-    session = requests.Session()
+    session = Session()
 
     headers = {"User-Agent": USER_AGENT}
     if accept_header:
