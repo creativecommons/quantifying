@@ -1,6 +1,7 @@
 # Standard library
 import logging
 import os
+import sys
 from datetime import datetime, timezone
 
 # Third-party
@@ -128,12 +129,51 @@ def paths_update(logger, paths, old_quarter, new_quarter):
     return paths
 
 
+class ColoredFormatter(logging.Formatter):
+    """Adds colors to log messages."""
+
+    # https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
+    COLORS = {
+        logging.DEBUG: "\033[90m",  # bright black
+        logging.INFO: "\033[37m",  # white
+        logging.WARNING: "\033[93m",  # bright yellow
+        logging.ERROR: "\033[91m",  # bright red
+        logging.CRITICAL: "\033[31m",  # red
+    }
+    RESET = "\033[0m"
+
+    def format(self, record):
+        message = super().format(record)
+        color = self.COLORS.get(record.levelno, "")
+        if color:
+            return f"{color}{message}{self.RESET}"
+        return message
+
+
 def setup(current_file):
     # Set up logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(module)s - %(message)s",
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.setLevel(logging.INFO)
+
+    formatter = ColoredFormatter(
+        "%(asctime)s - %(levelname)s - %(module)s - %(message)s"
     )
+
+    # Info/warning to stdout
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.DEBUG)
+    stdout_handler.setFormatter(formatter)
+    stdout_handler.addFilter(lambda r: r.levelno < logging.ERROR)
+
+    # Errors to stderr
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.ERROR)
+    stderr_handler.setFormatter(formatter)
+
+    root.addHandler(stdout_handler)
+    root.addHandler(stderr_handler)
+
     logger = logging.getLogger(__name__)
 
     # Datetime
@@ -199,7 +239,7 @@ def update_readme(
     entry_end_line = f"<!-- {entry_title} End -->\n"
 
     if os.path.exists(readme_path):
-        with open(readme_path, "r") as f:
+        with open(readme_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
     else:
         lines = []
@@ -287,7 +327,7 @@ def update_readme(
         )
 
     # Write back to the README.md file
-    with open(readme_path, "w") as f:
+    with open(readme_path, "w", encoding="utf-8", newline="\n") as f:
         f.writelines(lines)
 
     logger.info(f"README path: {readme_path.replace(paths['repo'], '.')}")

@@ -10,6 +10,7 @@ import os
 import sys
 import textwrap
 import traceback
+from operator import itemgetter
 
 # Third-party
 import requests
@@ -83,7 +84,7 @@ def write_data(args, tool_data):
     LOGGER.info("Saving fetched data")
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    with open(FILE_LANGUAGES, "w", newline="", encoding="utf-8") as file_obj:
+    with open(FILE_LANGUAGES, "w", encoding="utf-8", newline="\n") as file_obj:
         writer = csv.DictWriter(
             file_obj, fieldnames=HEADER_LANGUAGES, dialect="unix"
         )
@@ -120,6 +121,7 @@ def query_wikipedia_languages(session):
                         "url": site["url"],
                     }
                 )
+    languages = sorted(languages, key=itemgetter("code", "name_en"))
     # For each language wikipedia, fetch statistics.
     for site in languages:
         base_url = f"{site['url']}/w/api.php"
@@ -151,8 +153,8 @@ def query_wikipedia_languages(session):
             tool_data.append(
                 {
                     "LANGUAGE_CODE": language_code,
-                    "LANGUAGE_NAME": language_name,
                     "LANGUAGE_NAME_EN": language_name_en,
+                    "LANGUAGE_NAME": language_name,
                     "COUNT": article_count,
                 }
             )
@@ -161,6 +163,9 @@ def query_wikipedia_languages(session):
         except Exception as e:
             LOGGER.warning(f"Failed to fetch for {language_display}): {e}")
 
+    tool_data = sorted(
+        tool_data, key=itemgetter("LANGUAGE_CODE", "LANGUAGE_NAME_EN")
+    )
     return tool_data
 
 
