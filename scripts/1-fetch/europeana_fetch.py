@@ -23,7 +23,6 @@ from dotenv import load_dotenv
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
-from requests.adapters import HTTPAdapter, Retry
 
 # Add parent directory for shared imports
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -101,19 +100,6 @@ def parse_arguments():
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     return args
-
-
-def get_requests_session():
-    """Create a requests session with retry."""
-    max_retries = Retry(
-        total=5, backoff_factor=10, status_forcelist=shared.STATUS_FORCELIST
-    )
-    session = requests.Session()
-    session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    session.headers.update(
-        {"accept": "application/json", "User-Agent": shared.USER_AGENT}
-    )
-    return session
 
 
 def simplify_legal_tool(legal_tool):
@@ -433,7 +419,7 @@ def main():
             "EUROPEANA_API_KEY not found in environment variables", 1
         )
 
-    session = get_requests_session()
+    session = shared.get_session(accept_header="application/json")
 
     # Fetch facet lists once, including counts
     providers_full = get_facet_list(session, "DATA_PROVIDER")
