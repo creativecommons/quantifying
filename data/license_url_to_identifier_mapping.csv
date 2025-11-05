@@ -5,7 +5,7 @@
 "https://creativecommons.org/licenses/by-nc-sa/4.0","CC BY-NC-SA 4.0"
 "https://creativecommons.org/licenses/by-nd/4.0","CC BY-ND 4.0"
 "https://creativecommons.org/licenses/by-sa/4.0","CC BY-SA 4.0"
-"https://creativecommons.org/publicdomain/certification/1.0/us","CC PUBLIC DOMAIN 1.0 US"
+"https://creativecommons.org/publicdomain/certification/1.0/us","CC CERTIFICATION 1.0 US"
 "https://creativecommons.org/publicdomain/mark/1.0","PDM 1.0"
 "https://creativecommons.org/publicdomain/zero/1.0","CC0 1.0"
 "https://creativecommons.org/licenses/by/3.0","CC BY 3.0"
@@ -649,6 +649,6 @@
 "https://creativecommons.org/licenses/nd-nc/1.0/nl","CC ND-NC 1.0 NL"
 "https://creativecommons.org/licenses/sa/1.0/nl","CC SA 1.0 NL"
 "https://creativecommons.org/licenses/nc-sampling+/1.0/tw","CC NC-SAMPLING+ 1.0 TW"
-"https://creativecommons.org/licenses/sampling/1.0/tw","CC CERTIFICATION 1.0 US
+"https://creativecommons.org/licenses/sampling/1.0/tw", "CC SAMPLING 1.0 TW"
 "https://creativecommons.org/licenses/sampling+/1.0/tw","CC SAMPLING+ 1.0 TW"
-"https://creativecommons.org/licenses/publicdomain","CC PUBLICDOMAIN"
+"https://creativecommons.org/licenses/publicdomain","CC CERTIFICATION 1.0 US"

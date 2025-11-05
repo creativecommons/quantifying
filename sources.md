@@ -195,4 +195,4 @@ The Internet Archive is a nonprofit digital library offering free access to mill
 - In summary, it queries licenseurl and language fields for all items containing "creativecommons.org" in their metadata
 - Aggregated counts are saved to CSV files for licenses and languages.
 - License normalization uses a canonical mapping defined in `license_url_to_identifier_mapping.csv`.
-- Language normalization using Babel and [iso-639](https://github.com/jacksonllee/iso639), see also [iso-639 standards](https://www.loc.gov/standards/iso639-2/), you can also checkout [iso639-2](https://www.loc.gov/standards/iso639-2/php/English_list.php)
+- Language normalization using Babel and [iso-639](https://pypi.org/project/iso639-lang/) see [github information](https://github.com/jacksonllee/iso639), see also [iso-639 standards](https://www.loc.gov/standards/iso639-2/), you can also checkout [iso639-2](https://www.loc.gov/standards/iso639-2/php/English_list.php)
