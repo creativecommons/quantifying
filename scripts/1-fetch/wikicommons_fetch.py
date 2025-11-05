@@ -31,9 +31,7 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 BASE_URL = "https://commons.wikimedia.org/w/api.php"
-FILE_WIKICOMMONS = shared.path_join(
-    PATHS["data_phase"], "data_wikicommons.csv"
-)
+FILE_WIKICOMMONS = shared.path_join(PATHS["data_phase"], "wikicommons.csv")
 HEADER_WIKICOMMONS = ["LICENSE TYPE", "File Count", "Page Count"]
 ROOT_CATEGORY = "Free_Creative_Commons_licenses"
 TIMEOUT = 25
