@@ -23,7 +23,6 @@ from iso639 import Lang
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
-from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -62,24 +61,6 @@ def parse_arguments():
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     return args
-
-
-def get_archive_session():
-    retry_strategy = Retry(
-        total=5,
-        backoff_factor=10,
-        status_forcelist=shared.STATUS_FORCELIST,
-        allowed_methods=["GET", "POST"],
-        raise_on_status=False,
-    )
-    adapter_kwargs = {
-        "max_retries": retry_strategy,
-    }
-    session = ArchiveSession(http_adapter_kwargs=adapter_kwargs)
-    session.headers.update(
-        {"User-Agent": shared.USER_AGENT, "Accept": "application/json"}
-    )
-    return session
 
 
 def load_license_mapping():
@@ -174,7 +155,7 @@ def iso639_lookup(term):
 
 
 # strip common noise like "subtitles", "subtitle",
-# "(English)", "english patch", "handwritten", etc
+# "(English)", "english patch", "handwritten", etc.
 def strip_noise(s):
     # Helper to find words with flexible boundaries
     def word_regex(word):
@@ -330,7 +311,9 @@ def query_internet_archive(args):
     total_processed = 0
     max_retries = 3
 
-    session = get_archive_session()
+    session = shared.get_session(
+        accept_header="application/json", session=ArchiveSession()
+    )
     while True:
         # Loop until no more results are returned by the API
         LOGGER.info(f"Fetching {rows} items starting at {total_rows}...")
