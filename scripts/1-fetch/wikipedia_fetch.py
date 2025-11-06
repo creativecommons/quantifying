@@ -10,14 +10,12 @@ import os
 import sys
 import textwrap
 import traceback
+from operator import itemgetter
 
 # Third-party
-import requests
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -65,25 +63,13 @@ def parse_arguments():
     return args
 
 
-def get_requests_session():
-    max_retries = Retry(
-        total=5,
-        backoff_factor=10,
-        status_forcelist=shared.STATUS_FORCELIST,
-    )
-    session = requests.Session()
-    session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    session.headers.update({"User-Agent": shared.USER_AGENT})
-    return session
-
-
 def write_data(args, tool_data):
     if not args.enable_save:
         return args
     LOGGER.info("Saving fetched data")
     os.makedirs(PATHS["data_phase"], exist_ok=True)
 
-    with open(FILE_LANGUAGES, "w", newline="", encoding="utf-8") as file_obj:
+    with open(FILE_LANGUAGES, "w", encoding="utf-8", newline="\n") as file_obj:
         writer = csv.DictWriter(
             file_obj, fieldnames=HEADER_LANGUAGES, dialect="unix"
         )
@@ -120,6 +106,7 @@ def query_wikipedia_languages(session):
                         "url": site["url"],
                     }
                 )
+    languages = sorted(languages, key=itemgetter("code", "name_en"))
     # For each language wikipedia, fetch statistics.
     for site in languages:
         base_url = f"{site['url']}/w/api.php"
@@ -151,8 +138,8 @@ def query_wikipedia_languages(session):
             tool_data.append(
                 {
                     "LANGUAGE_CODE": language_code,
-                    "LANGUAGE_NAME": language_name,
                     "LANGUAGE_NAME_EN": language_name_en,
+                    "LANGUAGE_NAME": language_name,
                     "COUNT": article_count,
                 }
             )
@@ -161,6 +148,9 @@ def query_wikipedia_languages(session):
         except Exception as e:
             LOGGER.warning(f"Failed to fetch for {language_display}): {e}")
 
+    tool_data = sorted(
+        tool_data, key=itemgetter("LANGUAGE_CODE", "LANGUAGE_NAME_EN")
+    )
     return tool_data
 
 
@@ -168,7 +158,8 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    tool_data = query_wikipedia_languages(get_requests_session())
+    session = shared.get_session()
+    tool_data = query_wikipedia_languages(session)
     args = write_data(args, tool_data)
     args = shared.git_add_and_commit(
         args,

@@ -4,6 +4,25 @@ This project uses data from various sources that are openly licensed or in the
 public domain. Below are the sources and their respective information:
 
 
+## arXiv
+
+**Description:** arXiv is a free distribution service and an open-access archive for scholarly articles in physics, mathematics, computer science, quantitative biology, quantitative finance, statistics, electrical engineering and systems science, and economics. All arXiv articles are available under various open licenses or are in the public domain.
+
+**API documentation link:**
+- [arXiv API User Manual](https://arxiv.org/help/api/user-manual)
+- [arXiv API Reference](https://arxiv.org/help/api)
+- [Base URL](http://export.arxiv.org/api/query)
+- [arXiv Subject Classifications](https://arxiv.org/category_taxonomy)
+- [Terms of Use for arXiv APIs](https://info.arxiv.org/help/api/tou.html)
+
+**API information:**
+- No API key required
+- Query limit: No official limit, but requests should be made responsibly
+- Data available through Atom XML format
+- Supports search by fields: title (ti), author (au), abstract (abs), comment (co), journal reference (jr), subject category (cat), report number (rn), id, all (searches all fields), and submittedDate (date filter)
+- Metadata includes licensing information for each paper
+
+
 ## CC Legal Tools
 
 **Description:** A `.txt` file provided by Timid Robot containing all legal
@@ -21,6 +40,26 @@ tool paths.
 
 [tools-paths]:data/legal-tool-paths.txt
 [prioritized-tool-urls]: data/prioritized-tool-urls.txt
+
+
+## Europeana
+
+**Description:**
+The **Europeana Search API** provides access to digital cultural heritage metadata records aggregated from museums, libraries, and archives across Europe. This project uses the API to fetch aggregated counts of cultural heritage records by data provider, rights statement, and theme.
+
+**Official API Documentation:**
+- [Search API Documentation](https://europeana.atlassian.net/wiki/spaces/EF/pages/2385739812/Search+API+Documentation)
+  - Themes are listed in the Search API Request Parameter accordion
+
+**API information:**
+- API key required
+- Minimum 0.003 seconds between queries
+- Query parameters allow:
+  - Full-text searching (`query`)
+  - Retrieving metadata facets (`profile=facets`)
+  - Filtering by data provider, rights statement, and theme
+- Data available through JSON format
+- Offset-based pagination
 
 
 ## GCS (Google Custom Search) JSON API
@@ -80,6 +119,33 @@ and access towards related query data using a programmable search engine.
 - Query limit: 60 requests per hour if unauthenticated,
   5000 requests per hour if authenticated
 - Data available through JSON format
+
+
+## Openverse
+
+**Description:** Openverse is a search engine for openly licensed media,
+including images and audio. It provides access to over 700 million works from
+more than 20 sources, all of which are under Creative Commons licenses or in the
+public domain. The API allows querying for media by source, license type, and
+other parameters. Because anonymous Openverse API access returns a maximum of
+~240 result count per source-license combination, the `openverse_fetch.py`
+script currently provides approximate counts. It does not include pagination or
+license_version breakdown.
+
+**API documentation link:**
+- [Openverse API Documentation](https://api.openverse.org/v1/)
+- [Openverse API Reference](https://wordpress.org/openverse/api/)
+- [Base URL](https://api.openverse.org/v1)
+- [Openverse Frontend](https://openverse.org/)
+
+**API information:**
+- No API key required for basic access
+- Query limit: Rate-limited to prevent abuse (anonymous access provides ~240 results per source-license combination)
+- Data available through JSON format
+- Supports filtering by source, license, media type (images, audio)
+- Media types: `images`, `audio`
+- Supported licenses: `by`, `by-nc`, `by-nc-nd`, `by-nc-sa`, `by-nd`, `by-sa`, `cc0`, `nc-sampling+`, `pdm`, `sampling+`
+
 
 ## Wikipedia
 
