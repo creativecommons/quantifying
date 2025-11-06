@@ -426,26 +426,12 @@ def extract_metadata_from_xml(record_xml):
 
 
 def bucket_author_count(n):
-    """
-    Convert author count to predefined buckets for analysis.
-
-    Buckets: "1", "2", "3", "4", "5+"
-    Reduces granularity for better statistical analysis.
-    Returns None for invalid counts (0 or non-numeric).
-    """
-    if not isinstance(n, int) or n <= 0:
-        return None
-    if n == 1:
-        return "1"
-    if n == 2:
-        return "2"
-    if n == 3:
-        return "3"
-    if n == 4:
-        return "4"
-    if n >= 5:
-        return "5+"
-    return None
+    """Convert author count to predefined buckets: "1", "2", "3", "4", "5+"."""
+    if n <= 0:
+        return "0"
+    if n <= 4:
+        return str(n)
+    return "5+"
 
 
 def save_count_data(
@@ -514,8 +500,7 @@ def save_count_data(
         bucket_counts = Counter()
         for ac, c in acs.items():
             b = bucket_author_count(ac)
-            if b is not None:  # Only include valid buckets
-                bucket_counts[b] += c
+            bucket_counts[b] += c
         for b, c in bucket_counts.items():
             data.append(
                 {"TOOL_IDENTIFIER": lic, "AUTHOR_BUCKET": b, "COUNT": c}
