@@ -131,8 +131,9 @@ def fetch_category_totals(category, session):
             page_cnt += catinfo.get("pages", 0)
         return {"FILE_COUNT": file_cnt, "PAGE_COUNT": page_cnt}
     except Exception as e:
-        LOGGER.warning(f"Failed to fetch contents for {category}: {e}")
-        return {"FILE_COUNT": None, "PAGE_COUNT": None}
+        message = f"Failed to fetch contents for {category}: {e}"
+        LOGGER.error(message)
+        raise shared.QuantifyingException(message, exit_code=1)
 
 
 def recursive_collect_data(session, limit=None):
