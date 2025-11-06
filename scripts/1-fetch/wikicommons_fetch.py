@@ -127,10 +127,10 @@ def fetch_category_totals(category, session):
             catinfo = info.get("categoryinfo", {})
             file_cnt += catinfo.get("files", 0)
             page_cnt += catinfo.get("pages", 0)
-        return {"File Count": file_cnt, "Page Count": page_cnt}
+        return {"File_Count": file_cnt, "Page_Count": page_cnt}
     except Exception as e:
         LOGGER.warning(f"Failed to fetch contents for {category}: {e}")
-        return {"File Count": None, "Page Count": None}
+        return {"File_Count": None, "Page_Count": None}
 
 
 def recursive_collect_data(session, limit=None):
@@ -152,8 +152,8 @@ def recursive_collect_data(session, limit=None):
         results.append(
             {
                 "LICENSE_TYPE": path,
-                "File_Count": contents["File Count"],
-                "Page_Count": contents["Page Count"],
+                "File_Count": contents["File_Count"],
+                "Page_Count": contents["Page_Count"],
             }
         )
 
