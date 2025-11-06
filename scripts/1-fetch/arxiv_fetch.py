@@ -35,9 +35,10 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
-# API Configuration
-BASE_URL = "http://export.arxiv.org/api/query?"
+# API Configuration - Updated to use OAI-PMH for structured license data
+BASE_URL = "https://oaipmh.arxiv.org/oai"
 DEFAULT_FETCH_LIMIT = 800  # Default total papers to fetch
+DEFAULT_YEARS_BACK = 5  # Default years to look back from current year
 
 # CSV Headers
 HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
