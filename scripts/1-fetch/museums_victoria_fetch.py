@@ -89,9 +89,7 @@ def get_requests_session():
 
 def initialize_data_file(file_path, header):
     with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
-        writer = csv.DictWriter(
-            file_obj, fieldnames=header, dialect="unix"
-        )
+        writer = csv.DictWriter(file_obj, fieldnames=header, dialect="unix")
         writer.writeheader()
 
 
@@ -200,9 +198,13 @@ def fetch_museums_victoria_data(args, session):
 
                     # COUNTING THE UNIQUE LICENCE TYPES
                     license_short_name = licence_data.get("shortName")
-                    version_number = re.search(r"\b\d+\.\d+\b", licence_data.get("name"))
+                    version_number = re.search(
+                        r"\b\d+\.\d+\b", licence_data.get("name")
+                    )
                     if version_number:
-                        license_short_name = f"{license_short_name} {version_number.group()}"
+                        license_short_name = (
+                            f"{license_short_name} {version_number.group()}"
+                        )
 
                     if license_short_name:
                         licences_count[license_short_name] += 1
