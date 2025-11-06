@@ -32,7 +32,7 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 BASE_URL = "https://commons.wikimedia.org/w/api.php"
 FILE_WIKICOMMONS = shared.path_join(PATHS["data_phase"], "wikicommons.csv")
-HEADER_WIKICOMMONS = ["LICENSE_TYPE", "File_Count", "Page_Count"]
+HEADER_WIKICOMMONS = ["LICENSE_TYPE", "FILE_COUNT", "PAGE_COUNT"]
 ROOT_CATEGORY = "Free_Creative_Commons_licenses"
 TIMEOUT = 25
 
@@ -127,10 +127,10 @@ def fetch_category_totals(category, session):
             catinfo = info.get("categoryinfo", {})
             file_cnt += catinfo.get("files", 0)
             page_cnt += catinfo.get("pages", 0)
-        return {"File_Count": file_cnt, "Page_Count": page_cnt}
+        return {"FILE_COUNT": file_cnt, "PAGE_COUNT": page_cnt}
     except Exception as e:
         LOGGER.warning(f"Failed to fetch contents for {category}: {e}")
-        return {"File_Count": None, "Page_Count": None}
+        return {"FILE_COUNT": None, "PAGE_COUNT": None}
 
 
 def recursive_collect_data(session, limit=None):
@@ -152,8 +152,8 @@ def recursive_collect_data(session, limit=None):
         results.append(
             {
                 "LICENSE_TYPE": path,
-                "File_Count": contents["File_Count"],
-                "Page_Count": contents["Page_Count"],
+                "FILE_COUNT": contents["FILE_COUNT"],
+                "PAGE_COUNT": contents["FILE_COUNT"],
             }
         )
 
