@@ -14,9 +14,9 @@ import sys
 import textwrap
 import time
 import traceback
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # XML parsing for OAI-PMH responses
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import datetime  # Date calculations for harvesting ranges
 from operator import itemgetter
 
 # Third-party
