@@ -255,9 +255,9 @@ QUARTER = os.path.basename(PATHS["data_quarter"])
 def parse_arguments():
     """Parse command-line options, returns parsed argument namespace.
 
-    Note: The --limit parameter sets the total number of papers to fetch
-    across all search queries, not per query. ArXiv API recommends
-    maximum of 30000 results per session for optimal performance.
+    Note: The --limit parameter sets the total number of papers to fetch.
+    The --years-back parameter limits harvesting to recent years where
+    CC licensing is more common.
     """
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
@@ -266,12 +266,19 @@ def parse_arguments():
         type=int,
         default=DEFAULT_FETCH_LIMIT,
         help=(
-            f"Total limit of papers to fetch across all search queries "
-            f"(default: {DEFAULT_FETCH_LIMIT}). Maximum recommended: 30000. "
-            f"Note: Individual queries limited to 500 results "
-            f"(implementation choice). "
-            f"See ArXiv API documentation: "
-            f"https://info.arxiv.org/help/api/user-manual.html"
+            f"Total limit of papers to fetch "
+            f"(default: {DEFAULT_FETCH_LIMIT}). "
+            f"Note: Uses OAI-PMH API for structured license data."
+        ),
+    )
+    parser.add_argument(
+        "--years-back",
+        type=int,
+        default=DEFAULT_YEARS_BACK,
+        help=(
+            f"Number of years back from current year to harvest "
+            f"(default: {DEFAULT_YEARS_BACK}). "
+            f"Reduces dataset size and focuses on recent CC-licensed papers."
         ),
     )
     parser.add_argument(
