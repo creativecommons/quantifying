@@ -32,7 +32,7 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 BASE_URL = "https://commons.wikimedia.org/w/api.php"
 FILE_WIKICOMMONS = shared.path_join(PATHS["data_phase"], "wikicommons.csv")
-HEADER_WIKICOMMONS = ["LICENSE TYPE", "File Count", "Page Count"]
+HEADER_WIKICOMMONS = ["LICENSE_TYPE", "File_Count", "Page_Count"]
 ROOT_CATEGORY = "Free_Creative_Commons_licenses"
 TIMEOUT = 25
 
@@ -55,23 +55,13 @@ def parse_arguments():
         "--limit",
         type=int,
         default=None,
-        help="Limit recursive depth for testing.",
+        help="Limit recursive depth for testing",
     )
 
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     return args
-
-
-def get_content_request_url(category):
-    """Return API endpoint for WikiCommons category metadata."""
-    return (
-        f"{BASE_URL}?action=query"
-        f"&prop=categoryinfo"
-        f"&titles=Category:{category}"
-        f"&format=json"
-    )
 
 
 def get_subcategories(category, session):
@@ -123,8 +113,13 @@ def get_subcategories(category, session):
 def fetch_category_totals(category, session):
     """Fetch total file and page counts for a category."""
     try:
-        url = get_content_request_url(category)
-        resp = session.get(url, timeout=TIMEOUT)
+        params = {
+            "action": "query",
+            "prop": "categoryinfo",
+            "titles": f"Category:{category}",
+            "format": "json",
+        }
+        resp = session.get(BASE_URL, params=params, timeout=TIMEOUT)
         resp.raise_for_status()
         data = resp.json()
         file_cnt, page_cnt = 0, 0
@@ -135,7 +130,7 @@ def fetch_category_totals(category, session):
         return {"File Count": file_cnt, "Page Count": page_cnt}
     except Exception as e:
         LOGGER.warning(f"Failed to fetch contents for {category}: {e}")
-        return {"File Count": 0, "Page Count": 0}
+        return {"File Count": None, "Page Count": None}
 
 
 def recursive_collect_data(session, limit=None):
@@ -156,9 +151,9 @@ def recursive_collect_data(session, limit=None):
 
         results.append(
             {
-                "LICENSE TYPE": path,
-                "File Count": contents["File Count"],
-                "Page Count": contents["Page Count"],
+                "LICENSE_TYPE": path,
+                "File_Count": contents["File Count"],
+                "Page_Count": contents["Page Count"],
             }
         )
 
@@ -189,7 +184,8 @@ def write_data(args, wikicommons_data):
         return args
 
     os.makedirs(PATHS["data_phase"], exist_ok=True)
-    with open(FILE_WIKICOMMONS, "w", newline="") as f:
+    with open(FILE_WIKICOMMONS, "w", encoding="utf-8", newline="\n") as f:
+
         writer = csv.DictWriter(
             f, fieldnames=HEADER_WIKICOMMONS, dialect="unix"
         )
