@@ -121,6 +121,36 @@ and access towards related query data using a programmable search engine.
 - Data available through JSON format
 
 
+## Internet Archive
+
+**Description:**
+The Internet Archive is a nonprofit digital library offering free access to millions of digital materials including books, movies, software, music, and websites. This project uses the Internet Archive’s Session and Search API to fetch metadata of items that reference Creative Commons licenses.
+
+**API documentation link:**
+- [InternetArchive Tools and APIs](https://archive.org/developers/index-apis.html)
+- [InternetArchive: A Python Interface to archive.org](https://internetarchive.readthedocs.io/en/stable/internetarchive.html)
+- [The Internet Archive Python Library](https://archive.org/developers/internetarchive/)
+- [The Internet Archive Search API reference](https://archive.org/advancedsearch.php)
+- [A Python interface to archive.org.](https://pypi.org/project/internetarchive/)
+- [Internet Archive Python client; Session + Search Items](https://github.com/jjjake/internetarchive/tree/master/internetarchive)
+
+**API information:**
+- No API key required
+- Pagination supported via rows and start parameters
+- Python access via internetarchive library (search_items, ArchiveSession)
+- Query limit: None specified, but rate-limiting may apply (1000000 max at a time)
+- Data available through JSON format
+- Retry logic and session management implemented for reliability
+
+**Notes:**
+- This project queries for items containing `text:creativecommons.org` in their metadata.
+- The script extracts and normalizes license URLs and language codes
+- In summary, it queries licenseurl and language fields for all items containing "creativecommons.org" in their metadata
+- Aggregated counts are saved to CSV files for licenses and languages.
+- License normalization uses a canonical mapping defined in `license_url_to_identifier_mapping.csv`.
+- Language normalization using Babel and [iso-639](https://pypi.org/project/iso639-lang/) see [github information](https://github.com/jacksonllee/iso639), see also [iso-639 standards](https://www.loc.gov/standards/iso639-2/), you can also checkout [iso639-2](https://www.loc.gov/standards/iso639-2/php/English_list.php)
+
+
 ## Openverse
 
 **Description:** Openverse is a search engine for openly licensed media,
@@ -168,31 +198,3 @@ language edition of wikipedia. It runs on the Meta-Wiki API.
 - No API key required
 - Query limit: It is rate-limited only to prevent abuse
 - Data available through XML or JSON format
-
-## Internet Archive
-
-**Description:**
-The Internet Archive is a nonprofit digital library offering free access to millions of digital materials including books, movies, software, music, and websites. This project uses the Internet Archive’s Session and Search API to fetch metadata of items that reference Creative Commons licenses.
-
-**API documentation link:**
-- [InternetArchive: A Python Interface to archive.org](https://internetarchive.readthedocs.io/en/stable/internetarchive.html)
-- [The Internet Archive Python Library](https://archive.org/developers/internetarchive/)
-- [The Internet Archive Search API reference](https://archive.org/advancedsearch.php)
-- [A Python interface to archive.org.](https://pypi.org/project/internetarchive/)
-- [Internet Archive Python client; Session + Search Items](https://github.com/jjjake/internetarchive/tree/master/internetarchive)
-
-**API information:**
-- No API key required
-- Pagination supported via rows and start parameters
-- Python access via internetarchive library (search_items, ArchiveSession)
-- Query limit: None specified, but rate-limiting may apply (1000000 max at a time)
-- Data available through JSON format
-- Retry logic and session management implemented for reliability
-
-**Notes:**
-- This project queries for items containing `text:creativecommons.org` in their metadata.
-- The script extracts and normalizes license URLs and language codes
-- In summary, it queries licenseurl and language fields for all items containing "creativecommons.org" in their metadata
-- Aggregated counts are saved to CSV files for licenses and languages.
-- License normalization uses a canonical mapping defined in `license_url_to_identifier_mapping.csv`.
-- Language normalization using Babel and [iso-639](https://pypi.org/project/iso639-lang/) see [github information](https://github.com/jacksonllee/iso639), see also [iso-639 standards](https://www.loc.gov/standards/iso639-2/), you can also checkout [iso639-2](https://www.loc.gov/standards/iso639-2/php/English_list.php)
