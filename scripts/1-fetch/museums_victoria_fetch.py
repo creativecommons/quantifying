@@ -84,16 +84,7 @@ def get_requests_session():
     """
     Returns a configured requests session with retries and a User-Agent.
     """
-    max_retries = Retry(
-        total=5,
-        backoff_factor=10,
-        status_forcelist=shared.STATUS_FORCELIST,
-    )
-    session = requests.Session()
-    session.mount("https://", HTTPAdapter(max_retries=max_retries))
-    # Museums Victoria API requires a User-Agent header
-    session.headers.update({"User-Agent": shared.USER_AGENT})
-    return session
+    return shared.get_session()
 
 
 def initialize_data_file(file_path, header):
