@@ -43,6 +43,7 @@ FILE3_RECORD = shared.path_join(
 HEADER1_COUNT = ["TOOL IDENTIFIER", "COUNT"]
 HEADER2_MEDIA = ["TOOL IDENTIFIER", "MEDIA TYPE", "COUNT"]
 HEADER3_RECORD = ["TOOL IDENTIFIER", "RECORD TYPE", "COUNT"]
+PER_PAGE = 100
 QUARTER = os.path.basename(PATHS["data_quarter"])
 RECORD_TYPES = [
     "article",
@@ -161,27 +162,23 @@ def fetch_museums_victoria_data(args, session):
     record_counts = defaultdict(lambda: defaultdict(int))
     media_counts = defaultdict(lambda: defaultdict(int))
     licences_count = defaultdict(int)
-    records_processed = 0
 
     # Iterate through each record type
     for record_type in RECORD_TYPES:
+        records_processed = 0
         current_page = 1
         total_pages = None
-        per_page = 100
-        if args.limit is not None:
-            per_page = args.limit
-            if records_processed >= args.limit:
-                LOGGER.info(
-                    f"Limit Reached: {records_processed} processed. "
-                    f"Skipping remaining record types."
-                )
-                break
+        # 300 , 100 ==> 100
+        # 20, 100 ====> 20
+        per_page = min(PER_PAGE, args.limit) if args.limit else PER_PAGE
+        # if args.limit is not None:
+        #     if records_processed >= args.limit:
+        #         LOGGER.info(
+        #             f"Limit Reached: {records_processed} processed. "
+        #             f"Skipping remaining record types."
+        #         )
+        #         break
 
-        LOGGER.info(
-            f"fetching page {current_page} of {record_type}s "
-            f"(records {(current_page * per_page) - per_page}-"
-            f"{current_page * per_page})"
-        )
         while True:
             # 1. Construct the API query parameters
             params = {
@@ -190,6 +187,11 @@ def fetch_museums_victoria_data(args, session):
                 "perpage": per_page,
                 "recordtype": record_type,
             }
+            LOGGER.info(
+                f"fetching page {current_page} of {record_type}s "
+                f"(records {(current_page * per_page) - per_page}-"
+                f"{current_page * per_page})"
+            )
             try:
                 r = session.get(BASE_URL, params=params, timeout=30)
                 r.raise_for_status()
@@ -222,7 +224,7 @@ def fetch_museums_victoria_data(args, session):
                 headers = data.get("headers", {})
                 total_pages = int(headers.get("totalResults", "0"))
 
-            if args.limit is not None and records_processed >= per_page:
+            if args.limit is not None and records_processed >= args.limit:
                 break
             current_page += 1
 
