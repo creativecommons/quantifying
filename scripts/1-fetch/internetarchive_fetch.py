@@ -41,7 +41,7 @@ FILE2_LANGUAGE = os.path.join(
 # CSV headers
 HEADER1 = ["LICENSE", "COUNT"]
 HEADER2 = ["LICENSE", "LANGUAGE", "COUNT"]
-
+LIMIT_DEFAULT = 100000
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
 ISO639_CACHE = {}
@@ -50,6 +50,12 @@ ISO639_CACHE = {}
 def parse_arguments():
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=LIMIT_DEFAULT,
+        help=f"Limit total results (default: {LIMIT_DEFAULT})",
+    )
     parser.add_argument(
         "--enable-save", action="store_true", help="Enable saving results"
     )
@@ -301,49 +307,40 @@ def query_internet_archive(args):
     unmapped_licenseurl_counter = Counter()
     unmapped_language_counter = Counter()
 
-    fields = ["licenseurl", "language"]
-    query = "licenseurl:*creativecommons.org*"
     license_mapping = load_license_mapping()
-
-    rows = 1000000
-    total_rows = 0
-    total_processed = 0
 
     session = shared.get_session(
         accept_header="application/json", session=ArchiveSession()
     )
-    while True:
-        # Loop until no more results are returned by the API
-        LOGGER.info(f"Fetching {rows} items starting at {total_rows}...")
 
-        # Use search_items for simpler pagination management
-        response = session.search_items(
-            query,
-            fields=fields,
-            params={"rows": rows, "start": total_rows},
-            request_kwargs={"timeout": 30},
-        )
+    LOGGER.info("Beginning fetch.")
+    # Use search_items for simpler pagination management
+    response = session.search_items(
+        query="licenseurl:*creativecommons.org*",
+        fields=["licenseurl", "language"],
+        params={"count": 10000},
+        request_kwargs={"timeout": 30},
+    )
+    found = response.num_found
+    LOGGER.info(
+        f"Found {found:,} results. Processing a maximum of" f" {args.limit:,}."
+    )
 
-        # Convert to list to iterate over
-        results = list(response)
-        total_rows += len(results)
-
-        if not results:
-            LOGGER.info("No more results. Ending pagination.")
-            break
-
-        for result in results:
-            # Extract and normalize license URL
-            licenseurl = result.get("licenseurl", "")
-            if isinstance(licenseurl, list):
-                licenseurl = licenseurl[0] if licenseurl else "UNKNOWN"
-            if not licenseurl:
-                licenseurl = "UNKNOWN"
-
-            normalized_url = normalize_license(licenseurl, license_mapping)
-            if normalized_url == "UNKNOWN":
-                unmapped_licenseurl_counter[licenseurl] += 1
-                continue  # Skip
+    total_processed = 0
+    for result in response:
+        if result.get("error"):
+            raise shared.QuantifyingException(result.get("error"), 1)
+        # Extract and normalize license URL
+        licenseurl = result.get("licenseurl", "")
+        if isinstance(licenseurl, list):
+            licenseurl = licenseurl[0] if licenseurl else "UNKNOWN"
+        if not licenseurl:
+            licenseurl = "UNKNOWN"
+        normalized_url = normalize_license(licenseurl, license_mapping)
+        if normalized_url == "UNKNOWN":
+            unmapped_licenseurl_counter[licenseurl] += 1
+        else:
+            license_counter[(normalized_url)] += 1
 
             # Extract and normalize language
             raw_language = result.get("language", "Undetermined")
@@ -356,46 +353,41 @@ def query_internet_archive(args):
             if normalized_lang == "Undetermined":
                 unmapped_language_counter[raw_language] += 1
 
-            license_counter[(normalized_url)] += 1
             language_counter[(normalized_url, normalized_lang)] += 1
-            total_processed += 1
-
-        LOGGER.info(
-            f"Processed {len(results)} new items, total: {total_processed}"
-        )
-        LOGGER.info(f"Total items processed so far: {total_processed}")
-        LOGGER.info(
-            f"Unique licenses: {len(license_counter)}|"
-            f"Languages:{len(language_counter)}"
-        )
-
-        # If the results is less than the requested rows, implies the end
-        if len(results) < rows:
+        total_processed += 1
+        if not total_processed % 10000:
             LOGGER.info(
-                "Fewer results returned than requested. Pagination complete."
+                f"Processed {total_processed:,} items so far:"
+                f" {len(license_counter):,} unique legal tools,"
+                f" {len(language_counter):,} unique languages."
             )
+        if total_processed >= args.limit:
+            LOGGER.warning("Aborting fetch. Limit reached.")
             break
 
     LOGGER.info(
-        "Finished processing.\n"
-        "Number of unmapped licenses: "
-        f"{sum(unmapped_licenseurl_counter.values())}"
+        f"Finished fetching {total_processed:,} items:"
+        f" {len(license_counter):,} unique legal tools,"
+        f" {len(language_counter):,} unique languages."
     )
 
-    # Log unmapped languages once at the end
     if unmapped_licenseurl_counter:
+        LOGGER.warning(
+            "Number of unmapped legal tools: "
+            f"{sum(unmapped_licenseurl_counter.values()):,}"
+        )
         for license, count in unmapped_licenseurl_counter.items():
-            LOGGER.warning(f"Unmapped llicense: {license} : {count}")
+            LOGGER.warning(f"  Unmapped legal tools: {license}: {count:,}")
 
-    LOGGER.info(
-        "\n Number of unmapped languages: "
-        f"{sum(unmapped_language_counter.values())}"
-    )
     if unmapped_language_counter:
+        LOGGER.warning(
+            "Number of unmapped languages: "
+            f"{sum(unmapped_language_counter.values()):,}"
+        )
         for lang, count in unmapped_language_counter.items():
             cleaned = normalize_key(strip_noise(lang))
             LOGGER.warning(
-                f"Unmapped language: {lang} (cleaned: {cleaned}): {count}"
+                f"  Unmapped language: {lang} (cleaned: {cleaned}): {count:,}"
             )
 
     return license_counter, language_counter
