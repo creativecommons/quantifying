@@ -13,7 +13,6 @@ import textwrap
 import traceback
 import unicodedata
 from collections import Counter
-from time import sleep
 from urllib.parse import urlparse
 
 # Third-party
@@ -309,7 +308,6 @@ def query_internet_archive(args):
     rows = 1000000
     total_rows = 0
     total_processed = 0
-    max_retries = 3
 
     session = shared.get_session(
         accept_header="application/json", session=ArchiveSession()
@@ -317,35 +315,18 @@ def query_internet_archive(args):
     while True:
         # Loop until no more results are returned by the API
         LOGGER.info(f"Fetching {rows} items starting at {total_rows}...")
-        results = None
 
-        for attempt in range(max_retries):
-            try:
-                # Use search_items for simpler pagination management
-                search = session.search_items(
-                    query,
-                    fields=fields,
-                    params={"rows": rows, "start": total_rows},
-                    request_kwargs={"timeout": 120},
-                )
+        # Use search_items for simpler pagination management
+        response = session.search_items(
+            query,
+            fields=fields,
+            params={"rows": rows, "start": total_rows},
+            request_kwargs={"timeout": 30},
+        )
 
-                # Convert to list to iterate over
-                results = list(search)
-                total_rows += len(results)
-                break
-
-            except Exception as e:
-                wait_time = 2**attempt
-                LOGGER.warning(
-                    f"API request failed (Attempt {attempt+1}/{max_retries}). "
-                    f"Waiting {wait_time}s.Error: {e}"
-                    f"\n{traceback.format_exc()}"
-                )
-                sleep(wait_time)
-        else:
-            raise shared.QuantifyingException(
-                f"Failed to fetch data after {max_retries} attempts.", 1
-            )
+        # Convert to list to iterate over
+        results = list(response)
+        total_rows += len(results)
 
         if not results:
             LOGGER.info("No more results. Ending pagination.")
