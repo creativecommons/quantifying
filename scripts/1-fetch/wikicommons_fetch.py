@@ -35,8 +35,6 @@ FILE_WIKICOMMONS = shared.path_join(PATHS["data_phase"], "wikicommons.csv")
 HEADER_WIKICOMMONS = ["LICENSE TYPE", "File Count", "Page Count"]
 ROOT_CATEGORY = "Free_Creative_Commons_licenses"
 TIMEOUT = 25
-MAX_RETRIES = 5
-BACKOFF_FACTOR = 10
 
 
 def parse_arguments():
@@ -57,7 +55,7 @@ def parse_arguments():
         "--limit",
         type=int,
         default=None,
-        help="Limit recursive depth for testing (optional).",
+        help="Limit recursive depth for testing.",
     )
 
     args = parser.parse_args()
@@ -122,7 +120,7 @@ def get_subcategories(category, session):
     return all_subcats
 
 
-def get_license_contents(category, session):
+def fetch_category_totals(category, session):
     """Fetch total file and page counts for a category."""
     try:
         url = get_content_request_url(category)
@@ -140,7 +138,7 @@ def get_license_contents(category, session):
         return {"File Count": 0, "Page Count": 0}
 
 
-def recursive_collect_data(session, root_category, limit=None):
+def recursive_collect_data(session, limit=None):
     """Recursively traverse WikiCommons categories and collect data."""
 
     results = []
@@ -154,7 +152,7 @@ def recursive_collect_data(session, root_category, limit=None):
         visited.add(category)
 
         # Get counts for the current category itself
-        contents = get_license_contents(category, session)
+        contents = fetch_category_totals(category, session)
 
         results.append(
             {
@@ -181,7 +179,7 @@ def recursive_collect_data(session, root_category, limit=None):
             time.sleep(0.05)  # time to sleep
 
     # Start traversal from root
-    traverse(root_category, root_category)
+    traverse(ROOT_CATEGORY, ROOT_CATEGORY)
     return results
 
 
@@ -207,12 +205,8 @@ def main():
     LOGGER.info("Starting WikiCommons data fetch.")
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-
     session = shared.get_session(accept_header="application/json")
-    wikicommons_data = recursive_collect_data(
-        session, ROOT_CATEGORY, limit=args.limit
-    )
+    wikicommons_data = recursive_collect_data(session, limit=args.limit)
     args = write_data(args, wikicommons_data)
 
     args = shared.git_add_and_commit(
