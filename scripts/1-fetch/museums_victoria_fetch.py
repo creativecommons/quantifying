@@ -168,16 +168,7 @@ def fetch_museums_victoria_data(args, session):
         records_processed = 0
         current_page = 1
         total_pages = None
-        # 300 , 100 ==> 100
-        # 20, 100 ====> 20
         per_page = min(PER_PAGE, args.limit) if args.limit else PER_PAGE
-        # if args.limit is not None:
-        #     if records_processed >= args.limit:
-        #         LOGGER.info(
-        #             f"Limit Reached: {records_processed} processed. "
-        #             f"Skipping remaining record types."
-        #         )
-        #         break
 
         while True:
             # 1. Construct the API query parameters
@@ -225,6 +216,10 @@ def fetch_museums_victoria_data(args, session):
                 total_pages = int(headers.get("totalResults", "0"))
 
             if args.limit is not None and records_processed >= args.limit:
+                LOGGER.info(
+                    f"Limit Reached: {records_processed} processed. "
+                    f"Skipping remaining records for {record_type}."
+                )
                 break
             current_page += 1
 
