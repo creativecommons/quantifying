@@ -7,6 +7,7 @@ Fetch CC Legal Tool usage from the Museums Victoria Collections API.
 import argparse
 import csv
 import os
+import re
 import sys
 import textwrap
 import traceback
@@ -17,8 +18,6 @@ import requests
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -202,6 +201,10 @@ def fetch_museums_victoria_data(args, session):
 
                     # COUNTING THE UNIQUE LICENCE TYPES
                     license_short_name = licence_data.get("shortName")
+                    version_number = re.search(r"\b\d+\.\d+\b", licence_data.get("name"))
+                    if version_number:
+                        license_short_name = f"{license_short_name} {version_number.group()}"
+
                     if license_short_name:
                         licences_count[license_short_name] += 1
 
