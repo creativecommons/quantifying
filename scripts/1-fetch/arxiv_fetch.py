@@ -524,16 +524,21 @@ def save_count_data(
 
 def query_arxiv(args):
     """
-    Main function to query ArXiv API and collect CC license data.
-
+    Main function to query ArXiv OAI-PMH API and collect CC license data.
+    
+    Uses structured license metadata from OAI-PMH instead of text search.
+    Harvests papers from recent years to focus on CC-licensed content.
     """
 
-    LOGGER.info("Beginning to fetch results from ArXiv API")
+    LOGGER.info("Beginning to fetch results from ArXiv OAI-PMH API")
     session = get_requests_session()
 
-    results_per_iteration = 50
-
-    search_queries = SEARCH_QUERIES
+    # Calculate date range for harvesting
+    current_year = datetime.now().year
+    start_year = current_year - args.years_back
+    from_date = f"{start_year}-01-01"
+    
+    LOGGER.info(f"Harvesting papers from {from_date} onwards ({args.years_back} years back)")
 
     # Data structures for counting
     license_counts = defaultdict(int)
@@ -542,81 +547,94 @@ def query_arxiv(args):
     author_counts = defaultdict(lambda: defaultdict(int))
 
     total_fetched = 0
+    resumption_token = None
 
-    for search_query in search_queries:
-        if total_fetched >= args.limit:
-            break
+    while total_fetched < args.limit:
+        try:
+            # Build OAI-PMH request URL
+            if resumption_token:
+                # Continue with resumption token
+                query_params = {
+                    'verb': 'ListRecords',
+                    'resumptionToken': resumption_token
+                }
+            else:
+                # Initial request with date range
+                query_params = {
+                    'verb': 'ListRecords',
+                    'metadataPrefix': 'arXiv',
+                    'from': from_date
+                }
+            
+            # Make API request
+            LOGGER.info(f"Fetching batch starting from record {total_fetched}")
+            response = session.get(BASE_URL, params=query_params, timeout=60)
+            response.raise_for_status()
+            
+            # Parse XML response
+            root = ET.fromstring(response.content)
+            
+            # Check for errors
+            error_elem = root.find('.//{http://www.openarchives.org/OAI/2.0/}error')
+            if error_elem is not None:
+                raise shared.QuantifyingException(f"OAI-PMH Error: {error_elem.text}", 1)
+            
+            # Process records
+            records = root.findall('.//{http://www.openarchives.org/OAI/2.0/}record')
+            batch_cc_count = 0
+            
+            for record in records:
+                if total_fetched >= args.limit:
+                    break
+                
+                # Convert record to string for metadata extraction
+                record_xml = ET.tostring(record, encoding='unicode')
+                metadata = extract_metadata_from_xml(record_xml)
+                
+                # Only process CC-licensed papers
+                if metadata['license'] != "Unknown" and "CC" in metadata['license']:
+                    license_info = metadata['license']
+                    category = metadata['category']
+                    year = metadata['year']
+                    author_count = metadata['author_count']
 
-        LOGGER.info(f"Searching for: {search_query}")
-        papers_found_for_query = 0
+                    # Count by license
+                    license_counts[license_info] += 1
 
-        for start in range(
-            0,
-            min(args.limit - total_fetched, 500),
-            results_per_iteration,
-        ):
-            encoded_query = urllib.parse.quote_plus(search_query)
-            query = (
-                f"search_query={encoded_query}&start={start}"
-                f"&max_results={results_per_iteration}"
-            )
+                    # Count by category and license
+                    category_counts[license_info][category] += 1
 
-            papers_found_in_batch = 0
+                    # Count by year and license
+                    year_counts[license_info][year] += 1
 
-            try:
-                LOGGER.info(
-                    f"Fetching results {start} - "
-                    f"{start + results_per_iteration}"
-                )
-                response = session.get(BASE_URL + query, timeout=30)
-                response.raise_for_status()
-                feed = feedparser.parse(response.content)
+                    # Count by author count and license
+                    author_counts[license_info][author_count] += 1
 
-                for entry in feed.entries:
-                    if total_fetched >= args.limit:
-                        break
+                    total_fetched += 1
+                    batch_cc_count += 1
 
-                    license_info = extract_license_info(entry)
-
-                    if license_info != "Unknown":
-
-                        category = extract_category_from_entry(entry)
-                        year = extract_year_from_entry(entry)
-                        author_count = extract_author_count_from_entry(entry)
-
-                        # Count by license
-                        license_counts[license_info] += 1
-
-                        # Count by category and license
-                        category_counts[license_info][category] += 1
-
-                        # Count by year and license
-                        year_counts[license_info][year] += 1
-
-                        # Count by author count and license
-                        author_counts[license_info][author_count] += 1
-
-                        total_fetched += 1
-                        papers_found_in_batch += 1
-                        papers_found_for_query += 1
-
-                # arXiv recommends a 3-seconds delay between consecutive
-                # api calls for efficiency
-                time.sleep(3)
-            except requests.HTTPError as e:
-                raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
-            except requests.RequestException as e:
-                raise shared.QuantifyingException(f"Request Exception: {e}", 1)
-            except KeyError as e:
-                raise shared.QuantifyingException(f"KeyError: {e}", 1)
-
-            if papers_found_in_batch == 0:
+            LOGGER.info(f"Batch completed: {batch_cc_count} CC-licensed papers found")
+            
+            # Check for resumption token
+            resumption_elem = root.find('.//{http://www.openarchives.org/OAI/2.0/}resumptionToken')
+            if resumption_elem is not None and resumption_elem.text:
+                resumption_token = resumption_elem.text
+                LOGGER.info("Continuing with resumption token...")
+            else:
+                LOGGER.info("No more records available")
                 break
-
-        LOGGER.info(
-            f"Query '{search_query}' completed: "
-            f"{papers_found_for_query} papers found"
-        )
+                
+            # OAI-PMH recommends delays between requests
+            time.sleep(3)
+            
+        except requests.HTTPError as e:
+            raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
+        except requests.RequestException as e:
+            raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+        except ET.ParseError as e:
+            raise shared.QuantifyingException(f"XML Parse Error: {e}", 1)
+        except Exception as e:
+            raise shared.QuantifyingException(f"Unexpected error: {e}", 1)
 
     # Save results
     if args.enable_save:
@@ -624,16 +642,19 @@ def query_arxiv(args):
             license_counts, category_counts, year_counts, author_counts
         )
 
-    # save provenance
+    # Save provenance
     provenance_data = {
         "total_fetched": total_fetched,
-        "queries": search_queries,
+        "from_date": from_date,
+        "years_back": args.years_back,
         "limit": args.limit,
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
+        "api_endpoint": BASE_URL,
+        "method": "OAI-PMH structured license harvesting"
     }
 
-    # write provenance YAML for auditing
+    # Write provenance YAML for auditing
     try:
         with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as fh:
             yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
@@ -641,6 +662,7 @@ def query_arxiv(args):
         LOGGER.warning("Failed to write provenance file: %s", e)
 
     LOGGER.info(f"Total CC licensed papers fetched: {total_fetched}")
+    LOGGER.info(f"License distribution: {dict(license_counts)}")
 
 
 def main():
