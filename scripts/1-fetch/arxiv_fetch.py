@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 """
-Fetch ArXiv papers with CC license information and generate count reports.
+Fetch ArXiv papers with CC license information using OAI-PMH API.
+
+This script uses ArXiv's OAI-PMH interface to harvest papers with structured
+license metadata, providing more accurate CC license detection than text-based
+pattern matching. Focuses on recent years where CC licensing is more common.
 """
 # Standard library
 import argparse
@@ -18,7 +22,6 @@ from datetime import datetime, timedelta
 from operator import itemgetter
 
 # Third-party
-import feedparser
 import requests
 import yaml
 from pygments import highlight
