@@ -350,7 +350,7 @@ def get_requests_session(request_timeout=60, debug=False):
     """
     max_retries = Retry(
         total=MAX_RETRIES,
-        backoff_factor=INITIAL_BACKOFF,
+        backoff_factor=10,
         # Add rate limit (429) to retry status list
         status_forcelist=shared.RETRY_STATUS_FORCELIST + [429],
         allowed_methods=["GET"],  # Only retry GET requests
