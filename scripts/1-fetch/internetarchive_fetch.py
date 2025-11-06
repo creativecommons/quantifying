@@ -303,7 +303,7 @@ def query_internet_archive(args):
     unmapped_language_counter = Counter()
 
     fields = ["licenseurl", "language"]
-    query = "creativecommons.org"
+    query = "licenseurl:*creativecommons.org*"
     license_mapping = load_license_mapping()
 
     rows = 1000000
