@@ -335,79 +335,88 @@ def get_requests_session():
     return session
 
 
-def normalize_license_text(raw_text):
+def extract_license_from_xml(record_xml):
     """
-    Convert raw license text to standardized CC license identifiers.
-
-    Uses regex patterns to identify CC licenses from paper text.
-    Returns specific license (e.g., "CC BY", "CC0") or "Unknown".
-    """
-    if not raw_text:
-        return "Unknown"
-
-    for pattern, license_type in CC_PATTERNS:
-        if pattern.search(raw_text):
-            return license_type
-
-    return "Unknown"
-
-
-def extract_license_info(entry):
-    """
-    Extract CC license information from ArXiv paper entry.
-
-    Checks rights field first, then summary field for license patterns.
+    Extract CC license information from OAI-PMH XML record.
+    
+    Uses structured license field from arXiv metadata format.
     Returns normalized license identifier or "Unknown".
     """
-    # checking through the rights field first then summary
-    if hasattr(entry, "rights") and entry.rights:
-        license_info = normalize_license_text(entry.rights)
-        if license_info != "Unknown":
-            return license_info
-    if hasattr(entry, "summary") and entry.summary:
-        license_info = normalize_license_text(entry.summary)
-        if license_info != "Unknown":
-            return license_info
-    return "Unknown"
+    try:
+        # Parse the XML record
+        root = ET.fromstring(record_xml)
+        
+        # Find license element in arXiv namespace
+        license_elem = root.find('.//{http://arxiv.org/OAI/arXiv/}license')
+        
+        if license_elem is not None and license_elem.text:
+            license_url = license_elem.text.strip()
+            
+            # Map license URL to standardized identifier
+            if license_url in LICENSE_MAPPING:
+                return LICENSE_MAPPING[license_url]
+            
+            # Check for Creative Commons URLs not in mapping
+            if "creativecommons.org" in license_url.lower():
+                return f"CC (unmapped): {license_url}"
+                
+        return "Unknown"
+        
+    except ET.ParseError as e:
+        LOGGER.debug(f"XML parsing error: {e}")
+        return "Unknown"
+    except Exception as e:
+        LOGGER.debug(f"License extraction error: {e}")
+        return "Unknown"
 
 
-def extract_category_from_entry(entry):
-    """Extract primary category from ArXiv entry."""
-    if (
-        hasattr(entry, "arxiv_primary_category")
-        and entry.arxiv_primary_category
-    ):
-        return entry.arxiv_primary_category.get("term", "Unknown")
-    if hasattr(entry, "tags") and entry.tags:
-        # Get first category from tags
-        for tag in entry.tags:
-            if hasattr(tag, "term"):
-                return tag.term
-    return "Unknown"
-
-
-def extract_year_from_entry(entry):
-    """Extract publication year from ArXiv entry."""
-    if hasattr(entry, "published") and entry.published:
-        try:
-            return entry.published[:4]  # Extract year from date string
-        except (AttributeError, IndexError) as e:
-            LOGGER.debug(
-                f"Failed to extract year from '{entry.published}': {e}"
-            )
-    return "Unknown"
-
-
-def extract_author_count_from_entry(entry):
-    """Extract number of authors from ArXiv entry."""
-    if hasattr(entry, "authors") and entry.authors:
-        try:
-            return len(entry.authors)
-        except Exception as e:
-            LOGGER.debug(f"Failed to count authors from entry.authors: {e}")
-    if hasattr(entry, "author") and entry.author:
-        return 1
-    return "Unknown"
+def extract_metadata_from_xml(record_xml):
+    """
+    Extract paper metadata from OAI-PMH XML record.
+    
+    Returns dict with category, year, author_count, and license info.
+    """
+    try:
+        root = ET.fromstring(record_xml)
+        
+        # Extract category (primary category from categories field)
+        categories_elem = root.find('.//{http://arxiv.org/OAI/arXiv/}categories')
+        category = "Unknown"
+        if categories_elem is not None and categories_elem.text:
+            # Take first category as primary
+            category = categories_elem.text.strip().split()[0]
+        
+        # Extract year from created date
+        created_elem = root.find('.//{http://arxiv.org/OAI/arXiv/}created')
+        year = "Unknown"
+        if created_elem is not None and created_elem.text:
+            try:
+                year = created_elem.text.strip()[:4]  # Extract year
+            except (AttributeError, IndexError):
+                pass
+        
+        # Extract author count
+        authors = root.findall('.//{http://arxiv.org/OAI/arXiv/}author')
+        author_count = len(authors) if authors else "Unknown"
+        
+        # Extract license
+        license_info = extract_license_from_xml(record_xml)
+        
+        return {
+            'category': category,
+            'year': year,
+            'author_count': author_count,
+            'license': license_info
+        }
+        
+    except Exception as e:
+        LOGGER.debug(f"Metadata extraction error: {e}")
+        return {
+            'category': "Unknown",
+            'year': "Unknown", 
+            'author_count': "Unknown",
+            'license': "Unknown"
+        }
 
 
 def bucket_author_count(n):
