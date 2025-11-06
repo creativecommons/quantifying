@@ -364,10 +364,10 @@ def extract_license_from_xml(record_xml):
         return "Unknown"
 
     except ET.ParseError as e:
-        LOGGER.debug(f"XML parsing error: {e}")
+        LOGGER.error(f"XML parsing error in license extraction: {e}")
         return "Unknown"
     except Exception as e:
-        LOGGER.debug(f"License extraction error: {e}")
+        LOGGER.error(f"License extraction error: {e}")
         return "Unknown"
 
 
@@ -395,12 +395,15 @@ def extract_metadata_from_xml(record_xml):
         if created_elem is not None and created_elem.text:
             try:
                 year = created_elem.text.strip()[:4]  # Extract year
-            except (AttributeError, IndexError):
-                pass
+            except (AttributeError, IndexError) as e:
+                LOGGER.warning(
+                    f"Failed to extract year from '{created_elem.text}': {e}"
+                )
+                year = "Unknown"
 
         # Extract author count
         authors = root.findall(".//{http://arxiv.org/OAI/arXiv/}author")
-        author_count = len(authors) if authors else "Unknown"
+        author_count = len(authors) if authors else 0
 
         # Extract license
         license_info = extract_license_from_xml(record_xml)
@@ -413,11 +416,11 @@ def extract_metadata_from_xml(record_xml):
         }
 
     except Exception as e:
-        LOGGER.debug(f"Metadata extraction error: {e}")
+        LOGGER.error(f"Metadata extraction error: {e}")
         return {
             "category": "Unknown",
             "year": "Unknown",
-            "author_count": "Unknown",
+            "author_count": 0,
             "license": "Unknown",
         }
 
@@ -426,9 +429,12 @@ def bucket_author_count(n):
     """
     Convert author count to predefined buckets for analysis.
 
-    Buckets: "1", "2", "3", "4", "5+", "Unknown"
+    Buckets: "1", "2", "3", "4", "5+"
     Reduces granularity for better statistical analysis.
+    Returns None for invalid counts (0 or non-numeric).
     """
+    if not isinstance(n, int) or n <= 0:
+        return None
     if n == 1:
         return "1"
     if n == 2:
@@ -439,7 +445,7 @@ def bucket_author_count(n):
         return "4"
     if n >= 5:
         return "5+"
-    return "Unknown"
+    return None
 
 
 def save_count_data(
@@ -508,7 +514,8 @@ def save_count_data(
         bucket_counts = Counter()
         for ac, c in acs.items():
             b = bucket_author_count(ac)
-            bucket_counts[b] += c
+            if b is not None:  # Only include valid buckets
+                bucket_counts[b] += c
         for b, c in bucket_counts.items():
             data.append(
                 {"TOOL_IDENTIFIER": lic, "AUTHOR_BUCKET": b, "COUNT": c}
@@ -678,7 +685,10 @@ def query_arxiv(args):
         with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as fh:
             yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
     except Exception as e:
-        LOGGER.warning("Failed to write provenance file: %s", e)
+        LOGGER.error(f"Failed to write provenance file: {e}")
+        raise shared.QuantifyingException(
+            f"Provenance file write failed: {e}", 1
+        )
 
     LOGGER.info(f"Total CC licensed papers fetched: {total_fetched}")
     LOGGER.info(f"License distribution: {dict(license_counts)}")
