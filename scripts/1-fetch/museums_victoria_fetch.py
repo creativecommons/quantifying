@@ -88,12 +88,11 @@ def get_requests_session():
 
 
 def initialize_data_file(file_path, header):
-    if not os.path.isfile(file_path):
-        with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
-            writer = csv.DictWriter(
-                file_obj, fieldnames=header, dialect="unix"
-            )
-            writer.writeheader()
+    with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
+        writer = csv.DictWriter(
+            file_obj, fieldnames=header, dialect="unix"
+        )
+        writer.writeheader()
 
 
 def initialize_all_data_files(args):
