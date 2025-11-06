@@ -133,7 +133,7 @@ def fetch_category_totals(category, session):
     except Exception as e:
         message = f"Failed to fetch contents for {category}: {e}"
         LOGGER.error(message)
-        raise shared.QuantifyingException(message, exit_code=1)
+        raise shared.QuantifyingException(message)
 
 
 def recursive_collect_data(session, limit=None):
