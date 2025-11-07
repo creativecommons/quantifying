@@ -9,7 +9,8 @@ from datetime import datetime, timezone
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from pandas import PeriodIndex
 from requests import Session
-from requests.adapters import HTTPAdapter, Retry
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 # Constants
 STATUS_FORCELIST = [
