@@ -2,13 +2,15 @@
 import logging
 import os
 import sys
+from collections import OrderedDict
 from datetime import datetime, timezone
 
 # Third-party
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from pandas import PeriodIndex
 from requests import Session
-from requests.adapters import HTTPAdapter, Retry
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 # Constants
 STATUS_FORCELIST = [
@@ -33,20 +35,23 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
-# def get_session(accept_header=None):
-#     """Create a reusable HTTP session with retry logic."""
-#     session = Session()
-
-
 def get_session(accept_header=None, session=None):
-    """Create or configure a reusable HTTP session
-    with retry logic and headers."""
+    """
+    Create or configure a reusable HTTPS session with retry logic and
+    appropriate headers.
+    """
     if session is None:
         session = Session()
 
+    # Purge default and custom session connection adapters
+    # (With only a https:// adapter, below, unencrypted requests will fail.)
+    session.adapters = OrderedDict()
+
+    # Try again after 0s, 6s, 12s, 24s, 48s (total 90s) for the specified HTTP
+    # error codes (STATUS_FORCELIST)
     retry_strategy = Retry(
         total=5,
-        backoff_factor=10,
+        backoff_factor=3,
         status_forcelist=STATUS_FORCELIST,
         allowed_methods=["GET", "POST"],
         raise_on_status=False,
