@@ -301,17 +301,11 @@ def normalize_language(raw_language):
     return "Undetermined"
 
 
-def query_internet_archive(args):
+def query_internet_archive(args, session, license_mapping):
     license_counter = Counter()
     language_counter = Counter()
     unmapped_licenseurl_counter = Counter()
     unmapped_language_counter = Counter()
-
-    license_mapping = load_license_mapping()
-
-    session = shared.get_session(
-        accept_header="application/json", session=ArchiveSession()
-    )
 
     LOGGER.info("Beginning fetch.")
     # Use search_items for simpler pagination management
@@ -441,7 +435,14 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
 
-    license_data, language_data = query_internet_archive(args)
+    session = shared.get_session(
+        accept_header="application/json", session=ArchiveSession()
+    )
+
+    license_mapping = load_license_mapping()
+    license_data, language_data = query_internet_archive(
+        args, session, license_mapping
+    )
 
     if args.enable_save:
         write_all(args, license_data, language_data)
