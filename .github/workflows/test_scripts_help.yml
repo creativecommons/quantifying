@@ -31,4 +31,4 @@ jobs:
 
     - name: test scripts' help
       run: |
-        ./dev/test_sripts_help.sh
+        ./dev/test_scripts_help.sh
