@@ -77,13 +77,17 @@ LANGUAGE_NOISE_WORDS = [
     "-handwritten",
     "-spoken",
     "=",
+    "dialects",
     "english patch",
     "hand write",
     "hand written",
     "hand-written",
     "handwritten",
     "instrumental",
+    "intertitles",
     "language",
+    "minimal",
+    "no dialog",
     "no speech",
     "no spoken word",
     "no voice",
@@ -93,6 +97,7 @@ LANGUAGE_NOISE_WORDS = [
     "subbed",
     "subtitle",
     "subtitles?",
+    "titlecards",
     "universal",
     "with subtitles?",
 ]
@@ -347,6 +352,13 @@ def query_internet_archive(args, session, license_mapping):
             "Number of unmapped legal tools: "
             f"{sum(unmapped_licenseurl_counter.values()):,}"
         )
+        unmapped_licenseurl_counter = dict(
+            sorted(
+                unmapped_licenseurl_counter.items(),
+                key=lambda item: item[1],
+                reverse=True,
+            )
+        )
         for license, count in unmapped_licenseurl_counter.items():
             LOGGER.warning(f"  Unmapped legal tools: {license}: {count:,}")
 
@@ -354,6 +366,13 @@ def query_internet_archive(args, session, license_mapping):
         LOGGER.warning(
             "Number of unmapped languages: "
             f"{sum(unmapped_language_counter.values()):,}"
+        )
+        unmapped_language_counter = dict(
+            sorted(
+                unmapped_language_counter.items(),
+                key=lambda item: item[1],
+                reverse=True,
+            )
         )
         for lang, count in unmapped_language_counter.items():
             cleaned = normalize_key(strip_noise(lang))
