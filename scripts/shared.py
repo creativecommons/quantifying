@@ -2,6 +2,7 @@
 import logging
 import os
 import sys
+from collections import OrderedDict
 from datetime import datetime, timezone
 
 # Third-party
@@ -33,14 +34,23 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
-def get_session(accept_header=None):
-    """Create a reusable HTTP session with retry logic."""
-    session = Session()
+def get_session(accept_header=None, session=None):
+    """
+    Create or configure a reusable HTTPS session with retry logic and headers.
+    """
+    if session is None:
+        session = Session()
+
+    # Purge default and custom session connection adapters
+    # (With only a https:// adapter, below, unencrypted requests will fail.)
+    session.adapters = OrderedDict()
 
     retry_strategy = Retry(
         total=5,
         backoff_factor=10,
         status_forcelist=STATUS_FORCELIST,
+        allowed_methods=["GET", "POST"],
+        raise_on_status=False,
     )
     session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
 
