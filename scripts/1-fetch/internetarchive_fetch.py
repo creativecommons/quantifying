@@ -92,6 +92,29 @@ LANGUAGE_ALIAS_MAP = {
     "русский": "Russian",
     "український": "Ukrainian",
 }
+LANGUAGE_NOISE_WORDS = [
+    "-handwritten",
+    "-spoken",
+    "=",
+    "english patch",
+    "hand write",
+    "hand written",
+    "hand-written",
+    "handwritten",
+    "instrumental",
+    "language",
+    "no speech",
+    "no spoken word",
+    "no voice",
+    "simple",
+    "spoken",
+    "sub-titles",
+    "subbed",
+    "subtitle",
+    "subtitles?",
+    "universal",
+    "with subtitles?",
+]
 LIMIT_DEFAULT = 100000
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
@@ -208,45 +231,24 @@ def iso639_lookup(term):
     return None
 
 
-# strip common noise like "subtitles", "subtitle",
-# "(English)", "english patch", "handwritten", etc.
-def strip_noise(s):
+def strip_noise(language):
+    """
+    Strip common noise like "subtitles", "subtitle", "(English)",
+    "english patch", "handwritten", etc.
+    """
+
     # Helper to find words with flexible boundaries
     def word_regex(word):
         return r"(\b|(?<=[\-_]))" + re.escape(word) + r"\b"
 
-    noise_words = [
-        "-handwritten",
-        "-spoken",
-        "=",
-        "english patch",
-        "hand write",
-        "hand written",
-        "hand-written",
-        "handwritten",
-        "instrumental",
-        "language",
-        "no speech",
-        "no spoken word",
-        "no voice",
-        "simple",
-        "spoken",
-        "sub-titles",
-        "subbed",
-        "subtitle",
-        "subtitles?",
-        "universal",
-        "with subtitles?",
-    ]
-
     # Combine all noise words into one regex
-    combined_regex = r"|".join(word_regex(w) for w in noise_words)
+    combined_regex = r"|".join(word_regex(w) for w in LANGUAGE_NOISE_WORDS)
 
-    s = re.sub(combined_regex, " ", s, flags=re.I)
+    language = re.sub(combined_regex, " ", language, flags=re.I)
 
     # Original regex for symbols
-    s = re.sub(r"[()\"\']", " ", s)
-    return s
+    language = re.sub(r"[()\"\']", " ", language)
+    return language
 
 
 def is_multi_language(raw_language):
