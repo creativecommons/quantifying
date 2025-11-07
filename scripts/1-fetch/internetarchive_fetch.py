@@ -32,19 +32,68 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 
-# CSV paths
+# Constants
 FILE1_COUNT = os.path.join(PATHS["data_phase"], "internetarchive_1_count.csv")
 FILE2_LANGUAGE = os.path.join(
     PATHS["data_phase"], "internetarchive_2_count_by_language.csv"
 )
-
-# CSV headers
 HEADER1 = ["LICENSE", "COUNT"]
 HEADER2 = ["LICENSE", "LANGUAGE", "COUNT"]
+ISO639_CACHE = {}
+LANGUAGE_ALIAS_MAP = {
+    "american english": "English",
+    "american": "English",
+    "anglais": "English",
+    "bosanski": "Bosnian",
+    "castellano": "Spanish",
+    "chinese sub": "Chinese",
+    "deutsch": "German",
+    "egligh": "English",
+    "eglish": "English",
+    "en_us es_es": "Multiple languages",
+    "english & chinese subbed": "Multiple languages",
+    "english (us)": "English",
+    "english - american": "English",
+    "english_handwritten": "English",
+    "engrish": "English",
+    "enlgish": "English",
+    "espanol": "Spanish",
+    "francais": "French",
+    "france": "French",
+    "greek": "Greek",
+    "hwbrew": "Hebrew",
+    "ilokano": "Ilokano",
+    "indian english": "English",
+    "italiano": "Italian",
+    "mandarin": "Chinese",
+    "multi": "Multiple Languages",
+    "multilanguage": "Multiple languages",
+    "multiple": "Multiple Languages",
+    "music": "Undetermined",
+    "n/a": "Undetermined",
+    "nederlands": "Dutch",
+    "no language (english)": "Undetermined",
+    "no speech": "Undetermined",
+    "no spoken language": "Undetermined",
+    "none": "Undetermined",
+    "polska": "Polish",
+    "português e espanhol": "Multiple languages",
+    "português": "Portuguese",
+    "pt_br": "Portuguese",
+    "sgn": "Sign languages",
+    "spain": "Spanish",
+    "swahili": "Swahili",
+    "uk english": "English",
+    "unknown": "Undetermined",
+    "us english": "English",
+    "us-en": "English",
+    "viẹetnamese": "Vietnamese",
+    "whatever we play it to be": "Undetermined",
+    "русский": "Russian",
+    "український": "Ukrainian",
+}
 LIMIT_DEFAULT = 100000
 QUARTER = os.path.basename(PATHS["data_quarter"])
-
-ISO639_CACHE = {}
 
 
 def parse_arguments():
@@ -212,24 +261,23 @@ def is_multi_language(raw_language):
 
 
 def normalize_language(raw_language):
+    raw = str(raw_language).strip()
     if not raw_language:
         return "Undetermined"
 
-    raw = str(raw_language).strip()
-
-    # check multi-language
+    # 1st: check multi-language
     if is_multi_language(raw):
         return "Multiple languages"
 
-    # strip noise and normalize
+    # Prep for subsequent checks by striping noise and normalizing
     cleaned = normalize_key(strip_noise(raw))
 
-    # --- Try ISO639 first ---
+    # 2nd: check ISO639
     lang_obj = iso639_lookup(raw) or iso639_lookup(cleaned)
     if lang_obj and getattr(lang_obj, "name", None):
         return lang_obj.name
 
-    # Try Babel
+    # 3rd: check Babel
     for cand in [raw, cleaned]:
         if not cand:
             continue
@@ -240,63 +288,10 @@ def normalize_language(raw_language):
         except Exception:
             pass
 
-    # --- Try Alias Map ---
-    ALIAS_MAP = {
-        "american english": "English",
-        "american": "English",
-        "anglais": "English",
-        "bosanski": "Bosnian",
-        "castellano": "Spanish",
-        "chinese sub": "Chinese",
-        "deutsch": "German",
-        "egligh": "English",
-        "eglish": "English",
-        "en_us es_es": "Multiple languages",
-        "english & chinese subbed": "Multiple languages",
-        "english (us)": "English",
-        "english - american": "English",
-        "english_handwritten": "English",
-        "engrish": "English",
-        "enlgish": "English",
-        "espanol": "Spanish",
-        "francais": "French",
-        "france": "French",
-        "greek": "Greek",
-        "hwbrew": "Hebrew",
-        "ilokano": "Ilokano",
-        "indian english": "English",
-        "italiano": "Italian",
-        "mandarin": "Chinese",
-        "multi": "Multiple Languages",
-        "multilanguage": "Multiple languages",
-        "multiple": "Multiple Languages",
-        "music": "Undetermined",
-        "n/a": "Undetermined",
-        "nederlands": "Dutch",
-        "no language (english)": "Undetermined",
-        "no speech": "Undetermined",
-        "no spoken language": "Undetermined",
-        "none": "Undetermined",
-        "polska": "Polish",
-        "português e espanhol": "Multiple languages",
-        "português": "Portuguese",
-        "pt_br": "Portuguese",
-        "sgn": "Sign languages",
-        "spain": "Spanish",
-        "swahili": "Swahili",
-        "uk english": "English",
-        "unknown": "Undetermined",
-        "us english": "English",
-        "us-en": "English",
-        "viẹetnamese": "Vietnamese",
-        "whatever we play it to be": "Undetermined",
-        "русский": "Russian",
-        "український": "Ukrainian",
-    }
-    ALIAS_MAP = {normalize_key(k): v for k, v in ALIAS_MAP.items()}
-
-    if cleaned in ALIAS_MAP:
-        return ALIAS_MAP[cleaned]
+    # 4th: check language alias map
+    alias_map = {normalize_key(k): v for k, v in LANGUAGE_ALIAS_MAP.items()}
+    if cleaned in alias_map:
+        return alias_map[cleaned]
 
     return "Undetermined"
 
