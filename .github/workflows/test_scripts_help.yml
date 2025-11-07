@@ -29,6 +29,6 @@ jobs:
       run: |
         pipenv sync --system
 
-    - name: test scripts' help
+    - name: Test scripts' help
       run: |
         ./dev/test_scripts_help.sh
