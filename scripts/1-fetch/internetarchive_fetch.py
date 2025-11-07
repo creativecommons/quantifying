@@ -183,20 +183,24 @@ def normalize_license(licenseurl, license_mapping=None):
     return label
 
 
-def normalize_key(s):
-    """Normalize string for dictionary keys:
-    NFKD, remove diacritics, punctuation, collapse spaces, lowercase."""
-    if not s:
+def normalize_key(key_string):
+    """
+    Normalize string for dictionary keys:
+        NFKD, remove diacritics, punctuation, collapse spaces, lowercase
+    """
+    if not key_string:
         return ""
-    s = str(s)
-    s = unicodedata.normalize("NFKD", s)
-    s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    s = re.sub(
-        r"[^\w\s\+\-/]", " ", s, flags=re.UNICODE
+    key_string = str(key_string)
+    key_string = unicodedata.normalize("NFKD", key_string)
+    key_string = "".join(
+        ch for ch in key_string if not unicodedata.combining(ch)
+    )
+    key_string = re.sub(
+        r"[^\w\s\+\-/]", " ", key_string, flags=re.UNICODE
     )  # keep + / - for splits
-    if re.fullmatch(r"[a-zA-Z]{2,3}[-_][a-zA-Z]{2,3}", s.strip()):
-        s = s.replace("_", "-")
-    return s.strip().lower()
+    if re.fullmatch(r"[a-zA-Z]{2,3}[-_][a-zA-Z]{2,3}", key_string.strip()):
+        key_string = key_string.replace("_", "-")
+    return key_string.strip().lower()
 
 
 def strip_noise(language):
