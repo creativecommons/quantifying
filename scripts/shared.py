@@ -37,7 +37,8 @@ class QuantifyingException(Exception):
 
 def get_session(accept_header=None, session=None):
     """
-    Create or configure a reusable HTTPS session with retry logic and headers.
+    Create or configure a reusable HTTPS session with retry logic and
+    appropriate headers.
     """
     if session is None:
         session = Session()
@@ -46,9 +47,11 @@ def get_session(accept_header=None, session=None):
     # (With only a https:// adapter, below, unencrypted requests will fail.)
     session.adapters = OrderedDict()
 
+    # Try again after 0s, 6s, 12s, 24s, 48s (total 90s) for the specified HTTP
+    # error codes (STATUS_FORCELIST)
     retry_strategy = Retry(
         total=5,
-        backoff_factor=10,
+        backoff_factor=3,
         status_forcelist=STATUS_FORCELIST,
         allowed_methods=["GET", "POST"],
         raise_on_status=False,
