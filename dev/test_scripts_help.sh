@@ -3,7 +3,17 @@
 # Ensure each script can display help message to ensure basic execution.
 #
 # This script must be run from within the pipenv shell or a properly configured
-# environment.
+# environment. For example:
+#
+#   1. Using pipenv run
+#       pipenv run ./dev/test_scripts_help.sh
+#
+#   2. Using pipenv shell
+#       pipenv shell
+#       ./dev/test_scripts_help.sh
+#
+#   3. A properly configured environment
+#      (see .github/workflows/test_scripts_help.yml)
 #
 #### SETUP ####################################################################
 
@@ -42,4 +52,5 @@ test_help() {
 
 cd "${DIR_REPO}"
 test_help
+echo "exit status: ${EXIT_STATUS}"
 exit ${EXIT_STATUS}
