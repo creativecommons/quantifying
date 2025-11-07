@@ -39,15 +39,12 @@ FILE2_LANGUAGE = os.path.join(
 )
 HEADER1 = ["LICENSE", "COUNT"]
 HEADER2 = ["LICENSE", "LANGUAGE", "COUNT"]
-ISO639_CACHE = {}
 LANGUAGE_ALIAS_MAP = {
     "american english": "English",
     "american": "English",
     "anglais": "English",
-    "bosanski": "Bosnian",
     "castellano": "Spanish",
     "chinese sub": "Chinese",
-    "deutsch": "German",
     "egligh": "English",
     "eglish": "English",
     "en_us es_es": "Multiple languages",
@@ -57,41 +54,25 @@ LANGUAGE_ALIAS_MAP = {
     "english_handwritten": "English",
     "engrish": "English",
     "enlgish": "English",
-    "espanol": "Spanish",
-    "francais": "French",
     "france": "French",
-    "greek": "Greek",
     "hwbrew": "Hebrew",
     "ilokano": "Ilokano",
     "indian english": "English",
-    "italiano": "Italian",
     "mandarin": "Chinese",
     "multi": "Multiple Languages",
     "multilanguage": "Multiple languages",
     "multiple": "Multiple Languages",
-    "music": "Undetermined",
-    "n/a": "Undetermined",
-    "nederlands": "Dutch",
-    "no language (english)": "Undetermined",
-    "no speech": "Undetermined",
-    "no spoken language": "Undetermined",
-    "none": "Undetermined",
     "polska": "Polish",
     "português e espanhol": "Multiple languages",
-    "português": "Portuguese",
-    "pt_br": "Portuguese",
     "sgn": "Sign languages",
     "spain": "Spanish",
-    "swahili": "Swahili",
     "uk english": "English",
-    "unknown": "Undetermined",
     "us english": "English",
     "us-en": "English",
     "viẹetnamese": "Vietnamese",
-    "whatever we play it to be": "Undetermined",
-    "русский": "Russian",
     "український": "Ukrainian",
 }
+LANGUAGE_NAME_MAP = {}  # Populated by create_language_name_map()
 LANGUAGE_NOISE_WORDS = [
     "-handwritten",
     "-spoken",
@@ -155,6 +136,23 @@ def load_license_mapping():
             if normalized_url:
                 license_mapping[normalized_url] = label
     return license_mapping
+
+
+def create_language_name_map():
+    global LANGUAGE_NAME_MAP
+    for locale_code in babel.localedata.locale_identifiers():
+        locale = babel.Locale.parse(locale_code)
+        # Localized/native language name
+        name = normalize_key(locale.display_name)
+        if not name:
+            continue
+        LANGUAGE_NAME_MAP[name.lower()] = locale.language
+        # English language name
+        name = normalize_key(locale.english_name)
+        if not name:
+            continue
+        LANGUAGE_NAME_MAP[name.lower()] = locale.language
+    LANGUAGE_NAME_MAP = dict(sorted(LANGUAGE_NAME_MAP.items()))
 
 
 def normalize_license(licenseurl, license_mapping=None):
@@ -243,18 +241,26 @@ def normalize_language(raw_language):
 
     # Prep for subsequent checks by striping noise and normalizing
     cleaned = normalize_key(strip_noise(raw))
+    if cleaned in LANGUAGE_NAME_MAP:
+        cleaned = LANGUAGE_NAME_MAP[cleaned]
+
+    # 2nd: check language alias map
+    alias_map = {normalize_key(k): v for k, v in LANGUAGE_ALIAS_MAP.items()}
+    if cleaned in alias_map:
+        return alias_map[cleaned]
+
     for language in [raw, cleaned]:
         if not language:
             continue
 
-        # 2nd: check ISO639
+        # 3rd: check ISO639
         try:
             name = iso639.Language.match(language).name
             return name
         except iso639.language.LanguageNotFoundError:
             pass
 
-        # 3rd: check Babel
+        # 4th: check Babel
         try:
             language_locale = language.replace("-", "_")
             locale = babel.Locale.parse(language_locale, sep="_")
@@ -264,11 +270,6 @@ def normalize_language(raw_language):
             pass
         except ValueError:
             pass
-
-    # 4th: check language alias map
-    alias_map = {normalize_key(k): v for k, v in LANGUAGE_ALIAS_MAP.items()}
-    if cleaned in alias_map:
-        return alias_map[cleaned]
 
     return "Undetermined"
 
@@ -412,6 +413,8 @@ def main():
     )
 
     license_mapping = load_license_mapping()
+    create_language_name_map()
+
     license_data, language_data = query_internet_archive(
         args, session, license_mapping
     )
