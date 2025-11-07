@@ -16,9 +16,9 @@ from collections import Counter
 from urllib.parse import urlparse
 
 # Third-party
-from babel import Locale
+import babel
+import iso639
 from internetarchive import ArchiveSession
-from iso639 import Lang
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -201,36 +201,6 @@ def normalize_key(s):
     return s.strip().lower()
 
 
-def iso639_lookup(term):
-    """Return a Language object or None;
-    cache results.
-    Accepts raw user input."""
-    if not term:
-        return None
-    key = term.strip().lower().replace("_", "-")
-    if key in ISO639_CACHE:
-        return ISO639_CACHE[key]
-
-    # Try direct code match
-    try:
-        result = Lang(key)
-        ISO639_CACHE[key] = result
-        return result
-    except Exception:
-        pass
-
-    # fallback to title-case name lookup
-    try:
-        result = Lang(term.strip().title())
-        if result:
-            ISO639_CACHE[key] = result
-            return result
-    except Exception:
-        pass
-
-    return None
-
-
 def strip_noise(language):
     """
     Strip common noise like "subtitles", "subtitle", "(English)",
@@ -264,7 +234,7 @@ def is_multi_language(raw_language):
 
 def normalize_language(raw_language):
     raw = str(raw_language).strip()
-    if not raw_language:
+    if not raw:
         return "Undetermined"
 
     # 1st: check multi-language
@@ -273,21 +243,26 @@ def normalize_language(raw_language):
 
     # Prep for subsequent checks by striping noise and normalizing
     cleaned = normalize_key(strip_noise(raw))
-
-    # 2nd: check ISO639
-    lang_obj = iso639_lookup(raw) or iso639_lookup(cleaned)
-    if lang_obj and getattr(lang_obj, "name", None):
-        return lang_obj.name
-
-    # 3rd: check Babel
-    for cand in [raw, cleaned]:
-        if not cand:
+    for language in [raw, cleaned]:
+        if not language:
             continue
+
+        # 2nd: check ISO639
         try:
-            cand_locale = cand.replace("-", "_")
-            locale = Locale.parse(cand_locale, sep="_")
-            return locale.get_language_name("en")
-        except Exception:
+            name = iso639.Language.match(language).name
+            return name
+        except iso639.language.LanguageNotFoundError:
+            pass
+
+        # 3rd: check Babel
+        try:
+            language_locale = language.replace("-", "_")
+            locale = babel.Locale.parse(language_locale, sep="_")
+            name = locale.get_language_name("en")
+            return name
+        except babel.core.UnknownLocaleError:
+            pass
+        except ValueError:
             pass
 
     # 4th: check language alias map

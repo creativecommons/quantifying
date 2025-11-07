@@ -10,7 +10,7 @@ GitPython = "*"
 google-api-python-client = "*"
 h11 = ">=0.16.0"  # Ensure dependency is secure
 internetarchive = ">=5.5.1"
-iso639-lang = "*"
+python-iso639 = "*"
 jupyterlab = ">=3.6.7"
 matplotlib = "*"
 numpy = "*"
