@@ -4,8 +4,7 @@ Fetch ArXiv papers with CC license information using OAI-PMH API.
 
 This script uses ArXiv's OAI-PMH interface to harvest papers with structured
 license metadata, providing more accurate CC license detection than text-based
-pattern matching. Focuses on recent years where CC licensing is more commonly
-adopted.
+pattern matching. Focuses on recent years where CC licensing is more common.
 """
 # Standard library
 import argparse
