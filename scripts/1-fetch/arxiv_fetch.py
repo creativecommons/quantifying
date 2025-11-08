@@ -1,22 +1,26 @@
 #!/usr/bin/env python
 """
-Fetch ArXiv papers with CC license information and generate count reports.
+Fetch ArXiv papers with CC license information using OAI-PMH API.
+
+This script uses ArXiv's OAI-PMH interface to harvest papers with structured
+license metadata, providing more accurate CC license detection than text-based
+pattern matching. Focuses on recent years where CC licensing is more commonly
+adopted.
 """
 # Standard library
 import argparse
 import csv
 import os
-import re
 import sys
 import textwrap
 import time
 import traceback
-import urllib.parse
+import xml.etree.ElementTree as ET  # XML parsing for OAI-PMH responses
 from collections import Counter, defaultdict
+from datetime import datetime  # Date calculations for harvesting ranges
 from operator import itemgetter
 
 # Third-party
-import feedparser
 import requests
 import yaml
 from pygments import highlight
@@ -33,9 +37,10 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
-# API Configuration
-BASE_URL = "https://export.arxiv.org/api/query?"
+# API Configuration - Updated to use OAI-PMH for structured license data
+BASE_URL = "https://oaipmh.arxiv.org/oai"
 DEFAULT_FETCH_LIMIT = 800  # Default total papers to fetch
+DEFAULT_YEARS_BACK = 5  # Default years to look back from current year
 
 # CSV Headers
 HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
@@ -48,46 +53,23 @@ HEADER_CATEGORY_REPORT = [
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 
-# Search Queries
-SEARCH_QUERIES = [
-    'all:"creative commons"',
-    'all:"CC BY"',
-    'all:"CC-BY"',
-    'all:"CC BY-NC"',
-    'all:"CC-BY-NC"',
-    'all:"CC BY-SA"',
-    'all:"CC-BY-SA"',
-    'all:"CC BY-ND"',
-    'all:"CC-BY-ND"',
-    'all:"CC BY-NC-SA"',
-    'all:"CC-BY-NC-SA"',
-    'all:"CC BY-NC-ND"',
-    'all:"CC-BY-NC-ND"',
-    'all:"CC0"',
-    'all:"CC 0"',
-    'all:"CC-0"',
-]
-
-# Compiled regex patterns for CC license detection
-CC_PATTERNS = [
-    (re.compile(r"\bCC[-\s]?0\b", re.IGNORECASE), "CC0"),
-    (
-        re.compile(r"\bCC[-\s]?BY[-\s]?NC[-\s]?ND\b", re.IGNORECASE),
-        "CC BY-NC-ND",
-    ),
-    (
-        re.compile(r"\bCC[-\s]?BY[-\s]?NC[-\s]?SA\b", re.IGNORECASE),
-        "CC BY-NC-SA",
-    ),
-    (re.compile(r"\bCC[-\s]?BY[-\s]?ND\b", re.IGNORECASE), "CC BY-ND"),
-    (re.compile(r"\bCC[-\s]?BY[-\s]?SA\b", re.IGNORECASE), "CC BY-SA"),
-    (re.compile(r"\bCC[-\s]?BY[-\s]?NC\b", re.IGNORECASE), "CC BY-NC"),
-    (re.compile(r"\bCC[-\s]?BY\b", re.IGNORECASE), "CC BY"),
-    (
-        re.compile(r"\bCREATIVE\s+COMMONS\b", re.IGNORECASE),
-        "UNKNOWN CC legal tool",
-    ),
-]
+# License mapping for structured data from OAI-PMH
+LICENSE_MAPPING = {
+    "http://creativecommons.org/licenses/by/4.0/": "CC BY 4.0",
+    "http://creativecommons.org/licenses/by/3.0/": "CC BY 3.0",
+    "http://creativecommons.org/licenses/by-sa/4.0/": "CC BY-SA 4.0",
+    "http://creativecommons.org/licenses/by-sa/3.0/": "CC BY-SA 3.0",
+    "http://creativecommons.org/licenses/by-nc/4.0/": "CC BY-NC 4.0",
+    "http://creativecommons.org/licenses/by-nc/3.0/": "CC BY-NC 3.0",
+    "http://creativecommons.org/licenses/by-nc-sa/4.0/": "CC BY-NC-SA 4.0",
+    "http://creativecommons.org/licenses/by-nc-sa/3.0/": "CC BY-NC-SA 3.0",
+    "http://creativecommons.org/licenses/by-nc-nd/4.0/": "CC BY-NC-ND 4.0",
+    "http://creativecommons.org/licenses/by-nc-nd/3.0/": "CC BY-NC-ND 3.0",
+    "http://creativecommons.org/licenses/by-nd/4.0/": "CC BY-ND 4.0",
+    "http://creativecommons.org/licenses/by-nd/3.0/": "CC BY-ND 3.0",
+    "http://creativecommons.org/publicdomain/zero/1.0/": "CC0 1.0",
+    "http://creativecommons.org/share-your-work/public-domain/cc0/": "CC0",
+}
 
 # ArXiv Categories - manually curated from ArXiv official taxonomy
 # Source: https://arxiv.org/category_taxonomy
@@ -273,9 +255,9 @@ QUARTER = os.path.basename(PATHS["data_quarter"])
 def parse_arguments():
     """Parse command-line options, returns parsed argument namespace.
 
-    Note: The --limit parameter sets the total number of papers to fetch
-    across all search queries, not per query. ArXiv API recommends
-    maximum of 30000 results per session for optimal performance.
+    Note: The --limit parameter sets the total number of papers to fetch.
+    The --years-back parameter limits harvesting to recent years where
+    CC licensing is more common.
     """
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
@@ -284,12 +266,19 @@ def parse_arguments():
         type=int,
         default=DEFAULT_FETCH_LIMIT,
         help=(
-            f"Total limit of papers to fetch across all search queries "
-            f"(default: {DEFAULT_FETCH_LIMIT}). Maximum recommended: 30000. "
-            f"Note: Individual queries limited to 500 results "
-            f"(implementation choice). "
-            f"See ArXiv API documentation: "
-            f"https://info.arxiv.org/help/api/user-manual.html"
+            f"Total limit of papers to fetch "
+            f"(default: {DEFAULT_FETCH_LIMIT}). "
+            f"Note: Uses OAI-PMH API for structured license data."
+        ),
+    )
+    parser.add_argument(
+        "--years-back",
+        type=int,
+        default=DEFAULT_YEARS_BACK,
+        help=(
+            f"Number of years back from current year to harvest "
+            f"(default: {DEFAULT_YEARS_BACK}). "
+            f"Reduces dataset size and focuses on recent CC-licensed papers."
         ),
     )
     parser.add_argument(
@@ -333,99 +322,105 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET)
 
 
-def normalize_license_text(raw_text):
+
+
+
+def extract_license_from_xml(record_xml):
     """
-    Convert raw license text to standardized CC license identifiers.
+    Extract CC license information from OAI-PMH XML record.
 
-    Uses regex patterns to identify CC licenses from paper text.
-    Returns specific license (e.g., "CC BY", "CC0") or "Unknown".
-    """
-    if not raw_text:
-        return "Unknown"
-
-    for pattern, license_type in CC_PATTERNS:
-        if pattern.search(raw_text):
-            return license_type
-
-    return "Unknown"
-
-
-def extract_license_info(entry):
-    """
-    Extract CC license information from ArXiv paper entry.
-
-    Checks rights field first, then summary field for license patterns.
+    Uses structured license field from arXiv metadata format.
     Returns normalized license identifier or "Unknown".
     """
-    # checking through the rights field first then summary
-    if hasattr(entry, "rights") and entry.rights:
-        license_info = normalize_license_text(entry.rights)
-        if license_info != "Unknown":
-            return license_info
-    if hasattr(entry, "summary") and entry.summary:
-        license_info = normalize_license_text(entry.summary)
-        if license_info != "Unknown":
-            return license_info
-    return "Unknown"
+    try:
+        # Parse the XML record
+        root = ET.fromstring(record_xml)
+
+        # Find license element in arXiv namespace
+        license_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}license")
+
+        if license_elem is not None and license_elem.text:
+            license_url = license_elem.text.strip()
+
+            # Map license URL to standardized identifier
+            if license_url in LICENSE_MAPPING:
+                return LICENSE_MAPPING[license_url]
+
+            # Check for Creative Commons URLs not in mapping
+            if "creativecommons.org" in license_url.lower():
+                return f"CC (unmapped): {license_url}"
+
+        return "Unknown"
+
+    except ET.ParseError as e:
+        LOGGER.error(f"XML parsing error in license extraction: {e}")
+        return "Unknown"
+    except Exception as e:
+        LOGGER.error(f"License extraction error: {e}")
+        return "Unknown"
 
 
-def extract_category_from_entry(entry):
-    """Extract primary category from ArXiv entry."""
-    if (
-        hasattr(entry, "arxiv_primary_category")
-        and entry.arxiv_primary_category
-    ):
-        return entry.arxiv_primary_category.get("term", "Unknown")
-    if hasattr(entry, "tags") and entry.tags:
-        # Get first category from tags
-        for tag in entry.tags:
-            if hasattr(tag, "term"):
-                return tag.term
-    return "Unknown"
+def extract_metadata_from_xml(record_xml):
+    """
+    Extract paper metadata from OAI-PMH XML record.
 
+    Returns dict with category, year, author_count, and license info.
+    """
+    try:
+        root = ET.fromstring(record_xml)
 
-def extract_year_from_entry(entry):
-    """Extract publication year from ArXiv entry."""
-    if hasattr(entry, "published") and entry.published:
-        try:
-            return entry.published[:4]  # Extract year from date string
-        except (AttributeError, IndexError) as e:
-            LOGGER.debug(
-                f"Failed to extract year from '{entry.published}': {e}"
-            )
-    return "Unknown"
+        # Extract category (primary category from categories field)
+        categories_elem = root.find(
+            ".//{http://arxiv.org/OAI/arXiv/}categories"
+        )
+        category = "Unknown"
+        if categories_elem is not None and categories_elem.text:
+            # Take first category as primary
+            category = categories_elem.text.strip().split()[0]
 
+        # Extract year from created date
+        created_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}created")
+        year = "Unknown"
+        if created_elem is not None and created_elem.text:
+            try:
+                year = created_elem.text.strip()[:4]  # Extract year
+            except (AttributeError, IndexError) as e:
+                LOGGER.warning(
+                    f"Failed to extract year from '{created_elem.text}': {e}"
+                )
+                year = "Unknown"
 
-def extract_author_count_from_entry(entry):
-    """Extract number of authors from ArXiv entry."""
-    if hasattr(entry, "authors") and entry.authors:
-        try:
-            return len(entry.authors)
-        except Exception as e:
-            LOGGER.debug(f"Failed to count authors from entry.authors: {e}")
-    if hasattr(entry, "author") and entry.author:
-        return 1
-    return "Unknown"
+        # Extract author count
+        authors = root.findall(".//{http://arxiv.org/OAI/arXiv/}author")
+        author_count = len(authors) if authors else 0
+
+        # Extract license
+        license_info = extract_license_from_xml(record_xml)
+
+        return {
+            "category": category,
+            "year": year,
+            "author_count": author_count,
+            "license": license_info,
+        }
+
+    except Exception as e:
+        LOGGER.error(f"Metadata extraction error: {e}")
+        return {
+            "category": "Unknown",
+            "year": "Unknown",
+            "author_count": 0,
+            "license": "Unknown",
+        }
 
 
 def bucket_author_count(n):
-    """
-    Convert author count to predefined buckets for analysis.
-
-    Buckets: "1", "2", "3", "4", "5+", "Unknown"
-    Reduces granularity for better statistical analysis.
-    """
-    if n == 1:
-        return "1"
-    if n == 2:
-        return "2"
-    if n == 3:
-        return "3"
-    if n == 4:
-        return "4"
-    if n >= 5:
-        return "5+"
-    return "Unknown"
+    """Convert author count to predefined buckets: "1", "2", "3", "4", "5+"."""
+    if n <= 0:
+        return "0"
+    if n <= 4:
+        return str(n)
+    return "5+"
 
 
 def save_count_data(
@@ -513,16 +508,24 @@ def save_count_data(
 
 def query_arxiv(args):
     """
-    Main function to query ArXiv API and collect CC license data.
+    Main function to query ArXiv OAI-PMH API and collect CC license data.
 
+    Uses structured license metadata from OAI-PMH instead of text search.
+    Harvests papers from recent years to focus on CC-licensed content.
     """
 
-    LOGGER.info("Beginning to fetch results from ArXiv API")
+    LOGGER.info("Beginning to fetch results from ArXiv OAI-PMH API")
     session = shared.get_session()
 
-    results_per_iteration = 50
+    # Calculate date range for harvesting
+    current_year = datetime.now().year
+    start_year = current_year - args.years_back
+    from_date = f"{start_year}-01-01"
 
-    search_queries = SEARCH_QUERIES
+    LOGGER.info(
+        f"Harvesting papers from {from_date} onwards "
+        f"({args.years_back} years back)"
+    )
 
     # Data structures for counting
     license_counts = defaultdict(int)
@@ -531,81 +534,107 @@ def query_arxiv(args):
     author_counts = defaultdict(lambda: defaultdict(int))
 
     total_fetched = 0
+    resumption_token = None
 
-    for search_query in search_queries:
-        if total_fetched >= args.limit:
-            break
+    while total_fetched < args.limit:
+        try:
+            # Build OAI-PMH request URL
+            if resumption_token:
+                # Continue with resumption token
+                query_params = {
+                    "verb": "ListRecords",
+                    "resumptionToken": resumption_token,
+                }
+            else:
+                # Initial request with date range
+                query_params = {
+                    "verb": "ListRecords",
+                    "metadataPrefix": "arXiv",
+                    "from": from_date,
+                }
 
-        LOGGER.info(f"Searching for: {search_query}")
-        papers_found_for_query = 0
+            # Make API request
+            LOGGER.info(f"Fetching batch starting from record {total_fetched}")
+            response = session.get(BASE_URL, params=query_params, timeout=60)
+            response.raise_for_status()
 
-        for start in range(
-            0,
-            min(args.limit - total_fetched, 500),
-            results_per_iteration,
-        ):
-            encoded_query = urllib.parse.quote_plus(search_query)
-            query = (
-                f"search_query={encoded_query}&start={start}"
-                f"&max_results={results_per_iteration}"
+            # Parse XML response
+            root = ET.fromstring(response.content)
+
+            # Check for errors
+            error_elem = root.find(
+                ".//{http://www.openarchives.org/OAI/2.0/}error"
+            )
+            if error_elem is not None:
+                raise shared.QuantifyingException(
+                    f"OAI-PMH Error: {error_elem.text}", 1
+                )
+
+            # Process records
+            records = root.findall(
+                ".//{http://www.openarchives.org/OAI/2.0/}record"
+            )
+            batch_cc_count = 0
+
+            for record in records:
+                if total_fetched >= args.limit:
+                    break
+
+                # Convert record to string for metadata extraction
+                record_xml = ET.tostring(record, encoding="unicode")
+                metadata = extract_metadata_from_xml(record_xml)
+
+                # Only process CC-licensed papers
+                if (
+                    metadata["license"] != "Unknown"
+                    and "CC" in metadata["license"]
+                ):
+                    license_info = metadata["license"]
+                    category = metadata["category"]
+                    year = metadata["year"]
+                    author_count = metadata["author_count"]
+
+                    # Count by license
+                    license_counts[license_info] += 1
+
+                    # Count by category and license
+                    category_counts[license_info][category] += 1
+
+                    # Count by year and license
+                    year_counts[license_info][year] += 1
+
+                    # Count by author count and license
+                    author_counts[license_info][author_count] += 1
+
+                    total_fetched += 1
+                    batch_cc_count += 1
+
+            LOGGER.info(
+                f"Batch completed: {batch_cc_count} CC-licensed papers found"
             )
 
-            papers_found_in_batch = 0
-
-            try:
-                LOGGER.info(
-                    f"Fetching results {start} - "
-                    f"{start + results_per_iteration}"
-                )
-                response = session.get(BASE_URL + query, timeout=30)
-                response.raise_for_status()
-                feed = feedparser.parse(response.content)
-
-                for entry in feed.entries:
-                    if total_fetched >= args.limit:
-                        break
-
-                    license_info = extract_license_info(entry)
-
-                    if license_info != "Unknown":
-
-                        category = extract_category_from_entry(entry)
-                        year = extract_year_from_entry(entry)
-                        author_count = extract_author_count_from_entry(entry)
-
-                        # Count by license
-                        license_counts[license_info] += 1
-
-                        # Count by category and license
-                        category_counts[license_info][category] += 1
-
-                        # Count by year and license
-                        year_counts[license_info][year] += 1
-
-                        # Count by author count and license
-                        author_counts[license_info][author_count] += 1
-
-                        total_fetched += 1
-                        papers_found_in_batch += 1
-                        papers_found_for_query += 1
-
-                # arXiv recommends a 3-seconds delay between consecutive
-                # api calls for efficiency
-                time.sleep(3)
-            except requests.HTTPError as e:
-                raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
-            except requests.RequestException as e:
-                raise shared.QuantifyingException(f"Request Exception: {e}", 1)
-            except KeyError as e:
-                raise shared.QuantifyingException(f"KeyError: {e}", 1)
-
-            if papers_found_in_batch == 0:
+            # Check for resumption token
+            resumption_elem = root.find(
+                ".//{http://www.openarchives.org/OAI/2.0/}resumptionToken"
+            )
+            if resumption_elem is not None and resumption_elem.text:
+                resumption_token = resumption_elem.text
+                LOGGER.info("Continuing with resumption token...")
+            else:
+                LOGGER.info("No more records available")
                 break
 
-        LOGGER.info(
-            f"Query '{search_query}' completed: "
-            f"{papers_found_for_query} papers found"
-        )
+            # OAI-PMH recommends delays between requests
+            time.sleep(3)
+
+        except requests.HTTPError as e:
+            raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
+        except requests.RequestException as e:
+            raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+        except ET.ParseError as e:
+            raise shared.QuantifyingException(f"XML Parse Error: {e}", 1)
+        except Exception as e:
+            raise shared.QuantifyingException(f"Unexpected error: {e}", 1)
 
     # Save results
     if args.enable_save:
@@ -613,23 +642,30 @@ def query_arxiv(args):
             license_counts, category_counts, year_counts, author_counts
         )
 
-    # save provenance
+    # Save provenance
     provenance_data = {
         "total_fetched": total_fetched,
-        "queries": search_queries,
+        "from_date": from_date,
+        "years_back": args.years_back,
         "limit": args.limit,
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
+        "api_endpoint": BASE_URL,
+        "method": "OAI-PMH structured license harvesting",
     }
 
-    # write provenance YAML for auditing
+    # Write provenance YAML for auditing
     try:
         with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as fh:
             yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
     except Exception as e:
-        LOGGER.warning("Failed to write provenance file: %s", e)
+        LOGGER.error(f"Failed to write provenance file: {e}")
+        raise shared.QuantifyingException(
+            f"Provenance file write failed: {e}", 1
+        )
 
     LOGGER.info(f"Total CC licensed papers fetched: {total_fetched}")
+    LOGGER.info(f"License distribution: {dict(license_counts)}")
 
 
 def main():
