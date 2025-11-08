@@ -321,9 +321,6 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET)
 
 
-
-
-
 def extract_license_from_xml(record_xml):
     """
     Extract CC license information from OAI-PMH XML record.
