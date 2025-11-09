@@ -6,7 +6,11 @@ public domain. Below are the sources and their respective information:
 
 ## arXiv
 
-**Description:** arXiv is a free distribution service and an open-access archive for scholarly articles in physics, mathematics, computer science, quantitative biology, quantitative finance, statistics, electrical engineering and systems science, and economics. All arXiv articles are available under various open licenses or are in the public domain.
+**Description:** arXiv is a free distribution service and an open-access archive
+for scholarly articles in physics, mathematics, computer science, quantitative
+biology, quantitative finance, statistics, electrical engineering and systems
+science, and economics. All arXiv articles are available under various open
+licenses or are in the public domain.
 
 **API documentation link:**
 - [arXiv API User Manual](https://arxiv.org/help/api/user-manual)
@@ -20,7 +24,8 @@ public domain. Below are the sources and their respective information:
 **API information:**
 - No API key required for either interface
 - Query limit: No official limit, but requests should be made responsibly
-- **Standard API**: Data available through Atom XML format, supports search by various fields
+- **Standard API**: Data available through Atom XML format, supports search by
+  various fields
 - **OAI-PMH Interface** (used by `arxiv_fetch.py`): 
   - Structured metadata harvesting with resumption tokens
   - Better license metadata extraction for CC-licensed papers
