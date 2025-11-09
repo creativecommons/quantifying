@@ -38,7 +38,10 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 # API Configuration - Updated to use OAI-PMH for structured license data
 BASE_URL = "https://oaipmh.arxiv.org/oai"
-DEFAULT_FETCH_LIMIT = 800  # Default total papers to fetch
+# Implementation choice: Increased from 800 to 2000 CC-licensed papers
+# This is NOT an ArXiv API requirement - ArXiv only requires "responsible" usage
+# The 3-second delays between requests ensure compliance with OAI-PMH best practices
+DEFAULT_FETCH_LIMIT = 2000  # Default total CC-licensed papers to fetch
 DEFAULT_YEARS_BACK = 5  # Default years to look back from current year
 
 # CSV Headers
@@ -429,7 +432,7 @@ def save_count_data(
     # license_counts: {license: count}
     # category_counts: {license: {category_code: count}}
     # year_counts: {license: {year: count}}
-    # author_counts: {license: {author_count(int|None): count}}
+    # author_counts: {license: {author_count: count}}
 
     # Save license counts
     data = []
