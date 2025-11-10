@@ -13,7 +13,6 @@ show CC licenses due to later license updates, not original terms.
 import argparse
 import csv
 import os
-import subprocess
 import sys
 import textwrap
 import time
@@ -45,7 +44,13 @@ RATE_LIMIT_DELAY = 0.5
 # CSV Headers
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
 HEADER_LANGUAGE = ["TOOL_IDENTIFIER", "LANGUAGE_CODE", "LANGUAGE", "COUNT"]
-HEADER_PUBLISHER = ["TOOL_IDENTIFIER", "PUBLISHER", "COUNTRY_CODE", "COUNTRY_NAME", "COUNT"]
+HEADER_PUBLISHER = [
+    "TOOL_IDENTIFIER",
+    "PUBLISHER",
+    "COUNTRY_CODE",
+    "COUNTRY_NAME",
+    "COUNT",
+]
 HEADER_SUBJECT_REPORT = [
     "TOOL_IDENTIFIER",
     "SUBJECT_CODE",
@@ -116,17 +121,24 @@ LANGUAGE_NAMES = {
     "AF": "Afrikaans",
 }
 
+
 # Load ISO 3166-1 alpha-2 country codes from YAML file
 def load_country_names():
     """Load country code to name mapping from YAML file."""
-    country_file = shared.path_join(PATHS["repo"], "data", "iso_country_codes.yaml")
-    
+    country_file = shared.path_join(
+        PATHS["repo"], "data", "iso_country_codes.yaml"
+    )
+
     # Generate country codes file if it doesn't exist
     if not os.path.isfile(country_file):
         LOGGER.info("Country codes file not found, generating it...")
-        generate_script = shared.path_join(PATHS["repo"], "dev", "generate_country_codes.py")
+        generate_script = shared.path_join(
+            PATHS["repo"], "dev", "generate_country_codes.py"
+        )
         try:
+            # Standard library
             import subprocess
+
             subprocess.run([sys.executable, generate_script], check=True)
             LOGGER.info("Successfully generated country codes file")
         except Exception as e:
@@ -134,7 +146,7 @@ def load_country_names():
             raise shared.QuantifyingException(
                 f"Critical error generating country codes: {e}", exit_code=1
             )
-    
+
     try:
         with open(country_file, "r", encoding="utf-8") as fh:
             countries = yaml.safe_load(fh)
@@ -144,6 +156,7 @@ def load_country_names():
         raise shared.QuantifyingException(
             f"Critical error loading country codes: {e}", exit_code=1
         )
+
 
 # File Paths
 FILE_DOAJ_COUNT = shared.path_join(PATHS["data_1-fetch"], "doaj_1_count.csv")
@@ -183,11 +196,11 @@ def parse_arguments():
         type=int,
         default=DEFAULT_DATE_BACK,
         help=f"Only include journals with oa_start year >= this value "
-             f"(default: {DEFAULT_DATE_BACK}). Set to 2002 to avoid false "
-             f"positives from journals that retroactively adopted CC licenses "
-             f"after Creative Commons was established. Journals starting "
-             f"before 2002 may show CC licenses due to later updates, not "
-             f"original licensing terms.",
+        f"(default: {DEFAULT_DATE_BACK}). Set to 2002 to avoid false "
+        f"positives from journals that retroactively adopted CC licenses "
+        f"after Creative Commons was established. Journals starting "
+        f"before 2002 may show CC licenses due to later updates, not "
+        f"original licensing terms.",
     )
     parser.add_argument(
         "--enable-save",
@@ -261,7 +274,7 @@ def process_journals(session, args):
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as e:
-            if hasattr(e, 'response') and e.response.status_code == 400:
+            if hasattr(e, "response") and e.response.status_code == 400:
                 LOGGER.info(f"Reached end of available data at page {page}")
                 break
             else:
@@ -302,11 +315,11 @@ def process_journals(session, args):
 
             # Extract year from oa_start (Open Access start year)
             oa_start = bibjson.get("oa_start")
-            
+
             # Apply date-back filter if specified
             if args.date_back and oa_start and oa_start < args.date_back:
                 continue
-                
+
             if oa_start:
                 year_counts[license_type][str(oa_start)] += 1
             else:
@@ -341,11 +354,14 @@ def process_journals(session, args):
 
 
 def save_count_data(
-    license_counts, subject_counts, language_counts, year_counts, 
-    publisher_counts
+    license_counts,
+    subject_counts,
+    language_counts,
+    year_counts,
+    publisher_counts,
 ):
     """Save all collected data to CSV files."""
-    
+
     # Load country names from YAML
     country_names = load_country_names()
 
@@ -407,7 +423,9 @@ def save_count_data(
 
     # Save publisher counts
     with open(FILE_DOAJ_PUBLISHER, "w", encoding="utf-8", newline="\n") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_PUBLISHER, dialect="unix")
+        writer = csv.DictWriter(
+            fh, fieldnames=HEADER_PUBLISHER, dialect="unix"
+        )
         writer.writeheader()
         for lic, publishers in publisher_counts.items():
             for publisher_info, count in publishers.items():
@@ -415,7 +433,7 @@ def save_count_data(
                     publisher, country_code = publisher_info.split("|", 1)
                 else:
                     publisher, country_code = publisher_info, "Unknown"
-                
+
                 country_name = country_names.get(country_code, country_code)
                 writer.writerow(
                     {
@@ -447,8 +465,11 @@ def query_doaj(args):
     # Save results
     if args.enable_save:
         save_count_data(
-            license_counts, subject_counts, language_counts, year_counts,
-            publisher_counts
+            license_counts,
+            subject_counts,
+            language_counts,
+            year_counts,
+            publisher_counts,
         )
 
     # Save provenance
@@ -474,7 +495,9 @@ def query_doaj(args):
         )
 
     LOGGER.info(f"Total CC licensed journals processed: {journals_processed}")
-    LOGGER.info("Articles: 0 (DOAJ API doesn't provide license info for articles)")
+    LOGGER.info(
+        "Articles: 0 (DOAJ API doesn't provide license info for articles)"
+    )
 
 
 def main():
