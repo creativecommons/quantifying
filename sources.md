@@ -26,7 +26,7 @@ licenses or are in the public domain.
 - Query limit: No official limit, but requests should be made responsibly
 - **Standard API**: Data available through Atom XML format, supports search by
   various fields
-- **OAI-PMH Interface** (used by `arxiv_fetch.py`):
+- **OAI-PMH Interface** (used by `arxiv_fetch.py`): 
   - Structured metadata harvesting with resumption tokens
   - Better license metadata extraction for CC-licensed papers
   - Recommended 3-second delays between requests
