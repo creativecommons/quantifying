@@ -124,8 +124,10 @@ def load_country_names():
             countries = yaml.safe_load(fh)
             return {country["code"]: country["name"] for country in countries}
     except Exception as e:
-        LOGGER.warning(f"Failed to load country codes from {country_file}: {e}")
-        return {}
+        LOGGER.error(f"Failed to load country codes from {country_file}: {e}")
+        raise shared.QuantifyingException(
+            f"Critical error loading country codes: {e}", exit_code=1
+        )
 
 # File Paths
 FILE_DOAJ_COUNT = shared.path_join(PATHS["data_1-fetch"], "doaj_1_count.csv")
@@ -245,9 +247,12 @@ def process_journals(session, args):
         except requests.exceptions.RequestException as e:
             if hasattr(e, 'response') and e.response.status_code == 400:
                 LOGGER.info(f"Reached end of available data at page {page}")
+                break
             else:
                 LOGGER.error(f"Failed to fetch journals page {page}: {e}")
-            break
+                raise shared.QuantifyingException(
+                    f"Critical API error on page {page}: {e}", exit_code=1
+                )
 
         results = data.get("results", [])
         if not results:
@@ -447,7 +452,10 @@ def query_doaj(args):
         with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as fh:
             yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
     except Exception as e:
-        LOGGER.warning("Failed to write provenance file: %s", e)
+        LOGGER.error("Failed to write provenance file: %s", e)
+        raise shared.QuantifyingException(
+            f"Critical error writing provenance file: {e}", exit_code=1
+        )
 
     LOGGER.info(f"Total CC licensed journals processed: {journals_processed}")
     LOGGER.info("Articles: 0 (DOAJ API doesn't provide license info for articles)")
