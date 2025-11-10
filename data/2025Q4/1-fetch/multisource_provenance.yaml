@@ -1,0 +1,27 @@
+date_back: 2002
+execution_timestamp: 2025-11-08 12:39:20 UTC
+fetch_limit_per_source: 200
+quarter: 2025Q4
+script: multi_source_fetch.py
+sources:
+  core:
+    cc_licenses_found: []
+    description: Repository metadata with license fields
+    total_fetched: 0
+    url: https://api.core.ac.uk/v3/search/works
+  crossref:
+    cc_licenses_found: []
+    description: Publisher-provided metadata with license URLs
+    total_fetched: 0
+    url: https://api.crossref.org/works
+  europepmc:
+    cc_licenses_found: []
+    description: Biomedical papers with structured license information
+    total_fetched: 0
+    url: https://www.ebi.ac.uk/europepmc/webservices/rest/search
+  openalex:
+    cc_licenses_found: []
+    description: Aggregated academic metadata with structured license fields
+    total_fetched: 800
+    url: https://api.openalex.org/works
+total_cc_papers_fetched: 800
