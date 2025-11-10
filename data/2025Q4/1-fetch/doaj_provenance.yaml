@@ -1,9 +1,9 @@
 api_version: v4
-date_back_filter: 2020
-limit: 10
+date_back_filter: 2002
+limit: 5
 note: Articles do not contain license information in DOAJ API
 quarter: 2025Q4
 script: doaj_fetch.py
 total_articles_fetched: 0
-total_journals_fetched: 10
-total_processed: 10
+total_journals_fetched: 5
+total_processed: 5

@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 """
 Fetch DOAJ journals with CC license information using API v4.
+
 Note: Articles do not contain license information in DOAJ API.
+
+Default filtering by oa_start >= 2002 to avoid false positives from journals
+that retroactively adopted CC licenses. Creative Commons was founded in 2001
+and first licenses released in 2002. Journals with oa_start before 2002 may
+show CC licenses due to later license updates, not original terms.
 """
 # Standard library
 import argparse
@@ -34,6 +40,7 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 BASE_URL = "https://doaj.org/api/v4/search"
 DEFAULT_FETCH_LIMIT = 1000
+DEFAULT_DATE_BACK = 2002  # Creative Commons licenses first released in 2002
 RATE_LIMIT_DELAY = 0.5
 
 # CSV Headers
@@ -158,7 +165,13 @@ def parse_arguments():
     parser.add_argument(
         "--date-back",
         type=int,
-        help="Only include journals with oa_start year >= this value",
+        default=DEFAULT_DATE_BACK,
+        help=f"Only include journals with oa_start year >= this value "
+             f"(default: {DEFAULT_DATE_BACK}). Set to 2002 to avoid false "
+             f"positives from journals that retroactively adopted CC licenses "
+             f"after Creative Commons was established. Journals starting "
+             f"before 2002 may show CC licenses due to later updates, not "
+             f"original licensing terms.",
     )
     parser.add_argument(
         "--enable-save",
