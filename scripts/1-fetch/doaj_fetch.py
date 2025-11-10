@@ -156,6 +156,11 @@ def parse_arguments():
         help=f"Total journals to fetch (default: {DEFAULT_FETCH_LIMIT})",
     )
     parser.add_argument(
+        "--date-back",
+        type=int,
+        help="Only include journals with oa_start year >= this value",
+    )
+    parser.add_argument(
         "--enable-save",
         action="store_true",
         help="Enable saving data to CSV files",
@@ -276,6 +281,11 @@ def process_journals(session, args):
 
             # Extract year from oa_start (Open Access start year)
             oa_start = bibjson.get("oa_start")
+            
+            # Apply date-back filter if specified
+            if args.date_back and oa_start and oa_start < args.date_back:
+                continue
+                
             if oa_start:
                 year_counts[license_type][str(oa_start)] += 1
             else:
@@ -426,6 +436,7 @@ def query_doaj(args):
         "total_journals_fetched": journals_processed,
         "total_processed": journals_processed,
         "limit": args.limit,
+        "date_back_filter": args.date_back,
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
         "api_version": "v4",
