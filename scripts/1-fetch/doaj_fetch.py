@@ -8,6 +8,12 @@ Default filtering by oa_start >= 2002 to avoid false positives from journals
 that retroactively adopted CC licenses. Creative Commons was founded in 2001
 and first licenses released in 2002. Journals with oa_start before 2002 may
 show CC licenses due to later license updates, not original terms.
+
+Country Code Mapping:
+This script requires ISO 3166-1 alpha-2 country codes for publisher analysis.
+If data/iso_country_codes.yaml is missing, the script will automatically
+generate it using dev/generate_country_codes.py. Users do not need to manually
+create this file - it will be created programmatically when needed.
 """
 # Standard library
 import argparse
@@ -124,7 +130,16 @@ LANGUAGE_NAMES = {
 
 # Load ISO 3166-1 alpha-2 country codes from YAML file
 def load_country_names():
-    """Load country code to name mapping from YAML file."""
+    """
+    Load country code to name mapping from YAML file.
+    
+    Automatically generates data/iso_country_codes.yaml if missing using
+    dev/generate_country_codes.py. This ensures the script is self-contained
+    and does not require manual file creation by users.
+    
+    Returns:
+        dict: Mapping of ISO 3166-1 alpha-2 codes to country names
+    """
     country_file = shared.path_join(
         PATHS["repo"], "data", "iso_country_codes.yaml"
     )
