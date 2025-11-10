@@ -13,6 +13,7 @@ show CC licenses due to later license updates, not original terms.
 import argparse
 import csv
 import os
+import subprocess
 import sys
 import textwrap
 import time
@@ -119,6 +120,21 @@ LANGUAGE_NAMES = {
 def load_country_names():
     """Load country code to name mapping from YAML file."""
     country_file = shared.path_join(PATHS["repo"], "data", "iso_country_codes.yaml")
+    
+    # Generate country codes file if it doesn't exist
+    if not os.path.isfile(country_file):
+        LOGGER.info("Country codes file not found, generating it...")
+        generate_script = shared.path_join(PATHS["repo"], "dev", "generate_country_codes.py")
+        try:
+            import subprocess
+            subprocess.run([sys.executable, generate_script], check=True)
+            LOGGER.info("Successfully generated country codes file")
+        except Exception as e:
+            LOGGER.error(f"Failed to generate country codes file: {e}")
+            raise shared.QuantifyingException(
+                f"Critical error generating country codes: {e}", exit_code=1
+            )
+    
     try:
         with open(country_file, "r", encoding="utf-8") as fh:
             countries = yaml.safe_load(fh)

@@ -1,5 +1,6 @@
 # ISO 3166-1 alpha-2 country codes to country names mapping
 # Used by DOAJ API for publisher country identification
+# Generated programmatically by dev/generate_country_codes.py
 - code: AD
   name: Andorra
 - code: AE
@@ -332,7 +333,7 @@
   name: Nicaragua
 - code: NL
   name: Netherlands
-- code: NO
+- code: 'NO'
   name: Norway
 - code: NP
   name: Nepal
