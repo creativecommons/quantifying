@@ -1,8 +1,0 @@
-api_endpoint: https://oaipmh.arxiv.org/oai
-from_date: '2022-01-01'
-limit: 200
-method: OAI-PMH structured license harvesting
-quarter: 2025Q4
-script: arxiv_fetch.py
-total_fetched: 200
-years_back: 3
