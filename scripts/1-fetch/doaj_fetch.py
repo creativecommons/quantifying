@@ -25,8 +25,6 @@ import yaml
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -185,17 +183,6 @@ def parse_arguments():
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     return args
-
-
-def setup_session():
-    """Setup requests session with retry strategy."""
-    retry_strategy = Retry(
-        total=5, backoff_factor=1, status_forcelist=shared.STATUS_FORCELIST
-    )
-    session = requests.Session()
-    session.headers.update({"User-Agent": shared.USER_AGENT})
-    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
-    return session
 
 
 def initialize_data_file(file_path, headers):
@@ -422,7 +409,7 @@ def save_count_data(
 
 def query_doaj(args):
     """Main function to query DOAJ API v4."""
-    session = setup_session()
+    session = shared.get_session()
 
     LOGGER.info("Processing DOAJ journals with DOAJ API v4")
 
