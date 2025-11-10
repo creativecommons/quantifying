@@ -282,63 +282,84 @@ def process_journals(session, args):
                 raise shared.QuantifyingException(
                     f"Critical API error on page {page}: {e}", exit_code=1
                 )
+        except (ValueError, KeyError) as e:
+            LOGGER.error(f"Failed to parse JSON response on page {page}: {e}")
+            raise shared.QuantifyingException(
+                f"Critical JSON parsing error on page {page}: {e}", exit_code=1
+            )
 
-        results = data.get("results", [])
-        if not results:
-            break
+        try:
+            results = data.get("results", [])
+            if not results:
+                break
+        except (AttributeError, TypeError) as e:
+            LOGGER.error(f"Invalid API response structure on page {page}: {e}")
+            raise shared.QuantifyingException(
+                f"Critical API response format error on page {page}: {e}", exit_code=1
+            )
 
         for journal in results:
             if total_processed >= args.limit:
                 break
 
-            bibjson = journal.get("bibjson", {})
+            try:
+                bibjson = journal.get("bibjson", {})
 
-            # Check for CC license
-            license_info = bibjson.get("license")
-            if not license_info:
+                # Check for CC license
+                license_info = bibjson.get("license")
+                if not license_info:
+                    continue
+
+                license_type = extract_license_type(license_info)
+                if license_type == "UNKNOWN CC legal tool":
+                    continue
+
+                license_counts[license_type] += 1
+
+                # Extract subjects
+                subjects = bibjson.get("subject", [])
+                for subject in subjects:
+                    if isinstance(subject, dict):
+                        code = subject.get("code", "")
+                        term = subject.get("term", "")
+                        if code and term:
+                            subject_counts[license_type][f"{code}|{term}"] += 1
+
+                # Extract year from oa_start (Open Access start year)
+                oa_start = bibjson.get("oa_start")
+
+                # Apply date-back filter if specified
+                if args.date_back and oa_start and oa_start < args.date_back:
+                    continue
+
+                if oa_start:
+                    year_counts[license_type][str(oa_start)] += 1
+                else:
+                    year_counts[license_type]["Unknown"] += 1
+
+                # Extract languages
+                languages = bibjson.get("language", [])
+                for lang in languages:
+                    language_counts[license_type][lang] += 1
+
+                # Extract publisher information (new in v4)
+                publisher_info = bibjson.get("publisher", {})
+                if publisher_info:
+                    publisher_name = publisher_info.get("name", "Unknown")
+                    publisher_country = publisher_info.get("country", "Unknown")
+                    publisher_key = f"{publisher_name}|{publisher_country}"
+                    publisher_counts[license_type][publisher_key] += 1
+
+                total_processed += 1
+
+            except (KeyError, AttributeError, TypeError) as e:
+                LOGGER.warning(f"Skipping malformed journal record on page {page}: {e}")
                 continue
-
-            license_type = extract_license_type(license_info)
-            if license_type == "UNKNOWN CC legal tool":
-                continue
-
-            license_counts[license_type] += 1
-
-            # Extract subjects
-            subjects = bibjson.get("subject", [])
-            for subject in subjects:
-                if isinstance(subject, dict):
-                    code = subject.get("code", "")
-                    term = subject.get("term", "")
-                    if code and term:
-                        subject_counts[license_type][f"{code}|{term}"] += 1
-
-            # Extract year from oa_start (Open Access start year)
-            oa_start = bibjson.get("oa_start")
-
-            # Apply date-back filter if specified
-            if args.date_back and oa_start and oa_start < args.date_back:
-                continue
-
-            if oa_start:
-                year_counts[license_type][str(oa_start)] += 1
-            else:
-                year_counts[license_type]["Unknown"] += 1
-
-            # Extract languages
-            languages = bibjson.get("language", [])
-            for lang in languages:
-                language_counts[license_type][lang] += 1
-
-            # Extract publisher information (new in v4)
-            publisher_info = bibjson.get("publisher", {})
-            if publisher_info:
-                publisher_name = publisher_info.get("name", "Unknown")
-                publisher_country = publisher_info.get("country", "Unknown")
-                publisher_key = f"{publisher_name}|{publisher_country}"
-                publisher_counts[license_type][publisher_key] += 1
-
-            total_processed += 1
+            except Exception as e:
+                LOGGER.error(f"Unexpected error processing journal on page {page}: {e}")
+                raise shared.QuantifyingException(
+                    f"Critical error processing journal data on page {page}: {e}", exit_code=1
+                )
 
         page += 1
         time.sleep(RATE_LIMIT_DELAY)
