@@ -1,6 +1,6 @@
 api_version: v4
 limit: 3
-note: Enhanced data collection with API v4 including publisher info and article sampling
+note: Articles do not contain license information in DOAJ API
 quarter: 2025Q4
 script: doaj_fetch.py
 total_articles_fetched: 0

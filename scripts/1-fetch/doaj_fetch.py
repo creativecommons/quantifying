@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Fetch DOAJ journals and articles with CC license information using API v4.
-Enhanced to capture more comprehensive license data from both journals and articles.
+Fetch DOAJ journals with CC license information using API v4.
+Note: Articles do not contain license information in DOAJ API.
 """
 # Standard library
 import argparse
@@ -46,7 +46,6 @@ HEADER_SUBJECT_REPORT = [
 ]
 HEADER_LANGUAGE = ["TOOL_IDENTIFIER", "LANGUAGE_CODE", "LANGUAGE", "COUNT"]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
-HEADER_ARTICLE_COUNT = ["TOOL_IDENTIFIER", "TYPE", "COUNT"]
 HEADER_PUBLISHER = ["TOOL_IDENTIFIER", "PUBLISHER", "COUNTRY_CODE", "COUNTRY_NAME", "COUNT"]
 
 # CC License types
@@ -134,11 +133,8 @@ FILE_DOAJ_LANGUAGE = shared.path_join(
 FILE_DOAJ_YEAR = shared.path_join(
     PATHS["data_1-fetch"], "doaj_4_count_by_year.csv"
 )
-FILE_DOAJ_ARTICLE_COUNT = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_5_article_count.csv"
-)
 FILE_DOAJ_PUBLISHER = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_6_count_by_publisher.csv"
+    PATHS["data_1-fetch"], "doaj_5_count_by_publisher.csv"
 )
 FILE_PROVENANCE = shared.path_join(
     PATHS["data_1-fetch"], "doaj_provenance.yaml"
@@ -203,7 +199,6 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_DOAJ_SUBJECT_REPORT, HEADER_SUBJECT_REPORT)
     initialize_data_file(FILE_DOAJ_LANGUAGE, HEADER_LANGUAGE)
     initialize_data_file(FILE_DOAJ_YEAR, HEADER_YEAR)
-    initialize_data_file(FILE_DOAJ_ARTICLE_COUNT, HEADER_ARTICLE_COUNT)
     initialize_data_file(FILE_DOAJ_PUBLISHER, HEADER_PUBLISHER)
 
 
@@ -216,58 +211,6 @@ def extract_license_type(license_info):
         if lic_type in CC_LICENSE_TYPES:
             return lic_type
     return "UNKNOWN CC legal tool"
-
-
-def process_articles(session, args):
-    """Process DOAJ articles to get license statistics from journal metadata."""
-    LOGGER.info("Fetching DOAJ articles for license analysis...")
-
-    article_license_counts = Counter()
-    total_articles = 0
-    page = 1
-    page_size = 100
-    article_limit = min(args.limit // 10, 10000)  # Sample articles for efficiency
-
-    while total_articles < article_limit:
-        LOGGER.info(f"Fetching articles page {page}...")
-
-        url = f"{BASE_URL}/articles/*"
-        params = {"pageSize": page_size, "page": page}
-
-        try:
-            response = session.get(url, params=params, timeout=30)
-            response.raise_for_status()
-            data = response.json()
-        except requests.exceptions.RequestException as e:
-            if hasattr(e, 'response') and e.response.status_code == 400:
-                LOGGER.info(f"Reached end of available articles at page {page}")
-            else:
-                LOGGER.error(f"Failed to fetch articles page {page}: {e}")
-            break
-
-        results = data.get("results", [])
-        if not results:
-            break
-
-        for article in results:
-            if total_articles >= article_limit:
-                break
-
-            bibjson = article.get("bibjson", {})
-            journal_info = bibjson.get("journal", {})
-            
-            # Get journal title to infer license from journal data
-            journal_title = journal_info.get("title", "")
-            if journal_title:
-                # For now, count articles from CC licensed journals
-                article_license_counts["Articles from CC Journals"] += 1
-
-            total_articles += 1
-
-        page += 1
-        time.sleep(RATE_LIMIT_DELAY)
-
-    return article_license_counts, total_articles
 
 
 def process_journals(session, args):
@@ -368,7 +311,7 @@ def process_journals(session, args):
 
 def save_count_data(
     license_counts, subject_counts, language_counts, year_counts, 
-    publisher_counts, article_counts
+    publisher_counts
 ):
     """Save all collected data to CSV files."""
     
@@ -431,15 +374,6 @@ def save_count_data(
                     {"TOOL_IDENTIFIER": lic, "YEAR": year, "COUNT": count}
                 )
 
-    # Save article counts
-    with open(FILE_DOAJ_ARTICLE_COUNT, "w", encoding="utf-8", newline="\n") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_ARTICLE_COUNT, dialect="unix")
-        writer.writeheader()
-        for article_type, count in article_counts.items():
-            writer.writerow(
-                {"TOOL_IDENTIFIER": article_type, "TYPE": "Article", "COUNT": count}
-            )
-
     # Save publisher counts
     with open(FILE_DOAJ_PUBLISHER, "w", encoding="utf-8", newline="\n") as fh:
         writer = csv.DictWriter(fh, fieldnames=HEADER_PUBLISHER, dialect="unix")
@@ -467,7 +401,7 @@ def query_doaj(args):
     """Main function to query DOAJ API v4."""
     session = setup_session()
 
-    LOGGER.info("Processing both journals and articles with DOAJ API v4")
+    LOGGER.info("Processing DOAJ journals with DOAJ API v4")
 
     # Process journals
     (
@@ -479,26 +413,23 @@ def query_doaj(args):
         journals_processed,
     ) = process_journals(session, args)
 
-    # Process articles
-    article_counts, articles_processed = process_articles(session, args)
-
     # Save results
     if args.enable_save:
         save_count_data(
             license_counts, subject_counts, language_counts, year_counts,
-            publisher_counts, article_counts
+            publisher_counts
         )
 
     # Save provenance
     provenance_data = {
-        "total_articles_fetched": articles_processed,
+        "total_articles_fetched": 0,
         "total_journals_fetched": journals_processed,
-        "total_processed": journals_processed + articles_processed,
+        "total_processed": journals_processed,
         "limit": args.limit,
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
         "api_version": "v4",
-        "note": "Enhanced data collection with API v4 including publisher info and article sampling",
+        "note": "Articles do not contain license information in DOAJ API",
     }
 
     try:
@@ -508,7 +439,7 @@ def query_doaj(args):
         LOGGER.warning("Failed to write provenance file: %s", e)
 
     LOGGER.info(f"Total CC licensed journals processed: {journals_processed}")
-    LOGGER.info(f"Total articles sampled: {articles_processed}")
+    LOGGER.info("Articles: 0 (DOAJ API doesn't provide license info for articles)")
 
 
 def main():
