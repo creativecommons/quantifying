@@ -48,6 +48,7 @@ HEADER_LANGUAGE = ["TOOL_IDENTIFIER", "LANGUAGE_CODE", "LANGUAGE", "COUNT"]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 HEADER_ARTICLE_COUNT = ["TOOL_IDENTIFIER", "TYPE", "COUNT"]
 HEADER_PUBLISHER = ["TOOL_IDENTIFIER", "PUBLISHER", "COUNTRY", "COUNT"]
+HEADER_LICENSE_DETAILS = ["TOOL_IDENTIFIER", "BY", "NC", "ND", "SA", "URL", "COUNT"]
 
 # CC License types
 CC_LICENSE_TYPES = [
@@ -128,6 +129,9 @@ FILE_DOAJ_ARTICLE_COUNT = shared.path_join(
 FILE_DOAJ_PUBLISHER = shared.path_join(
     PATHS["data_1-fetch"], "doaj_6_count_by_publisher.csv"
 )
+FILE_DOAJ_LICENSE_DETAILS = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_7_license_details.csv"
+)
 FILE_PROVENANCE = shared.path_join(
     PATHS["data_1-fetch"], "doaj_provenance.yaml"
 )
@@ -193,17 +197,26 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_DOAJ_YEAR, HEADER_YEAR)
     initialize_data_file(FILE_DOAJ_ARTICLE_COUNT, HEADER_ARTICLE_COUNT)
     initialize_data_file(FILE_DOAJ_PUBLISHER, HEADER_PUBLISHER)
+    initialize_data_file(FILE_DOAJ_LICENSE_DETAILS, HEADER_LICENSE_DETAILS)
 
 
 def extract_license_type(license_info):
     """Extract CC license type from DOAJ license information."""
     if not license_info:
-        return "UNKNOWN CC legal tool"
+        return "UNKNOWN CC legal tool", {}
     for lic in license_info:
         lic_type = lic.get("type", "")
         if lic_type in CC_LICENSE_TYPES:
-            return lic_type
-    return "UNKNOWN CC legal tool"
+            # Extract detailed license components (new in v4)
+            license_details = {
+                "BY": lic.get("BY", False),
+                "NC": lic.get("NC", False), 
+                "ND": lic.get("ND", False),
+                "SA": lic.get("SA", False),
+                "URL": lic.get("url", "")
+            }
+            return lic_type, license_details
+    return "UNKNOWN CC legal tool", {}
 
 
 def process_articles(session, args):
@@ -267,6 +280,7 @@ def process_journals(session, args):
     language_counts = defaultdict(Counter)
     year_counts = defaultdict(Counter)
     publisher_counts = defaultdict(Counter)
+    license_details_counts = defaultdict(Counter)
 
     total_processed = 0
     page = 1
@@ -304,11 +318,16 @@ def process_journals(session, args):
             if not license_info:
                 continue
 
-            license_type = extract_license_type(license_info)
+            license_type, license_details = extract_license_type(license_info)
             if license_type == "UNKNOWN CC legal tool":
                 continue
 
             license_counts[license_type] += 1
+
+            # Store detailed license information (new in v4)
+            if license_details:
+                details_key = f"{license_details['BY']}|{license_details['NC']}|{license_details['ND']}|{license_details['SA']}|{license_details['URL']}"
+                license_details_counts[license_type][details_key] += 1
 
             # Extract subjects
             subjects = bibjson.get("subject", [])
@@ -350,13 +369,14 @@ def process_journals(session, args):
         language_counts,
         year_counts,
         publisher_counts,
+        license_details_counts,
         total_processed,
     )
 
 
 def save_count_data(
     license_counts, subject_counts, language_counts, year_counts, 
-    publisher_counts, article_counts
+    publisher_counts, license_details_counts, article_counts
 ):
     """Save all collected data to CSV files."""
 
@@ -444,6 +464,28 @@ def save_count_data(
                     }
                 )
 
+    # Save detailed license information (new in v4)
+    with open(FILE_DOAJ_LICENSE_DETAILS, "w", encoding="utf-8", newline="\n") as fh:
+        writer = csv.DictWriter(fh, fieldnames=HEADER_LICENSE_DETAILS, dialect="unix")
+        writer.writeheader()
+        for lic, details in license_details_counts.items():
+            for detail_info, count in details.items():
+                if "|" in detail_info:
+                    parts = detail_info.split("|")
+                    if len(parts) >= 5:
+                        by_flag, nc_flag, nd_flag, sa_flag, url = parts[0], parts[1], parts[2], parts[3], "|".join(parts[4:])
+                        writer.writerow(
+                            {
+                                "TOOL_IDENTIFIER": lic,
+                                "BY": by_flag,
+                                "NC": nc_flag,
+                                "ND": nd_flag,
+                                "SA": sa_flag,
+                                "URL": url,
+                                "COUNT": count,
+                            }
+                        )
+
 
 def query_doaj(args):
     """Main function to query DOAJ API v4."""
@@ -458,6 +500,7 @@ def query_doaj(args):
         language_counts,
         year_counts,
         publisher_counts,
+        license_details_counts,
         journals_processed,
     ) = process_journals(session, args)
 
@@ -468,7 +511,7 @@ def query_doaj(args):
     if args.enable_save:
         save_count_data(
             license_counts, subject_counts, language_counts, year_counts,
-            publisher_counts, article_counts
+            publisher_counts, license_details_counts, article_counts
         )
 
     # Save provenance
