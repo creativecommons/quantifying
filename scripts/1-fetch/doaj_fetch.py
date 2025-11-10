@@ -132,11 +132,11 @@ LANGUAGE_NAMES = {
 def load_country_names():
     """
     Load country code to name mapping from YAML file.
-    
+
     Automatically generates data/iso_country_codes.yaml if missing using
     dev/generate_country_codes.py. This ensures the script is self-contained
     and does not require manual file creation by users.
-    
+
     Returns:
         dict: Mapping of ISO 3166-1 alpha-2 codes to country names
     """
@@ -310,7 +310,8 @@ def process_journals(session, args):
         except (AttributeError, TypeError) as e:
             LOGGER.error(f"Invalid API response structure on page {page}: {e}")
             raise shared.QuantifyingException(
-                f"Critical API response format error on page {page}: {e}", exit_code=1
+                f"Critical API response format error on page {page}: {e}",
+                exit_code=1,
             )
 
         for journal in results:
@@ -361,19 +362,27 @@ def process_journals(session, args):
                 publisher_info = bibjson.get("publisher", {})
                 if publisher_info:
                     publisher_name = publisher_info.get("name", "Unknown")
-                    publisher_country = publisher_info.get("country", "Unknown")
+                    publisher_country = publisher_info.get(
+                        "country", "Unknown"
+                    )
                     publisher_key = f"{publisher_name}|{publisher_country}"
                     publisher_counts[license_type][publisher_key] += 1
 
                 total_processed += 1
 
             except (KeyError, AttributeError, TypeError) as e:
-                LOGGER.warning(f"Skipping malformed journal record on page {page}: {e}")
+                LOGGER.warning(
+                    f"Skipping malformed journal record on page {page}: {e}"
+                )
                 continue
             except Exception as e:
-                LOGGER.error(f"Unexpected error processing journal on page {page}: {e}")
+                LOGGER.error(
+                    f"Unexpected error processing journal on page {page}: {e}"
+                )
                 raise shared.QuantifyingException(
-                    f"Critical error processing journal data on page {page}: {e}", exit_code=1
+                    f"Critical error processing journal data on page {page}: "
+                    f"{e}",
+                    exit_code=1,
                 )
 
         page += 1
