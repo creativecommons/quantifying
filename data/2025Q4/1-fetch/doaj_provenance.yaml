@@ -1,8 +1,8 @@
 api_version: v4
-limit: 5
+limit: 3
 note: Enhanced data collection with API v4 including publisher info and article sampling
 quarter: 2025Q4
 script: doaj_fetch.py
 total_articles_fetched: 0
-total_journals_fetched: 5
-total_processed: 5
+total_journals_fetched: 3
+total_processed: 3
