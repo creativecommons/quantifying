@@ -179,8 +179,8 @@ def load_country_names():
             )
 
     try:
-        with open(country_file, "r", encoding="utf-8") as fh:
-            countries = yaml.safe_load(fh)
+        with open(country_file, "r", encoding="utf-8") as file_object:
+            countries = yaml.safe_load(file_object)
             return {country["code"]: country["name"] for country in countries}
     except Exception as e:
         LOGGER.error(f"Failed to load country codes from {country_file}: {e}")
@@ -409,8 +409,8 @@ def save_count_data(
     country_names = load_country_names()
 
     # Save license counts
-    with open(FILE_DOAJ_COUNT, "w", encoding="utf-8", newline="\n") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_COUNT, dialect="unix")
+    with open(FILE_DOAJ_COUNT, "w", encoding="utf-8", newline="\n") as file_object:
+        writer = csv.DictWriter(file_object, fieldnames=HEADER_COUNT, dialect="unix")
         writer.writeheader()
         for lic, count in license_counts.items():
             writer.writerow({"TOOL_IDENTIFIER": lic, "COUNT": count})
@@ -418,9 +418,9 @@ def save_count_data(
     # Save subject report
     with open(
         FILE_DOAJ_SUBJECT_REPORT, "w", encoding="utf-8", newline="\n"
-    ) as fh:
+    ) as file_object:
         writer = csv.DictWriter(
-            fh, fieldnames=HEADER_SUBJECT_REPORT, dialect="unix"
+            file_object, fieldnames=HEADER_SUBJECT_REPORT, dialect="unix"
         )
         writer.writeheader()
         for lic, subjects in subject_counts.items():
@@ -439,8 +439,8 @@ def save_count_data(
                 )
 
     # Save language counts with readable names
-    with open(FILE_DOAJ_LANGUAGE, "w", encoding="utf-8", newline="\n") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_LANGUAGE, dialect="unix")
+    with open(FILE_DOAJ_LANGUAGE, "w", encoding="utf-8", newline="\n") as file_object:
+        writer = csv.DictWriter(file_object, fieldnames=HEADER_LANGUAGE, dialect="unix")
         writer.writeheader()
         for lic, languages in language_counts.items():
             for lang_code, count in languages.items():
@@ -455,8 +455,8 @@ def save_count_data(
                 )
 
     # Save year counts
-    with open(FILE_DOAJ_YEAR, "w", encoding="utf-8", newline="\n") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_YEAR, dialect="unix")
+    with open(FILE_DOAJ_YEAR, "w", encoding="utf-8", newline="\n") as file_object:
+        writer = csv.DictWriter(file_object, fieldnames=HEADER_YEAR, dialect="unix")
         writer.writeheader()
         for lic, years in year_counts.items():
             for year, count in years.items():
@@ -465,9 +465,9 @@ def save_count_data(
                 )
 
     # Save publisher counts
-    with open(FILE_DOAJ_PUBLISHER, "w", encoding="utf-8", newline="\n") as fh:
+    with open(FILE_DOAJ_PUBLISHER, "w", encoding="utf-8", newline="\n") as file_object:
         writer = csv.DictWriter(
-            fh, fieldnames=HEADER_PUBLISHER, dialect="unix"
+            file_object, fieldnames=HEADER_PUBLISHER, dialect="unix"
         )
         writer.writeheader()
         for lic, publishers in publisher_counts.items():
@@ -529,8 +529,8 @@ def query_doaj(args):
     }
 
     try:
-        with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as fh:
-            yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
+        with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as file_object:
+            yaml.dump(provenance_data, file_object, default_flow_style=False, indent=2)
     except Exception as e:
         LOGGER.error("Failed to write provenance file: %s", e)
         raise shared.QuantifyingException(
