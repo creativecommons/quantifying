@@ -6,11 +6,11 @@ public domain. Below are the sources and their respective information:
 
 ## arXiv
 
-**Description:** arXiv is a free distribution service and an open-access archive
-for scholarly articles in physics, mathematics, computer science, quantitative
-biology, quantitative finance, statistics, electrical engineering and systems
-science, and economics. All arXiv articles are available under various open
-licenses or are in the public domain.
+**Description:** arXiv is a free distribution service and an open-access
+archive for scholarly articles in physics, mathematics, computer science,
+quantitative biology, quantitative finance, statistics, electrical engineering
+and systems science, and economics. All arXiv articles are available under
+various open licenses or are in the public domain.
 
 **API documentation link:**
 - [arXiv API User Manual](https://arxiv.org/help/api/user-manual)
