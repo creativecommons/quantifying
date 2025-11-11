@@ -370,25 +370,25 @@ def extract_metadata_from_xml(record_xml):
         root = ET.fromstring(record_xml)
 
         # Extract category (primary category from categories field)
-        categories_element = root.find(
+        categories_elem = root.find(
             ".//{http://arxiv.org/OAI/arXiv/}categories"
         )
-        category = "Uncategorized"
-        if categories_element is not None and categories_element.text:
+        category = "Unknown"
+        if categories_elem is not None and categories_elem.text:
             # Take first category as primary
-            category = categories_element.text.strip().split()[0]
+            category = categories_elem.text.strip().split()[0]
 
         # Extract year from created date
-        created_element = root.find(".//{http://arxiv.org/OAI/arXiv/}created")
-        year = "Undated"
-        if created_element is not None and created_element.text:
+        created_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}created")
+        year = "Unknown"
+        if created_elem is not None and created_elem.text:
             try:
-                year = created_element.text.strip()[:4]  # Extract year
+                year = created_elem.text.strip()[:4]  # Extract year
             except (AttributeError, IndexError) as e:
                 LOGGER.warning(
-                    f"Failed to extract year from '{created_element.text}': {e}"
+                    f"Failed to extract year from '{created_elem.text}': {e}"
                 )
-                year = "Undated"
+                year = "Unknown"
 
         # Extract author count
         authors = root.findall(".//{http://arxiv.org/OAI/arXiv/}author")
@@ -407,10 +407,10 @@ def extract_metadata_from_xml(record_xml):
     except Exception as e:
         LOGGER.error(f"Metadata extraction error: {e}")
         return {
-            "category": "Uncategorized",
-            "year": "Undated",
+            "category": "Unknown",
+            "year": "Unknown",
             "author_count": 0,
-            "license": "Unspecified",
+            "license": "Unknown",
         }
 
 
