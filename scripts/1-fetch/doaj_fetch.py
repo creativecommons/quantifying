@@ -47,6 +47,36 @@ DEFAULT_DATE_BACK = 2002  # Creative Commons licenses first released in 2002
 DEFAULT_FETCH_LIMIT = 1000
 RATE_LIMIT_DELAY = 0.5
 
+# CC License types
+CC_LICENSE_TYPES = [
+    "CC BY",
+    "CC BY-NC",
+    "CC BY-SA",
+    "CC BY-ND",
+    "CC BY-NC-SA",
+    "CC BY-NC-ND",
+    "CC0",
+    "UNKNOWN CC legal tool",
+]
+
+# File Paths
+FILE_DOAJ_COUNT = shared.path_join(PATHS["data_1-fetch"], "doaj_1_count.csv")
+FILE_DOAJ_LANGUAGE = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_3_count_by_language.csv"
+)
+FILE_DOAJ_PUBLISHER = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_5_count_by_publisher.csv"
+)
+FILE_DOAJ_SUBJECT_REPORT = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_2_count_by_subject_report.csv"
+)
+FILE_PROVENANCE = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_provenance.yaml"
+)
+FILE_DOAJ_YEAR = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_4_count_by_year.csv"
+)
+
 # CSV Headers
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
 HEADER_LANGUAGE = ["TOOL_IDENTIFIER", "LANGUAGE_CODE", "LANGUAGE", "COUNT"]
@@ -65,85 +95,55 @@ HEADER_SUBJECT_REPORT = [
 ]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 
-# CC License types
-CC_LICENSE_TYPES = [
-    "CC BY",
-    "CC BY-NC",
-    "CC BY-SA",
-    "CC BY-ND",
-    "CC BY-NC-SA",
-    "CC BY-NC-ND",
-    "CC0",
-    "UNKNOWN CC legal tool",
-]
-
 # Language code to readable name mapping
 LANGUAGE_NAMES = {
+    "AF": "Afrikaans",
+    "AR": "Arabic",
+    "BE": "Belarusian",
+    "BG": "Bulgarian",
+    "BN": "Bengali",
+    "CA": "Catalan",
+    "CS": "Czech",
+    "DA": "Danish",
+    "DE": "German",
+    "EL": "Greek",
     "EN": "English",
     "ES": "Spanish",
-    "PT": "Portuguese",
-    "FR": "French",
-    "DE": "German",
-    "IT": "Italian",
-    "RU": "Russian",
-    "ZH": "Chinese",
-    "JA": "Japanese",
-    "AR": "Arabic",
-    "TR": "Turkish",
-    "NL": "Dutch",
-    "SV": "Swedish",
-    "NO": "Norwegian",
-    "DA": "Danish",
+    "ET": "Estonian",
+    "FA": "Persian",
     "FI": "Finnish",
-    "PL": "Polish",
-    "CS": "Czech",
-    "HU": "Hungarian",
-    "RO": "Romanian",
-    "BG": "Bulgarian",
+    "FR": "French",
+    "HE": "Hebrew",
+    "HI": "Hindi",
     "HR": "Croatian",
+    "HU": "Hungarian",
+    "ID": "Indonesian",
+    "IS": "Icelandic",
+    "IT": "Italian",
+    "JA": "Japanese",
+    "KO": "Korean",
+    "LT": "Lithuanian",
+    "LV": "Latvian",
+    "MK": "Macedonian",
+    "MS": "Malay",
+    "NL": "Dutch",
+    "NO": "Norwegian",
+    "PL": "Polish",
+    "PT": "Portuguese",
+    "RO": "Romanian",
+    "RU": "Russian",
     "SK": "Slovak",
     "SL": "Slovenian",
-    "ET": "Estonian",
-    "LV": "Latvian",
-    "LT": "Lithuanian",
-    "EL": "Greek",
-    "CA": "Catalan",
-    "IS": "Icelandic",
-    "MK": "Macedonian",
     "SR": "Serbian",
-    "UK": "Ukrainian",
-    "BE": "Belarusian",
-    "KO": "Korean",
-    "TH": "Thai",
-    "VI": "Vietnamese",
-    "ID": "Indonesian",
-    "MS": "Malay",
-    "HI": "Hindi",
-    "BN": "Bengali",
-    "UR": "Urdu",
-    "FA": "Persian",
-    "HE": "Hebrew",
+    "SV": "Swedish",
     "SW": "Swahili",
-    "AF": "Afrikaans",
+    "TH": "Thai",
+    "TR": "Turkish",
+    "UK": "Ukrainian",
+    "UR": "Urdu",
+    "VI": "Vietnamese",
+    "ZH": "Chinese",
 }
-
-# File Paths
-FILE_DOAJ_COUNT = shared.path_join(PATHS["data_1-fetch"], "doaj_1_count.csv")
-FILE_DOAJ_SUBJECT_REPORT = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_2_count_by_subject_report.csv"
-)
-FILE_DOAJ_LANGUAGE = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_3_count_by_language.csv"
-)
-FILE_DOAJ_YEAR = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_4_count_by_year.csv"
-)
-FILE_DOAJ_PUBLISHER = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_5_count_by_publisher.csv"
-)
-FILE_PROVENANCE = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_provenance.yaml"
-)
 
 
 # Load ISO 3166-1 alpha-2 country codes from YAML file
