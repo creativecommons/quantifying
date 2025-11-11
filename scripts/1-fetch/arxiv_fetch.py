@@ -331,27 +331,27 @@ def extract_license_from_xml(record_xml):
     """
     try:
         root = ET.fromstring(record_xml)
-        
+
         # Find license element in arXiv namespace
         license_element = root.find(".//{http://arxiv.org/OAI/arXiv/}license")
-        
+
         if license_element is not None and license_element.text:
             license_url = license_element.text.strip()
-            
+
             # Check exact mapping first
             if license_url in LICENSE_MAPPING:
                 return LICENSE_MAPPING[license_url]
-                
+
             # Validate CC URLs more strictly
             if "creativecommons.org/licenses/" in license_url.lower():
                 return f"CC (unmapped): {license_url}"
             elif "creativecommons.org" in license_url.lower():
                 return f"CC (ambiguous): {license_url}"
-                
+
             return f"Non-CC: {license_url}"
-            
+
         return "No license field"
-        
+
     except ET.ParseError as e:
         LOGGER.error(f"XML parsing failed: {e}")
         return "XML parse error"
@@ -440,8 +440,12 @@ def save_count_data(
     for license_name, count in license_counts.items():
         data.append({"TOOL_IDENTIFIER": license_name, "COUNT": count})
     data.sort(key=itemgetter("TOOL_IDENTIFIER"))
-    with open(FILE_ARXIV_COUNT, "w", encoding="utf-8", newline="\n") as file_handle:
-        writer = csv.DictWriter(file_handle, fieldnames=HEADER_COUNT, dialect="unix")
+    with open(
+        FILE_ARXIV_COUNT, "w", encoding="utf-8", newline="\n"
+    ) as file_handle:
+        writer = csv.DictWriter(
+            file_handle, fieldnames=HEADER_COUNT, dialect="unix"
+        )
         writer.writeheader()
         for row in data:
             writer.writerow(row)
@@ -474,10 +478,16 @@ def save_count_data(
     data = []
     for license_name, years in year_counts.items():
         for year, count in years.items():
-            data.append({"TOOL_IDENTIFIER": license_name, "YEAR": year, "COUNT": count})
+            data.append(
+                {"TOOL_IDENTIFIER": license_name, "YEAR": year, "COUNT": count}
+            )
     data.sort(key=itemgetter("TOOL_IDENTIFIER", "YEAR"))
-    with open(FILE_ARXIV_YEAR, "w", encoding="utf-8", newline="\n") as file_handle:
-        writer = csv.DictWriter(file_handle, fieldnames=HEADER_YEAR, dialect="unix")
+    with open(
+        FILE_ARXIV_YEAR, "w", encoding="utf-8", newline="\n"
+    ) as file_handle:
+        writer = csv.DictWriter(
+            file_handle, fieldnames=HEADER_YEAR, dialect="unix"
+        )
         writer.writeheader()
         for row in data:
             writer.writerow(row)
@@ -492,7 +502,11 @@ def save_count_data(
             bucket_counts[bucket] += count
         for bucket, count in bucket_counts.items():
             data.append(
-                {"TOOL_IDENTIFIER": license_name, "AUTHOR_BUCKET": bucket, "COUNT": count}
+                {
+                    "TOOL_IDENTIFIER": license_name,
+                    "AUTHOR_BUCKET": bucket,
+                    "COUNT": count,
+                }
             )
     data.sort(key=itemgetter("TOOL_IDENTIFIER", "AUTHOR_BUCKET"))
     with open(
@@ -656,8 +670,15 @@ def query_arxiv(args):
 
     # Write provenance YAML for auditing
     try:
-        with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as file_handle:
-            yaml.dump(provenance_data, file_handle, default_flow_style=False, indent=2)
+        with open(
+            FILE_PROVENANCE, "w", encoding="utf-8", newline="\n"
+        ) as file_handle:
+            yaml.dump(
+                provenance_data,
+                file_handle,
+                default_flow_style=False,
+                indent=2,
+            )
     except Exception as e:
         LOGGER.error(f"Failed to write provenance file: {e}")
         raise shared.QuantifyingException(
