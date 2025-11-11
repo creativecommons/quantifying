@@ -407,10 +407,10 @@ def extract_metadata_from_xml(record_xml):
     except Exception as e:
         LOGGER.error(f"Metadata extraction error: {e}")
         return {
-            "category": "Unknown",
-            "year": "Unknown",
+            "category": "Uncategorized",
+            "year": "Undated",
             "author_count": 0,
-            "license": "Unknown",
+            "license": "Unspecified",
         }
 
 
