@@ -409,8 +409,12 @@ def save_count_data(
     country_names = load_country_names()
 
     # Save license counts
-    with open(FILE_DOAJ_COUNT, "w", encoding="utf-8", newline="\n") as file_object:
-        writer = csv.DictWriter(file_object, fieldnames=HEADER_COUNT, dialect="unix")
+    with open(
+        FILE_DOAJ_COUNT, "w", encoding="utf-8", newline="\n"
+    ) as file_object:
+        writer = csv.DictWriter(
+            file_object, fieldnames=HEADER_COUNT, dialect="unix"
+        )
         writer.writeheader()
         for lic, count in license_counts.items():
             writer.writerow({"TOOL_IDENTIFIER": lic, "COUNT": count})
@@ -439,8 +443,12 @@ def save_count_data(
                 )
 
     # Save language counts with readable names
-    with open(FILE_DOAJ_LANGUAGE, "w", encoding="utf-8", newline="\n") as file_object:
-        writer = csv.DictWriter(file_object, fieldnames=HEADER_LANGUAGE, dialect="unix")
+    with open(
+        FILE_DOAJ_LANGUAGE, "w", encoding="utf-8", newline="\n"
+    ) as file_object:
+        writer = csv.DictWriter(
+            file_object, fieldnames=HEADER_LANGUAGE, dialect="unix"
+        )
         writer.writeheader()
         for lic, languages in language_counts.items():
             for lang_code, count in languages.items():
@@ -455,8 +463,12 @@ def save_count_data(
                 )
 
     # Save year counts
-    with open(FILE_DOAJ_YEAR, "w", encoding="utf-8", newline="\n") as file_object:
-        writer = csv.DictWriter(file_object, fieldnames=HEADER_YEAR, dialect="unix")
+    with open(
+        FILE_DOAJ_YEAR, "w", encoding="utf-8", newline="\n"
+    ) as file_object:
+        writer = csv.DictWriter(
+            file_object, fieldnames=HEADER_YEAR, dialect="unix"
+        )
         writer.writeheader()
         for lic, years in year_counts.items():
             for year, count in years.items():
@@ -465,7 +477,9 @@ def save_count_data(
                 )
 
     # Save publisher counts
-    with open(FILE_DOAJ_PUBLISHER, "w", encoding="utf-8", newline="\n") as file_object:
+    with open(
+        FILE_DOAJ_PUBLISHER, "w", encoding="utf-8", newline="\n"
+    ) as file_object:
         writer = csv.DictWriter(
             file_object, fieldnames=HEADER_PUBLISHER, dialect="unix"
         )
@@ -529,8 +543,15 @@ def query_doaj(args):
     }
 
     try:
-        with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as file_object:
-            yaml.dump(provenance_data, file_object, default_flow_style=False, indent=2)
+        with open(
+            FILE_PROVENANCE, "w", encoding="utf-8", newline="\n"
+        ) as file_object:
+            yaml.dump(
+                provenance_data,
+                file_object,
+                default_flow_style=False,
+                indent=2,
+            )
     except Exception as e:
         LOGGER.error("Failed to write provenance file: %s", e)
         raise shared.QuantifyingException(

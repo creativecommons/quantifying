@@ -2,13 +2,17 @@
 """
 Generate ISO 3166-1 alpha-2 country codes YAML file for DOAJ fetch script.
 """
+# Standard library
 import os
 import sys
+
+# Third-party
 import yaml
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "scripts"))
-import shared
+# First-party/Local
+import shared  # noqa: E402
 
 # ISO 3166-1 alpha-2 country codes (official list)
 COUNTRIES = [
@@ -268,17 +272,22 @@ def main():
     """Generate ISO country codes YAML file."""
     repo_path = shared.path_join(os.path.dirname(__file__), "..")
     output_file = shared.path_join(repo_path, "data", "iso_country_codes.yaml")
-    
+
     header = [
         "# ISO 3166-1 alpha-2 country codes to country names mapping",
         "# Used by DOAJ API for publisher country identification",
         "# Generated programmatically by dev/generate_country_codes.py",
     ]
-    
+
     with open(output_file, "w", encoding="utf-8") as file_object:
         file_object.write("\n".join(header) + "\n")
-        yaml.dump(COUNTRIES, file_object, default_flow_style=False, allow_unicode=True)
-    
+        yaml.dump(
+            COUNTRIES,
+            file_object,
+            default_flow_style=False,
+            allow_unicode=True,
+        )
+
     print(f"Generated {output_file} with {len(COUNTRIES)} country codes")
 
 
