@@ -437,34 +437,34 @@ def save_count_data(
 
     # Save license counts
     data = []
-    for lic, c in license_counts.items():
-        data.append({"TOOL_IDENTIFIER": lic, "COUNT": c})
+    for license_name, count in license_counts.items():
+        data.append({"TOOL_IDENTIFIER": license_name, "COUNT": count})
     data.sort(key=itemgetter("TOOL_IDENTIFIER"))
-    with open(FILE_ARXIV_COUNT, "w", encoding="utf-8", newline="\n") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_COUNT, dialect="unix")
+    with open(FILE_ARXIV_COUNT, "w", encoding="utf-8", newline="\n") as file_handle:
+        writer = csv.DictWriter(file_handle, fieldnames=HEADER_COUNT, dialect="unix")
         writer.writeheader()
         for row in data:
             writer.writerow(row)
 
     # Save category report with labels
     data = []
-    for lic, cats in category_counts.items():
-        for code, c in cats.items():
+    for license_name, categories in category_counts.items():
+        for code, count in categories.items():
             label = CATEGORIES.get(code, code)
             data.append(
                 {
-                    "TOOL_IDENTIFIER": lic,
+                    "TOOL_IDENTIFIER": license_name,
                     "CATEGORY_CODE": code,
                     "CATEGORY_LABEL": label,
-                    "COUNT": c,
+                    "COUNT": count,
                 }
             )
     data.sort(key=itemgetter("TOOL_IDENTIFIER", "CATEGORY_CODE"))
     with open(
         FILE_ARXIV_CATEGORY_REPORT, "w", encoding="utf-8", newline="\n"
-    ) as fh:
+    ) as file_handle:
         writer = csv.DictWriter(
-            fh, fieldnames=HEADER_CATEGORY_REPORT, dialect="unix"
+            file_handle, fieldnames=HEADER_CATEGORY_REPORT, dialect="unix"
         )
         writer.writeheader()
         for row in data:
@@ -472,34 +472,34 @@ def save_count_data(
 
     # Save year counts
     data = []
-    for lic, years in year_counts.items():
-        for year, c in years.items():
-            data.append({"TOOL_IDENTIFIER": lic, "YEAR": year, "COUNT": c})
+    for license_name, years in year_counts.items():
+        for year, count in years.items():
+            data.append({"TOOL_IDENTIFIER": license_name, "YEAR": year, "COUNT": count})
     data.sort(key=itemgetter("TOOL_IDENTIFIER", "YEAR"))
-    with open(FILE_ARXIV_YEAR, "w", encoding="utf-8", newline="\n") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_YEAR, dialect="unix")
+    with open(FILE_ARXIV_YEAR, "w", encoding="utf-8", newline="\n") as file_handle:
+        writer = csv.DictWriter(file_handle, fieldnames=HEADER_YEAR, dialect="unix")
         writer.writeheader()
         for row in data:
             writer.writerow(row)
 
     # Save author buckets summary
     data = []
-    for lic, acs in author_counts.items():
+    for license_name, author_count_data in author_counts.items():
         # build buckets across licenses
         bucket_counts = Counter()
-        for ac, c in acs.items():
-            b = bucket_author_count(ac)
-            bucket_counts[b] += c
-        for b, c in bucket_counts.items():
+        for author_count, count in author_count_data.items():
+            bucket = bucket_author_count(author_count)
+            bucket_counts[bucket] += count
+        for bucket, count in bucket_counts.items():
             data.append(
-                {"TOOL_IDENTIFIER": lic, "AUTHOR_BUCKET": b, "COUNT": c}
+                {"TOOL_IDENTIFIER": license_name, "AUTHOR_BUCKET": bucket, "COUNT": count}
             )
     data.sort(key=itemgetter("TOOL_IDENTIFIER", "AUTHOR_BUCKET"))
     with open(
         FILE_ARXIV_AUTHOR_BUCKET, "w", encoding="utf-8", newline="\n"
-    ) as fh:
+    ) as file_handle:
         writer = csv.DictWriter(
-            fh, fieldnames=HEADER_AUTHOR_BUCKET, dialect="unix"
+            file_handle, fieldnames=HEADER_AUTHOR_BUCKET, dialect="unix"
         )
         writer.writeheader()
         for row in data:
