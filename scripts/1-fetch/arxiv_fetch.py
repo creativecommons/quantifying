@@ -414,12 +414,12 @@ def extract_metadata_from_xml(record_xml):
         }
 
 
-def bucket_author_count(n):
+def bucket_author_count(author_count):
     """Convert author count to predefined buckets: "1", "2", "3", "4", "5+"."""
-    if n <= 0:
+    if author_count <= 0:
         return "0"
-    if n <= 4:
-        return str(n)
+    if author_count <= 4:
+        return str(author_count)
     return "5+"
 
 
@@ -656,8 +656,8 @@ def query_arxiv(args):
 
     # Write provenance YAML for auditing
     try:
-        with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as fh:
-            yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
+        with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as file_handle:
+            yaml.dump(provenance_data, file_handle, default_flow_style=False, indent=2)
     except Exception as e:
         LOGGER.error(f"Failed to write provenance file: {e}")
         raise shared.QuantifyingException(
