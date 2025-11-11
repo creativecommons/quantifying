@@ -19,6 +19,7 @@ create this file - it will be created programmatically when needed.
 import argparse
 import csv
 import os
+import subprocess
 import sys
 import textwrap
 import time
@@ -169,9 +170,6 @@ def load_country_names():
             PATHS["repo"], "dev", "generate_country_codes.py"
         )
         try:
-            # Standard library
-            import subprocess
-
             subprocess.run([sys.executable, generate_script], check=True)
             LOGGER.info("Successfully generated country codes file")
         except Exception as e:
