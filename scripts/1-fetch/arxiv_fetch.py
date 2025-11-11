@@ -327,36 +327,37 @@ def initialize_all_data_files(args):
 def extract_license_from_xml(record_xml):
     """
     Extract CC license information from OAI-PMH XML record.
-
-    Uses structured license field from arXiv metadata format.
-    Returns normalized license identifier or "Unknown".
+    Returns normalized license identifier or specific error indicator.
     """
     try:
-        # Parse the XML record
         root = ET.fromstring(record_xml)
-
+        
         # Find license element in arXiv namespace
-        license_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}license")
-
-        if license_elem is not None and license_elem.text:
-            license_url = license_elem.text.strip()
-
-            # Map license URL to standardized identifier
+        license_element = root.find(".//{http://arxiv.org/OAI/arXiv/}license")
+        
+        if license_element is not None and license_element.text:
+            license_url = license_element.text.strip()
+            
+            # Check exact mapping first
             if license_url in LICENSE_MAPPING:
                 return LICENSE_MAPPING[license_url]
-
-            # Check for Creative Commons URLs not in mapping
-            if "creativecommons.org" in license_url.lower():
+                
+            # Validate CC URLs more strictly
+            if "creativecommons.org/licenses/" in license_url.lower():
                 return f"CC (unmapped): {license_url}"
-
-        return "Unknown"
-
+            elif "creativecommons.org" in license_url.lower():
+                return f"CC (ambiguous): {license_url}"
+                
+            return f"Non-CC: {license_url}"
+            
+        return "No license field"
+        
     except ET.ParseError as e:
-        LOGGER.error(f"XML parsing error in license extraction: {e}")
-        return "Unknown"
+        LOGGER.error(f"XML parsing failed: {e}")
+        return "XML parse error"
     except Exception as e:
-        LOGGER.error(f"License extraction error: {e}")
-        return "Unknown"
+        LOGGER.error(f"License extraction failed: {e}")
+        return "Extraction error"
 
 
 def extract_metadata_from_xml(record_xml):
