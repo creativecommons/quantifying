@@ -370,25 +370,25 @@ def extract_metadata_from_xml(record_xml):
         root = ET.fromstring(record_xml)
 
         # Extract category (primary category from categories field)
-        categories_elem = root.find(
+        categories_element = root.find(
             ".//{http://arxiv.org/OAI/arXiv/}categories"
         )
-        category = "Unknown"
-        if categories_elem is not None and categories_elem.text:
+        category = "Uncategorized"
+        if categories_element is not None and categories_element.text:
             # Take first category as primary
-            category = categories_elem.text.strip().split()[0]
+            category = categories_element.text.strip().split()[0]
 
         # Extract year from created date
-        created_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}created")
-        year = "Unknown"
-        if created_elem is not None and created_elem.text:
+        created_element = root.find(".//{http://arxiv.org/OAI/arXiv/}created")
+        year = "Undated"
+        if created_element is not None and created_element.text:
             try:
-                year = created_elem.text.strip()[:4]  # Extract year
+                year = created_element.text.strip()[:4]  # Extract year
             except (AttributeError, IndexError) as e:
                 LOGGER.warning(
-                    f"Failed to extract year from '{created_elem.text}': {e}"
+                    f"Failed to extract year from '{created_element.text}': {e}"
                 )
-                year = "Unknown"
+                year = "Undated"
 
         # Extract author count
         authors = root.findall(".//{http://arxiv.org/OAI/arXiv/}author")
