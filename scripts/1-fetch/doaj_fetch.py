@@ -127,6 +127,24 @@ LANGUAGE_NAMES = {
     "AF": "Afrikaans",
 }
 
+# File Paths
+FILE_DOAJ_COUNT = shared.path_join(PATHS["data_1-fetch"], "doaj_1_count.csv")
+FILE_DOAJ_SUBJECT_REPORT = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_2_count_by_subject_report.csv"
+)
+FILE_DOAJ_LANGUAGE = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_3_count_by_language.csv"
+)
+FILE_DOAJ_YEAR = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_4_count_by_year.csv"
+)
+FILE_DOAJ_PUBLISHER = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_5_count_by_publisher.csv"
+)
+FILE_PROVENANCE = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_provenance.yaml"
+)
+
 
 # Load ISO 3166-1 alpha-2 country codes from YAML file
 def load_country_names():
@@ -172,24 +190,6 @@ def load_country_names():
             f"Critical error loading country codes: {e}", exit_code=1
         )
 
-
-# File Paths
-FILE_DOAJ_COUNT = shared.path_join(PATHS["data_1-fetch"], "doaj_1_count.csv")
-FILE_DOAJ_SUBJECT_REPORT = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_2_count_by_subject_report.csv"
-)
-FILE_DOAJ_LANGUAGE = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_3_count_by_language.csv"
-)
-FILE_DOAJ_YEAR = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_4_count_by_year.csv"
-)
-FILE_DOAJ_PUBLISHER = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_5_count_by_publisher.csv"
-)
-FILE_PROVENANCE = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_provenance.yaml"
-)
 
 # Runtime variables
 QUARTER = os.path.basename(PATHS["data_quarter"])
