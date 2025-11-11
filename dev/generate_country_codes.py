@@ -275,9 +275,9 @@ def main():
         "# Generated programmatically by dev/generate_country_codes.py",
     ]
     
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write("\n".join(header) + "\n")
-        yaml.dump(COUNTRIES, f, default_flow_style=False, allow_unicode=True)
+    with open(output_file, "w", encoding="utf-8") as file_object:
+        file_object.write("\n".join(header) + "\n")
+        yaml.dump(COUNTRIES, file_object, default_flow_style=False, allow_unicode=True)
     
     print(f"Generated {output_file} with {len(COUNTRIES)} country codes")
 
