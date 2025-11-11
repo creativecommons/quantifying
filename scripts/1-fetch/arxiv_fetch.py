@@ -562,12 +562,12 @@ def query_arxiv(args):
             root = ET.fromstring(response.content)
 
             # Check for errors
-            error_elem = root.find(
+            error_element = root.find(
                 ".//{http://www.openarchives.org/OAI/2.0/}error"
             )
-            if error_elem is not None:
+            if error_element is not None:
                 raise shared.QuantifyingException(
-                    f"OAI-PMH Error: {error_elem.text}", 1
+                    f"OAI-PMH Error: {error_element.text}", 1
                 )
 
             # Process records
@@ -614,11 +614,11 @@ def query_arxiv(args):
             )
 
             # Check for resumption token
-            resumption_elem = root.find(
+            resumption_element = root.find(
                 ".//{http://www.openarchives.org/OAI/2.0/}resumptionToken"
             )
-            if resumption_elem is not None and resumption_elem.text:
-                resumption_token = resumption_elem.text
+            if resumption_element is not None and resumption_element.text:
+                resumption_token = resumption_element.text
                 LOGGER.info("Continuing with resumption token...")
             else:
                 LOGGER.info("No more records available")
