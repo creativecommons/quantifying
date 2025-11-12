@@ -13,10 +13,10 @@ and systems science, and economics. All arXiv articles are available under
 various open licenses or are in the public domain.
 
 **API documentation link:**
-- [arXiv API User Manual](https://arxiv.org/help/api/user-manual)
-- [arXiv API Reference](https://arxiv.org/help/api)
-- [arXiv OAI-PMH Interface](https://arxiv.org/help/oa/index)
-- [Base URL (Standard API)](http://export.arxiv.org/api/query)
+- [arXiv API User Manual](https://info.arxiv.org/help/api/user-manual.html)
+- [arXiv API Reference](https://info.arxiv.org/help/api/index.html)
+- [arXiv OAI-PMH Interface](https://info.arxiv.org/help/oa/index.html)
+- [Base URL (Standard API)](https://export.arxiv.org/api/query)
 - [Base URL (OAI-PMH)](https://oaipmh.arxiv.org/oai)
 - [arXiv Subject Classifications](https://arxiv.org/category_taxonomy)
 - [Terms of Use for arXiv APIs](https://info.arxiv.org/help/api/tou.html)
