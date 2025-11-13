@@ -348,7 +348,7 @@ def extract_license_from_xml(record_xml):
             elif "creativecommons.org" in license_url.lower():
                 return f"CC (ambiguous): {license_url}"
 
-            return f"Non-CC: {license_url}"
+            return "Non-CC"
 
         return "No license field"
 
