@@ -169,7 +169,7 @@ language edition of wikipedia. It runs on the Meta-Wiki API.
 - Query limit: It is rate-limited only to prevent abuse
 - Data available through XML or JSON format
 
-## Wikimedia
+## Wikimedia Commons
 
 **Description:** Wikimedia Commons is a repository of free-to-use media files. Its API allows users to query files, categories, metadata, and license information. You can retrieve statistics such as file counts, page counts, categories, and subcategories. The API runs on the MediaWiki Action API, similar to Wikipedia, and provides access to information about media files, licenses, and categories across Wikimedia projects.
 
