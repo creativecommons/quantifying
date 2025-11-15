@@ -69,6 +69,7 @@ LICENSE_MAPPING = {
     "http://creativecommons.org/licenses/by-nc-nd/3.0/": "CC BY-NC-ND 3.0",
     "http://creativecommons.org/licenses/by-nd/4.0/": "CC BY-ND 4.0",
     "http://creativecommons.org/licenses/by-nd/3.0/": "CC BY-ND 3.0",
+    "http://creativecommons.org/licenses/publicdomain": "CC CERTIFICATION 1.0 US",
     "http://creativecommons.org/publicdomain/zero/1.0/": "CC0 1.0",
     "http://creativecommons.org/share-your-work/public-domain/cc0/": "CC0",
 }
