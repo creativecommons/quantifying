@@ -417,8 +417,6 @@ def extract_metadata_from_xml(record_xml):
 
 def bucket_author_count(author_count):
     """Convert author count to predefined buckets: "1", "2", "3", "4", "5+"."""
-    if author_count <= 0:
-        return "0"
     if author_count <= 4:
         return str(author_count)
     return "5+"
