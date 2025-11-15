@@ -2,24 +2,24 @@
 """
 Fetch DOAJ journals with CC license information using API v4.
 
+Focus: Journal-level CC license adoption and temporal trends.
 Note: Articles do not contain license information in DOAJ API.
+
+This script focuses on essential data for quantifying Creative Commons adoption:
+- Journal CC license counts by type
+- Temporal trends (year-by-year adoption)
+
+Removed out-of-scope data: subjects, languages, publishers, countries.
 
 Default filtering by oa_start >= 2002 to avoid false positives from journals
 that retroactively adopted CC licenses. Creative Commons was founded in 2001
 and first licenses released in 2002. Journals with oa_start before 2002 may
 show CC licenses due to later license updates, not original terms.
-
-Country Code Mapping:
-This script requires ISO 3166-1 alpha-2 country codes for publisher analysis.
-If data/iso_country_codes.yaml is missing, the script will automatically
-generate it using dev/generate_country_codes.py. Users do not need to manually
-create this file - it will be created programmatically when needed.
 """
 # Standard library
 import argparse
 import csv
 import os
-import subprocess
 import sys
 import textwrap
 import time
@@ -62,15 +62,6 @@ CC_LICENSE_TYPES = [
 
 # File Paths
 FILE_DOAJ_COUNT = shared.path_join(PATHS["data_1-fetch"], "doaj_1_count.csv")
-FILE_DOAJ_LANGUAGE = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_3_count_by_language.csv"
-)
-FILE_DOAJ_PUBLISHER = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_5_count_by_publisher.csv"
-)
-FILE_DOAJ_SUBJECT_REPORT = shared.path_join(
-    PATHS["data_1-fetch"], "doaj_2_count_by_subject_report.csv"
-)
 FILE_PROVENANCE = shared.path_join(
     PATHS["data_1-fetch"], "doaj_provenance.yaml"
 )
@@ -80,114 +71,7 @@ FILE_DOAJ_YEAR = shared.path_join(
 
 # CSV Headers
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
-HEADER_LANGUAGE = ["TOOL_IDENTIFIER", "LANGUAGE_CODE", "LANGUAGE", "COUNT"]
-HEADER_PUBLISHER = [
-    "TOOL_IDENTIFIER",
-    "PUBLISHER",
-    "COUNTRY_CODE",
-    "COUNTRY_NAME",
-    "COUNT",
-]
-HEADER_SUBJECT_REPORT = [
-    "TOOL_IDENTIFIER",
-    "SUBJECT_CODE",
-    "SUBJECT_LABEL",
-    "COUNT",
-]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
-
-# Language code to readable name mapping
-LANGUAGE_NAMES = {
-    "AF": "Afrikaans",
-    "AR": "Arabic",
-    "BE": "Belarusian",
-    "BG": "Bulgarian",
-    "BN": "Bengali",
-    "CA": "Catalan",
-    "CS": "Czech",
-    "DA": "Danish",
-    "DE": "German",
-    "EL": "Greek",
-    "EN": "English",
-    "ES": "Spanish",
-    "ET": "Estonian",
-    "FA": "Persian",
-    "FI": "Finnish",
-    "FR": "French",
-    "HE": "Hebrew",
-    "HI": "Hindi",
-    "HR": "Croatian",
-    "HU": "Hungarian",
-    "ID": "Indonesian",
-    "IS": "Icelandic",
-    "IT": "Italian",
-    "JA": "Japanese",
-    "KO": "Korean",
-    "LT": "Lithuanian",
-    "LV": "Latvian",
-    "MK": "Macedonian",
-    "MS": "Malay",
-    "NL": "Dutch",
-    "NO": "Norwegian",
-    "PL": "Polish",
-    "PT": "Portuguese",
-    "RO": "Romanian",
-    "RU": "Russian",
-    "SK": "Slovak",
-    "SL": "Slovenian",
-    "SR": "Serbian",
-    "SV": "Swedish",
-    "SW": "Swahili",
-    "TH": "Thai",
-    "TR": "Turkish",
-    "UK": "Ukrainian",
-    "UR": "Urdu",
-    "VI": "Vietnamese",
-    "ZH": "Chinese",
-}
-
-
-# Load ISO 3166-1 alpha-2 country codes from YAML file
-def load_country_names():
-    """
-    Load country code to name mapping from YAML file.
-
-    Automatically generates data/iso_country_codes.yaml if missing using
-    dev/generate_country_codes.py. This ensures the script is self-contained
-    and does not require manual file creation by users.
-
-    Returns:
-        dict: Mapping of ISO 3166-1 alpha-2 codes to country names
-    """
-    country_file = shared.path_join(
-        PATHS["repo"], "data", "iso_country_codes.yaml"
-    )
-
-    # Generate country codes file if it doesn't exist
-    if not os.path.isfile(country_file):
-        LOGGER.info("Country codes file not found, generating it...")
-        generate_script = shared.path_join(
-            PATHS["repo"], "dev", "generate_country_codes.py"
-        )
-        try:
-            subprocess.run([sys.executable, generate_script], check=True)
-            LOGGER.info("Successfully generated country codes file")
-        except Exception as e:
-            LOGGER.error(f"Failed to generate country codes file: {e}")
-            raise shared.QuantifyingException(
-                f"Critical error generating country codes: {e}", exit_code=1
-            )
-
-    try:
-        with open(country_file, "r", encoding="utf-8") as file_object:
-            countries = yaml.safe_load(file_object)
-            return {country["code"]: country["name"] for country in countries}
-    except Exception as e:
-        LOGGER.error(f"Failed to load country codes from {country_file}: {e}")
-        raise shared.QuantifyingException(
-            f"Critical error loading country codes: {e}", exit_code=1
-        )
-
 
 # Runtime variables
 QUARTER = os.path.basename(PATHS["data_quarter"])
@@ -245,21 +129,21 @@ def initialize_all_data_files(args):
         return
     os.makedirs(PATHS["data_1-fetch"], exist_ok=True)
     initialize_data_file(FILE_DOAJ_COUNT, HEADER_COUNT)
-    initialize_data_file(FILE_DOAJ_SUBJECT_REPORT, HEADER_SUBJECT_REPORT)
-    initialize_data_file(FILE_DOAJ_LANGUAGE, HEADER_LANGUAGE)
     initialize_data_file(FILE_DOAJ_YEAR, HEADER_YEAR)
-    initialize_data_file(FILE_DOAJ_PUBLISHER, HEADER_PUBLISHER)
 
 
-def extract_license_type(license_info):
-    """Extract CC license type from DOAJ license information."""
+def extract_license_types(license_info):
+    """Extract all CC license types from DOAJ license information."""
     if not license_info:
-        return "UNKNOWN CC legal tool"
+        return []
+    
+    cc_licenses = []
     for lic in license_info:
         lic_type = lic.get("type", "")
         if lic_type in CC_LICENSE_TYPES:
-            return lic_type
-    return "UNKNOWN CC legal tool"
+            cc_licenses.append(lic_type)
+    
+    return cc_licenses
 
 
 def process_journals(session, args):
@@ -267,10 +151,9 @@ def process_journals(session, args):
     LOGGER.info("Fetching DOAJ journals...")
 
     license_counts = Counter()
-    subject_counts = defaultdict(Counter)
-    language_counts = defaultdict(Counter)
     year_counts = defaultdict(Counter)
-    publisher_counts = defaultdict(Counter)
+    article_counts = defaultdict(int)  # Track total articles per license type
+    processed_journals = set()  # Track unique journals to avoid double counting
 
     total_processed = 0
     page = 1
@@ -319,52 +202,45 @@ def process_journals(session, args):
             try:
                 bibjson = journal.get("bibjson", {})
 
-                # Check for CC license
+                # Get journal identifier to avoid double counting
+                journal_id = journal.get("id", "")
+                if not journal_id:
+                    continue
+
+                # Check for CC licenses
                 license_info = bibjson.get("license")
                 if not license_info:
                     continue
 
-                license_type = extract_license_type(license_info)
-                if license_type == "UNKNOWN CC legal tool":
+                cc_license_types = extract_license_types(license_info)
+                if not cc_license_types:
                     continue
 
-                license_counts[license_type] += 1
-
-                # Extract subjects
-                subjects = bibjson.get("subject", [])
-                for subject in subjects:
-                    if isinstance(subject, dict):
-                        code = subject.get("code", "")
-                        term = subject.get("term", "")
-                        if code and term:
-                            subject_counts[license_type][f"{code}|{term}"] += 1
-
-                # Extract year from oa_start (Open Access start year)
+                # Extract article count and year once per journal
+                article_count = bibjson.get("article_count", 0)
                 oa_start = bibjson.get("oa_start")
 
                 # Apply date-back filter if specified
                 if args.date_back and oa_start and oa_start < args.date_back:
                     continue
 
-                if oa_start:
-                    year_counts[license_type][str(oa_start)] += 1
-                else:
-                    year_counts[license_type]["Unknown"] += 1
+                # Count each license type this journal supports
+                for license_type in cc_license_types:
+                    license_counts[license_type] += 1
 
-                # Extract languages
-                languages = bibjson.get("language", [])
-                for lang in languages:
-                    language_counts[license_type][lang] += 1
+                    # Add year data for each license type
+                    if oa_start:
+                        year_counts[license_type][str(oa_start)] += 1
+                    else:
+                        year_counts[license_type]["Unknown"] += 1
 
-                # Extract publisher information (new in v4)
-                publisher_info = bibjson.get("publisher", {})
-                if publisher_info:
-                    publisher_name = publisher_info.get("name", "Unknown")
-                    publisher_country = publisher_info.get(
-                        "country", "Unknown"
-                    )
-                    publisher_key = f"{publisher_name}|{publisher_country}"
-                    publisher_counts[license_type][publisher_key] += 1
+                # Add article count only once per unique journal (avoid double counting)
+                if journal_id not in processed_journals:
+                    processed_journals.add(journal_id)
+                    # Add full article count to each license type this journal supports
+                    if article_count:
+                        for license_type in cc_license_types:
+                            article_counts[license_type] += article_count
 
                 total_processed += 1
 
@@ -388,25 +264,18 @@ def process_journals(session, args):
 
     return (
         license_counts,
-        subject_counts,
-        language_counts,
         year_counts,
-        publisher_counts,
-        total_processed,
+        article_counts,
+        len(processed_journals),  # Return unique journal count
     )
 
 
 def save_count_data(
     license_counts,
-    subject_counts,
-    language_counts,
     year_counts,
-    publisher_counts,
+    article_counts,
 ):
-    """Save all collected data to CSV files."""
-
-    # Load country names from YAML
-    country_names = load_country_names()
+    """Save essential journal data and article context to CSV files."""
 
     # Save license counts
     with open(
@@ -418,49 +287,6 @@ def save_count_data(
         writer.writeheader()
         for lic, count in license_counts.items():
             writer.writerow({"TOOL_IDENTIFIER": lic, "COUNT": count})
-
-    # Save subject report
-    with open(
-        FILE_DOAJ_SUBJECT_REPORT, "w", encoding="utf-8", newline="\n"
-    ) as file_object:
-        writer = csv.DictWriter(
-            file_object, fieldnames=HEADER_SUBJECT_REPORT, dialect="unix"
-        )
-        writer.writeheader()
-        for lic, subjects in subject_counts.items():
-            for subject_info, count in subjects.items():
-                if "|" in subject_info:
-                    code, label = subject_info.split("|", 1)
-                else:
-                    code, label = subject_info, subject_info
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": lic,
-                        "SUBJECT_CODE": code,
-                        "SUBJECT_LABEL": label,
-                        "COUNT": count,
-                    }
-                )
-
-    # Save language counts with readable names
-    with open(
-        FILE_DOAJ_LANGUAGE, "w", encoding="utf-8", newline="\n"
-    ) as file_object:
-        writer = csv.DictWriter(
-            file_object, fieldnames=HEADER_LANGUAGE, dialect="unix"
-        )
-        writer.writeheader()
-        for lic, languages in language_counts.items():
-            for lang_code, count in languages.items():
-                lang_name = LANGUAGE_NAMES.get(lang_code, lang_code)
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": lic,
-                        "LANGUAGE_CODE": lang_code,
-                        "LANGUAGE": lang_name,
-                        "COUNT": count,
-                    }
-                )
 
     # Save year counts
     with open(
@@ -476,32 +302,6 @@ def save_count_data(
                     {"TOOL_IDENTIFIER": lic, "YEAR": year, "COUNT": count}
                 )
 
-    # Save publisher counts
-    with open(
-        FILE_DOAJ_PUBLISHER, "w", encoding="utf-8", newline="\n"
-    ) as file_object:
-        writer = csv.DictWriter(
-            file_object, fieldnames=HEADER_PUBLISHER, dialect="unix"
-        )
-        writer.writeheader()
-        for lic, publishers in publisher_counts.items():
-            for publisher_info, count in publishers.items():
-                if "|" in publisher_info:
-                    publisher, country_code = publisher_info.split("|", 1)
-                else:
-                    publisher, country_code = publisher_info, "Unknown"
-
-                country_name = country_names.get(country_code, country_code)
-                writer.writerow(
-                    {
-                        "TOOL_IDENTIFIER": lic,
-                        "PUBLISHER": publisher,
-                        "COUNTRY_CODE": country_code,
-                        "COUNTRY_NAME": country_name,
-                        "COUNT": count,
-                    }
-                )
-
 
 def query_doaj(args):
     """Main function to query DOAJ API v4."""
@@ -512,10 +312,8 @@ def query_doaj(args):
     # Process journals
     (
         license_counts,
-        subject_counts,
-        language_counts,
         year_counts,
-        publisher_counts,
+        article_counts,
         journals_processed,
     ) = process_journals(session, args)
 
@@ -523,15 +321,14 @@ def query_doaj(args):
     if args.enable_save:
         save_count_data(
             license_counts,
-            subject_counts,
-            language_counts,
             year_counts,
-            publisher_counts,
+            article_counts,
         )
 
     # Save provenance
+    total_articles = sum(article_counts.values())
     provenance_data = {
-        "total_articles_fetched": 0,
+        "total_articles_in_cc_journals": total_articles,
         "total_journals_fetched": journals_processed,
         "total_processed": journals_processed,
         "limit": args.limit,
@@ -539,7 +336,7 @@ def query_doaj(args):
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
         "api_version": "v4",
-        "note": "Articles do not contain license information in DOAJ API",
+        "note": "Article counts provide context for CC journal scope - individual article licenses unknown",
     }
 
     try:
@@ -558,10 +355,16 @@ def query_doaj(args):
             f"Critical error writing provenance file: {e}", exit_code=1
         )
 
-    LOGGER.info(f"Total CC licensed journals processed: {journals_processed}")
-    LOGGER.info(
-        "Articles: 0 (DOAJ API doesn't provide license info for articles)"
-    )
+    LOGGER.info(f"Unique CC-licensed journals processed: {journals_processed}")
+    
+    # Calculate total license availability instances
+    total_license_instances = sum(license_counts.values())
+    LOGGER.info(f"Total CC license type instances: {total_license_instances}")
+    
+    # Calculate total articles for context
+    total_articles = sum(article_counts.values())
+    LOGGER.info(f"Total articles in CC-licensed journals: {total_articles}")
+    LOGGER.info("Note: Journals supporting multiple CC license types are counted once per license type")
 
 
 def main():
