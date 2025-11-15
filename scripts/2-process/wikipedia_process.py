@@ -71,23 +71,46 @@ def data_to_csv(args, data, file_path):
 
 def process_highest_language_usage(args, count_data):
     """
-    Processing count data: top 10 highest language usage
+    Processing count data: Most represented languages
     """
     LOGGER.info(process_highest_language_usage.__doc__.strip())
     data = {}
 
     for row in count_data.itertuples(index=False):
-        language_name_en = row.LANGUAGE_NAME_EN
-        count = row.COUNT
-        data[language_name_en] = count
+        Language = row.LANGUAGE_NAME_EN
+        Count = row.COUNT
+        data[Language] = Count
 
-    data = pd.DataFrame(data.items(), columns=["language_name_en", "count"])
-    data.sort_values("count", ascending=False, inplace=True)
+    data = pd.DataFrame(data.items(), columns=["Language", "Count"])
+    data.sort_values("Count", ascending=False, inplace=True)
     top_10 = data.head(10)
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_highest_language_usage.csv"
     )
     data_to_csv(args, top_10, file_path)
+
+
+def process_least_language_usage(args, count_data):
+    """
+    Processing count data: Least represented languages
+    """
+    LOGGER.info(process_least_language_usage.__doc__.strip())
+    data = {}
+
+    for row in count_data.itertuples(index=False):
+        Language = row.LANGUAGE_NAME_EN
+        Count = row.COUNT
+
+        if Count >= 1:
+            data[Language] = Count
+
+    data = pd.DataFrame(data.items(), columns=["Language", "Count"])
+    data.sort_values("Count", ascending=True, inplace=True)
+    bottom_10 = data.head(10)
+    file_path = shared.path_join(
+        PATHS["data_phase"], "wikipedia_least_language_usage.csv"
+    )
+    data_to_csv(args, bottom_10, file_path)
 
 
 def process_language_representation(args, count_data):
@@ -98,22 +121,18 @@ def process_language_representation(args, count_data):
     data = {}
 
     for row in count_data.itertuples(index=False):
-        language_name_en = row.LANGUAGE_NAME_EN
-        count = row.COUNT
-        data[language_name_en] = count
+        Language = row.LANGUAGE_NAME_EN
+        Count = row.COUNT
+        data[Language] = Count
 
-    data = pd.DataFrame(data.items(), columns=["language_name_en", "count"])
-    average_count = data["count"].mean()
+    data = pd.DataFrame(data.items(), columns=["Language", "Count"])
+    average_count = data["Count"].mean()
 
-    data["category"] = data["count"].apply(
+    data["Category"] = data["Count"].apply(
         lambda x: "Underrepresented" if x < average_count else "Represented"
     )
-    language_counts = (
-        data.groupby("category").size().reset_index(name="language_count")
-    )
-    language_counts.sort_values(
-        "language_count", ascending=False, inplace=True
-    )
+    language_counts = data.groupby("Category").size().reset_index(name="Count")
+    language_counts.sort_values("Count", ascending=False, inplace=True)
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_language_representation.csv"
     )
@@ -129,8 +148,9 @@ def main():
         PATHS["data_1-fetch"], "wikipedia_count_by_languages.csv"
     )
     count_data = pd.read_csv(file_count, usecols=["LANGUAGE_NAME_EN", "COUNT"])
-    process_highest_language_usage(args, count_data)
     process_language_representation(args, count_data)
+    process_highest_language_usage(args, count_data)
+    process_least_language_usage(args, count_data)
 
     # Push changes
     args = shared.git_add_and_commit(
