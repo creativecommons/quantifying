@@ -152,7 +152,6 @@ def process_journals(session, args):
 
     license_counts = Counter()
     year_counts = defaultdict(Counter)
-    article_counts = defaultdict(int)  # Track total articles per license type
     processed_journals = set()  # Track unique journals to avoid double counting
 
     total_processed = 0
@@ -216,8 +215,7 @@ def process_journals(session, args):
                 if not cc_license_types:
                     continue
 
-                # Extract article count and year once per journal
-                article_count = bibjson.get("article_count", 0)
+                # Extract year from oa_start (Open Access start year)
                 oa_start = bibjson.get("oa_start")
 
                 # Apply date-back filter if specified
@@ -234,13 +232,9 @@ def process_journals(session, args):
                     else:
                         year_counts[license_type]["Unknown"] += 1
 
-                # Add article count only once per unique journal (avoid double counting)
+                # Track unique journals to avoid double counting in statistics
                 if journal_id not in processed_journals:
                     processed_journals.add(journal_id)
-                    # Add full article count to each license type this journal supports
-                    if article_count:
-                        for license_type in cc_license_types:
-                            article_counts[license_type] += article_count
 
                 total_processed += 1
 
@@ -265,7 +259,6 @@ def process_journals(session, args):
     return (
         license_counts,
         year_counts,
-        article_counts,
         len(processed_journals),  # Return unique journal count
     )
 
@@ -273,9 +266,8 @@ def process_journals(session, args):
 def save_count_data(
     license_counts,
     year_counts,
-    article_counts,
 ):
-    """Save essential journal data and article context to CSV files."""
+    """Save essential journal data to CSV files."""
 
     # Save license counts
     with open(
@@ -313,7 +305,6 @@ def query_doaj(args):
     (
         license_counts,
         year_counts,
-        article_counts,
         journals_processed,
     ) = process_journals(session, args)
 
@@ -322,13 +313,10 @@ def query_doaj(args):
         save_count_data(
             license_counts,
             year_counts,
-            article_counts,
         )
 
     # Save provenance
-    total_articles = sum(article_counts.values())
     provenance_data = {
-        "total_articles_in_cc_journals": total_articles,
         "total_journals_fetched": journals_processed,
         "total_processed": journals_processed,
         "limit": args.limit,
@@ -336,7 +324,7 @@ def query_doaj(args):
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
         "api_version": "v4",
-        "note": "Article counts provide context for CC journal scope - individual article licenses unknown",
+        "note": "Journal-level CC license data only - article counts not available via DOAJ API",
     }
 
     try:
@@ -360,10 +348,6 @@ def query_doaj(args):
     # Calculate total license availability instances
     total_license_instances = sum(license_counts.values())
     LOGGER.info(f"Total CC license type instances: {total_license_instances}")
-    
-    # Calculate total articles for context
-    total_articles = sum(article_counts.values())
-    LOGGER.info(f"Total articles in CC-licensed journals: {total_articles}")
     LOGGER.info("Note: Journals supporting multiple CC license types are counted once per license type")
 
 
