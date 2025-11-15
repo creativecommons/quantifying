@@ -600,7 +600,7 @@ def query_arxiv(args):
                 # Only process CC-licensed papers
                 if (
                     metadata["license"] != "Unknown"
-                    and "CC" in metadata["license"]
+                    and metadata["license"].startswith("CC")
                 ):
                     license_info = metadata["license"]
                     category = metadata["category"]
@@ -684,7 +684,7 @@ def query_arxiv(args):
             f"Provenance file write failed: {e}", 1
         )
 
-    LOGGER.info(f"Total CC licensed papers fetched: {total_fetched}")
+    LOGGER.info(f"Total papers with CC licenses fetched: {total_fetched}")
     LOGGER.info(f"License distribution: {dict(license_counts)}")
 
 
