@@ -32,7 +32,7 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 BASE_URL = "https://commons.wikimedia.org/w/api.php"
 FILE_WIKICOMMONS = shared.path_join(
-    PATHS["data_phase"], "wikicommons_fetch.csv"
+    PATHS["data_phase"], "wikicommons_legal_tool_counts.csv"
 )
 HEADER_WIKICOMMONS = ["LICENSE_TYPE", "FILE_COUNT", "PAGE_COUNT"]
 ROOT_CATEGORY = "Free_Creative_Commons_licenses"
@@ -156,7 +156,7 @@ def recursive_collect_data(session, limit=None):
             {
                 "LICENSE_TYPE": path,
                 "FILE_COUNT": contents["FILE_COUNT"],
-                "PAGE_COUNT": contents["FILE_COUNT"],
+                "PAGE_COUNT": contents["PAGE_COUNT"],
             }
         )
 
@@ -166,10 +166,7 @@ def recursive_collect_data(session, limit=None):
 
         # Logging label
         label = "categories" if depth == 0 else "subcategories"
-        if count == 0:
-            LOGGER.warning(f"Skipping {category} — 0 {label} found.")
-        else:
-            LOGGER.info(f"Fetched {count} {label} for {category}.")
+        LOGGER.info(f"Fetched {count} {label} for {category}.")
 
         # Recursively traverse subcategories
         for sub in subcats:
@@ -187,10 +184,12 @@ def write_data(args, wikicommons_data):
         return args
 
     os.makedirs(PATHS["data_phase"], exist_ok=True)
-    with open(FILE_WIKICOMMONS, "w", encoding="utf-8", newline="\n") as f:
+    with open(
+        FILE_WIKICOMMONS, "w", encoding="utf-8", newline="\n"
+    ) as file_obj:
 
         writer = csv.DictWriter(
-            f, fieldnames=HEADER_WIKICOMMONS, dialect="unix"
+            file_obj, fieldnames=HEADER_WIKICOMMONS, dialect="unix"
         )
         writer.writeheader()
         writer.writerows(wikicommons_data)
