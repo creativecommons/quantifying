@@ -273,7 +273,7 @@ def fetch_zenodo_records(session, page=1, size=100, query="*"):
 
     try:
         response = session.get(
-            ZENODO_API_BASE_URL, params=params, timeout=60
+            ZENODO_API_BASE_URL, params=params, timeout=15
         )
         response.raise_for_status()
         return response.json()
