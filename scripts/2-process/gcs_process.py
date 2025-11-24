@@ -311,6 +311,7 @@ def main():
 
     # Count data
     file1_count = shared.path_join(PATHS["data_1-fetch"], "gcs_1_count.csv")
+    shared.safe_open_file(file1_count, "process GCS count data")
     count_data = pd.read_csv(file1_count, usecols=["TOOL_IDENTIFIER", "COUNT"])
     process_product_totals(args, count_data)
     process_latest_prior_retired_totals(args, count_data)
@@ -321,6 +322,7 @@ def main():
     file2_language = shared.path_join(
         PATHS["data_1-fetch"], "gcs_2_count_by_language.csv"
     )
+    shared.safe_open_file(file2_language, "process GCS language data")
     language_data = pd.read_csv(
         file2_language, usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
     )
@@ -330,6 +332,7 @@ def main():
     file3_country = shared.path_join(
         PATHS["data_1-fetch"], "gcs_3_count_by_country.csv"
     )
+    shared.safe_open_file(file3_country, "process GCS country data")
     country_data = pd.read_csv(
         file3_country, usecols=["TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
     )
