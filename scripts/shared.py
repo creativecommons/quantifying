@@ -369,3 +369,47 @@ def update_readme(
     logger.info(
         f"Updated README with new image and description for {entry_title}."
     )
+
+def open_data_file(file_path):
+    """
+    Open and read a data file with proper error handling.
+    
+    If a process or report script attempts to open a file that does not exist,
+    an exception is generated and converted into a helpful error message.
+    
+    Args:
+        file_path (str): Path to the data file to open
+        
+    Returns:
+        str: Content of the file
+        
+    Raises:
+        QuantifyingException: If file doesn't exist or can't be opened
+    """
+    try:
+        if not os.path.exists(file_path):
+            raise QuantifyingException(
+                f"Data file not found: {file_path}",
+                exit_code=1
+            )
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return f.read()
+            
+    except QuantifyingException:
+        raise
+    except FileNotFoundError as e:
+        raise QuantifyingException(
+            f"Data file not found: {file_path}",
+            exit_code=1
+        )
+    except PermissionError as e:
+        raise QuantifyingException(
+            f"Permission denied when accessing data file: {file_path}",
+            exit_code=1
+        )
+    except Exception as e:
+        raise QuantifyingException(
+            f"Error opening data file {file_path}: {str(e)}",
+            exit_code=1
+        )
