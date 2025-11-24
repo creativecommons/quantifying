@@ -136,6 +136,48 @@ def fetch_category_totals(category, session):
         raise shared.QuantifyingException(message)
 
 
+# Helper function to check if a category
+# name represents a valid CC license tool
+def is_valid_license_tool(category_name):
+    """
+    Checks if a category name corresponds to
+    an official Creative Commons license tool..
+    Official license categories usually start with
+    'CC-' followed by a combination
+    of BY, SA, ND, NC, and a version number (e.g., CC-BY-4.0)
+
+    EXCLUDED CC Licenses (marked 'Not OK' in policy):
+    - Attribution-NonCommercial (CC BY-NC).
+    - Attribution-NoDerivs (CC BY-ND).
+    - Any combination containing NC or ND restrictions.
+
+
+    """
+    # A list of common patterns to check
+    if category_name.startswith("CC-") and any(
+        x in category_name for x in ["BY", "SA"]
+    ):
+        # Specific exceptions that look like
+        # licenses but are markers/subcategories
+        if "migrated" in category_name or "Retired" in category_name:
+            return False
+        return True
+
+    # Check for CC0 Public Domain Dedication (often just "CC0")
+    if (
+        category_name == "CC0"
+        or category_name.startswith("CC0-")
+        or category_name == "CC-Zero"
+    ):
+        return True
+
+    # The root category itself is not a license tool
+    if category_name == ROOT_CATEGORY:
+        return False
+
+    return False
+
+
 def recursive_collect_data(session, limit=None):
     """Recursively traverse WikiCommons categories and collect data."""
 
@@ -149,27 +191,39 @@ def recursive_collect_data(session, limit=None):
             return
         visited.add(category)
 
-        # Get counts for the current category itself
-        contents = fetch_category_totals(category, session)
+        # Only fetch and collect data for valid license tools
+        if is_valid_license_tool(category):
+            try:
+                # Get counts for the current category
+                contents = fetch_category_totals(category, session)
 
-        results.append(
-            {
-                "LICENSE_TYPE": path,
-                "FILE_COUNT": contents["FILE_COUNT"],
-                "PAGE_COUNT": contents["PAGE_COUNT"],
-            }
-        )
+                results.append(
+                    {
+                        # Use the specific license category name
+                        #  as the LICENSE_TYPE
+                        "LICENSE_TYPE": category,
+                        "FILE_COUNT": contents["FILE_COUNT"],
+                        "PAGE_COUNT": contents["PAGE_COUNT"],
+                    }
+                )
+            except shared.QuantifyingException as e:
+                # Log the specific license category failure
+                LOGGER.error(
+                    f"Failed to process valid license category {category}: {e}"
+                )
 
-        # Get subcategories
+        # Get subcategories (check subcategories,
+        # as a valid license might be nested under a non-license category)
         subcats = get_subcategories(category, session)
-        count = len(subcats)
 
         # Logging label
         label = "categories" if depth == 0 else "subcategories"
-        LOGGER.info(f"Fetched {count} {label} for {category}.")
+        LOGGER.info(f"Fetched {len(subcats)} {label} for {category}.")
 
         # Recursively traverse subcategories
         for sub in subcats:
+            # Use the subcategory name as the 'path' for traversal,
+            # but use the category name for the final result.
             traverse(sub, f"{path}/{sub}", depth + 1)
             time.sleep(0.05)  # time to sleep
 
