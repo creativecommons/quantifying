@@ -73,18 +73,16 @@ def open_data_file(logger, file_path, usecols=None):
     expected errors into QuantifyingException.
     This function is shared so all process/report
     scripts use the same error behavior.
-
     """
+    try:
+        # Attempt reading the file
+        return pd.read_csv(file_path, usecols=usecols)
 
     # File does not exist
-    if not os.path.isfile(file_path):
+    except FileNotFoundError:
         raise QuantifyingException(
             message=f"Data file not found: {file_path}", exit_code=1
         )
-
-    try:
-        # Reading the file
-        return pd.read_csv(file_path, usecols=usecols)
 
     # Empty or invalid CSV file
     except pd.errors.EmptyDataError:
@@ -99,7 +97,7 @@ def open_data_file(logger, file_path, usecols=None):
             exit_code=1,
         )
 
-    #  Any other unexpected issue
+    # Any other unexpected issue
     except Exception as e:
         raise QuantifyingException(
             message=f"Unexpected error opening file '{file_path}': {str(e)}",
