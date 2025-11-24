@@ -200,6 +200,7 @@ def plot_totals_by_restriction(args):
     name_label = "Category"
     data_label = "Count"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+    data.set_index(name_label, inplace=True)
     data.sort_values(name_label, ascending=False, inplace=True)
     title = "Totals by restriction"
     plt = plot.combined_plot(
