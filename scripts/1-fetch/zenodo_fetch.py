@@ -222,54 +222,25 @@ def classify_license(license_data):
     if isinstance(license_data, dict):
         license_id = license_data.get("id", "")  # API returns lowercase IDs
 
-        # Focus on Creative Commons licenses - map to standardized names
-        cc_license_mapping = {
-            # CC BY licenses
-            "cc-by-4.0": "CC BY 4.0",
-            "cc-by-3.0": "CC BY 3.0",
-            "cc-by-2.5": "CC BY 2.5",
-            "cc-by-2.0": "CC BY 2.0",
-            "cc-by-1.0": "CC BY 1.0",
-            # CC BY-SA licenses
-            "cc-by-sa-4.0": "CC BY-SA 4.0",
-            "cc-by-sa-3.0": "CC BY-SA 3.0",
-            "cc-by-sa-2.5": "CC BY-SA 2.5",
-            "cc-by-sa-2.0": "CC BY-SA 2.0",
-            "cc-by-sa-1.0": "CC BY-SA 1.0",
-            # CC BY-NC licenses
-            "cc-by-nc-4.0": "CC BY-NC 4.0",
-            "cc-by-nc-3.0": "CC BY-NC 3.0",
-            "cc-by-nc-2.5": "CC BY-NC 2.5",
-            "cc-by-nc-2.0": "CC BY-NC 2.0",
-            "cc-by-nc-1.0": "CC BY-NC 1.0",
-            "cc-nc": "CC BY-NC 4.0",
-            # CC BY-ND licenses
-            "cc-by-nd-4.0": "CC BY-ND 4.0",
-            "cc-by-nd-3.0": "CC BY-ND 3.0",
-            "cc-by-nd-2.5": "CC BY-ND 2.5",
-            "cc-by-nd-2.0": "CC BY-ND 2.0",
-            "cc-by-nd-1.0": "CC BY-ND 1.0",
-            "cc-nd": "CC BY-ND 4.0",
-            # CC BY-NC-SA licenses
-            "cc-by-nc-sa-4.0": "CC BY-NC-SA 4.0",
-            "cc-by-nc-sa-3.0": "CC BY-NC-SA 3.0",
-            "cc-by-nc-sa-2.5": "CC BY-NC-SA 2.5",
-            "cc-by-nc-sa-2.0": "CC BY-NC-SA 2.0",
-            "cc-by-nc-sa-1.0": "CC BY-NC-SA 1.0",
-            "cc-sa": "CC BY-SA 4.0",
-            # CC BY-NC-ND licenses
-            "cc-by-nc-nd-4.0": "CC BY-NC-ND 4.0",
-            "cc-by-nc-nd-3.0": "CC BY-NC-ND 3.0",
-            "cc-by-nc-nd-2.5": "CC BY-NC-ND 2.5",
-            "cc-by-nc-nd-2.0": "CC BY-NC-ND 2.0",
-            "cc-by-nc-nd-1.0": "CC BY-NC-ND 1.0",
-            # CC0 and Public Domain
-            "cc-zero": "CC0",
-            "cc0-1.0": "CC0",
-            "cc0": "CC0",
-            # Legacy CC licenses
-            "cc-publicdomain": "Public Domain Mark 1.0",
-        }
+        # Focus on Creative Commons licenses - normalize most cases
+        if license_id.startswith("cc"):
+            # Special cases that need custom mapping
+            special_cases = {
+                "cc-zero": "CC0",
+                "cc0-1.0": "CC0", 
+                "cc0": "CC0",
+                "cc-nc": "CC BY-NC 4.0",
+                "cc-nd": "CC BY-ND 4.0", 
+                "cc-sa": "CC BY-SA 4.0",
+                "cc-publicdomain": "Public Domain Mark 1.0",
+            }
+            
+            if license_id in special_cases:
+                return special_cases[license_id]
+            
+            # Normalize standard CC licenses: cc-by-4.0 -> CC BY 4.0
+            if license_id.startswith("cc-by"):
+                return license_id.upper().replace("-", " ")
 
         # Check if it's a CC license
         if license_id in cc_license_mapping:
