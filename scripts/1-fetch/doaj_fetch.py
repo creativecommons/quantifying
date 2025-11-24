@@ -27,6 +27,7 @@ import traceback
 from collections import Counter, defaultdict
 
 # Third-party
+import pycountry
 import requests
 import yaml
 from pygments import highlight
@@ -62,6 +63,8 @@ CC_LICENSE_TYPES = [
 
 # File Paths
 FILE_DOAJ_COUNT = shared.path_join(PATHS["data_1-fetch"], "doaj_1_count.csv")
+FILE_DOAJ_COUNTRY = shared.path_join(PATHS["data_1-fetch"], "doaj_3_count_by_country.csv")
+FILE_DOAJ_LANGUAGE = shared.path_join(PATHS["data_1-fetch"], "doaj_5_count_by_language.csv")
 FILE_PROVENANCE = shared.path_join(
     PATHS["data_1-fetch"], "doaj_provenance.yaml"
 )
@@ -71,6 +74,8 @@ FILE_DOAJ_YEAR = shared.path_join(
 
 # CSV Headers
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
+HEADER_COUNTRY = ["TOOL_IDENTIFIER", "COUNTRY_CODE", "COUNTRY_NAME", "COUNT"]
+HEADER_LANGUAGE = ["TOOL_IDENTIFIER", "LANGUAGE_CODE", "LANGUAGE_NAME", "COUNT"]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 
 # Runtime variables
@@ -129,7 +134,31 @@ def initialize_all_data_files(args):
         return
     os.makedirs(PATHS["data_1-fetch"], exist_ok=True)
     initialize_data_file(FILE_DOAJ_COUNT, HEADER_COUNT)
+    initialize_data_file(FILE_DOAJ_COUNTRY, HEADER_COUNTRY)
+    initialize_data_file(FILE_DOAJ_LANGUAGE, HEADER_LANGUAGE)
     initialize_data_file(FILE_DOAJ_YEAR, HEADER_YEAR)
+
+
+def get_country_name(country_code):
+    """Get country name from ISO 3166-1 alpha-2 code using pycountry."""
+    if not country_code or country_code == "Unknown":
+        return "Unknown"
+    try:
+        country = pycountry.countries.get(alpha_2=country_code.upper())
+        return country.name if country else country_code
+    except Exception:
+        return country_code
+
+
+def get_language_name(language_code):
+    """Get language name from ISO 639-1 code using pycountry."""
+    if not language_code or language_code == "Unknown":
+        return "Unknown"
+    try:
+        language = pycountry.languages.get(alpha_2=language_code.upper())
+        return language.name if language else language_code
+    except Exception:
+        return language_code
 
 
 def extract_license_types(license_info):
@@ -151,6 +180,8 @@ def process_journals(session, args):
     LOGGER.info("Fetching DOAJ journals...")
 
     license_counts = Counter()
+    country_counts = defaultdict(Counter)
+    language_counts = defaultdict(Counter)
     year_counts = defaultdict(Counter)
     processed_journals = set()  # Track unique journals to avoid double counting
 
@@ -232,6 +263,20 @@ def process_journals(session, args):
                     else:
                         year_counts[license_type]["Unknown"] += 1
 
+                    # Extract country information
+                    publisher_info = bibjson.get("publisher", {})
+                    if isinstance(publisher_info, dict):
+                        country_code = publisher_info.get("country", "Unknown")
+                        country_counts[license_type][country_code] += 1
+                    
+                    # Extract language information
+                    languages = bibjson.get("language", [])
+                    if languages:
+                        for lang_code in languages:
+                            language_counts[license_type][lang_code] += 1
+                    else:
+                        language_counts[license_type]["Unknown"] += 1
+
                 # Track unique journals to avoid double counting in statistics
                 if journal_id not in processed_journals:
                     processed_journals.add(journal_id)
@@ -258,6 +303,8 @@ def process_journals(session, args):
 
     return (
         license_counts,
+        country_counts,
+        language_counts,
         year_counts,
         len(processed_journals),  # Return unique journal count
     )
@@ -265,6 +312,8 @@ def process_journals(session, args):
 
 def save_count_data(
     license_counts,
+    country_counts,
+    language_counts,
     year_counts,
 ):
     """Save essential journal data to CSV files."""
@@ -279,6 +328,42 @@ def save_count_data(
         writer.writeheader()
         for lic, count in license_counts.items():
             writer.writerow({"TOOL_IDENTIFIER": lic, "COUNT": count})
+
+    # Save country counts with pycountry names
+    with open(
+        FILE_DOAJ_COUNTRY, "w", encoding="utf-8", newline="\n"
+    ) as file_object:
+        writer = csv.DictWriter(
+            file_object, fieldnames=HEADER_COUNTRY, dialect="unix"
+        )
+        writer.writeheader()
+        for lic, countries in country_counts.items():
+            for country_code, count in countries.items():
+                country_name = get_country_name(country_code)
+                writer.writerow({
+                    "TOOL_IDENTIFIER": lic,
+                    "COUNTRY_CODE": country_code,
+                    "COUNTRY_NAME": country_name,
+                    "COUNT": count,
+                })
+
+    # Save language counts with pycountry names
+    with open(
+        FILE_DOAJ_LANGUAGE, "w", encoding="utf-8", newline="\n"
+    ) as file_object:
+        writer = csv.DictWriter(
+            file_object, fieldnames=HEADER_LANGUAGE, dialect="unix"
+        )
+        writer.writeheader()
+        for lic, languages in language_counts.items():
+            for lang_code, count in languages.items():
+                lang_name = get_language_name(lang_code)
+                writer.writerow({
+                    "TOOL_IDENTIFIER": lic,
+                    "LANGUAGE_CODE": lang_code,
+                    "LANGUAGE_NAME": lang_name,
+                    "COUNT": count,
+                })
 
     # Save year counts
     with open(
@@ -304,6 +389,8 @@ def query_doaj(args):
     # Process journals
     (
         license_counts,
+        country_counts,
+        language_counts,
         year_counts,
         journals_processed,
     ) = process_journals(session, args)
@@ -312,6 +399,8 @@ def query_doaj(args):
     if args.enable_save:
         save_count_data(
             license_counts,
+            country_counts,
+            language_counts,
             year_counts,
         )
 
