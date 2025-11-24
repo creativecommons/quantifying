@@ -199,20 +199,12 @@ def process_journals(session, args):
             response = session.get(url, params=params, timeout=30)
             response.raise_for_status()
             data = response.json()
-        except requests.exceptions.RequestException as e:
-            if hasattr(e, "response") and e.response.status_code == 400:
-                LOGGER.info(f"Reached end of available data at page {page}")
-                break
-            else:
-                LOGGER.error(f"Failed to fetch journals page {page}: {e}")
-                raise shared.QuantifyingException(
-                    f"Critical API error on page {page}: {e}", exit_code=1
-                )
-        except (ValueError, KeyError) as e:
-            LOGGER.error(f"Failed to parse JSON response on page {page}: {e}")
-            raise shared.QuantifyingException(
-                f"Critical JSON parsing error on page {page}: {e}", exit_code=1
-            )
+        except requests.HTTPError as e:
+            raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
+        except requests.RequestException as e:
+            raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+        except KeyError as e:
+            raise shared.QuantifyingException(f"KeyError: {e}", 1)
 
         try:
             results = data.get("results", [])
