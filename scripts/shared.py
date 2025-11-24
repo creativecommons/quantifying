@@ -236,6 +236,17 @@ def setup(current_file):
     return logger, paths
 
 
+def safe_open_file(file_path, operation="read"):
+    """
+    Check file exists, raise QuantifyingException with helpful message if not.
+    """
+    if not os.path.exists(file_path):
+        raise QuantifyingException(
+            f"Cannot {operation} file: {file_path} does not exist"
+        )
+    return file_path
+
+
 def update_readme(
     args,
     section_title,

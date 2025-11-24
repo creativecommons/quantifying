@@ -79,6 +79,7 @@ def gcs_intro(args):
         "gcs_product_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GCS intro")
     name_label = "CC legal tool product"
     data = pd.read_csv(file_path, index_col=name_label)
     total_count = f"{data['Count'].sum():,d}"
@@ -110,6 +111,7 @@ def plot_products(args):
         PATHS["data_2-process"], "gcs_product_totals.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GCS products report")
     name_label = "CC legal tool product"
     data = pd.read_csv(file_path, index_col=name_label)
     data = data[::-1]  # reverse order
@@ -155,6 +157,7 @@ def plot_tool_status(args):
         "gcs_status_combined_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GCS tool status report")
     name_label = "CC legal tool"
     data = pd.read_csv(file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
@@ -198,6 +201,7 @@ def plot_latest_tools(args):
         "gcs_status_latest_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GCS latest tools report")
     name_label = "CC legal tool"
     data = pd.read_csv(file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
@@ -240,6 +244,7 @@ def plot_prior_tools(args):
         PATHS["data_2-process"], "gcs_status_prior_totals.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GCS prior tools report")
     name_label = "CC legal tool"
     data = pd.read_csv(file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
@@ -285,6 +290,7 @@ def plot_retired_tools(args):
         "gcs_status_retired_totals.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GCS retired tools report")
     name_label = "CC legal tool"
     data = pd.read_csv(file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
@@ -330,6 +336,7 @@ def plot_countries_highest_usage(args):
         PATHS["data_2-process"], "gcs_totals_by_country.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GCS countries report")
     name_label = "Country"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
@@ -383,6 +390,7 @@ def plot_languages_highest_usage(args):
         PATHS["data_2-process"], "gcs_totals_by_language.csv"
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GCS languages report")
     name_label = "Language"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
@@ -437,6 +445,7 @@ def plot_free_culture(args):
         "gcs_totals_by_free_cultural.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GCS free culture report")
     name_label = "Category"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)

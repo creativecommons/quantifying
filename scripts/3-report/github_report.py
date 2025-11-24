@@ -150,6 +150,7 @@ def plot_totals_by_license_type(args):
         "github_totals_by_license.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GitHub license report")
     name_label = "License"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
@@ -199,6 +200,7 @@ def plot_totals_by_restriction(args):
         "github_totals_by_restriction.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    shared.safe_open_file(file_path, "generate GitHub restriction report")
     name_label = "Category"
     data_label = "Count"
     data = pd.read_csv(file_path, index_col=name_label)
