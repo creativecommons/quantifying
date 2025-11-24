@@ -8,10 +8,14 @@ import argparse
 import csv
 import os
 import sys
+import textwrap
 import traceback
 
 # Third-party
 import pandas as pd
+from pygments import highlight
+from pygments.formatters import TerminalFormatter
+from pygments.lexers import PythonTracebackLexer
 
 # Add parent directory so shared can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -115,7 +119,7 @@ def process_least_language_usage(args, count_data):
 
 def process_language_representation(args, count_data):
     """
-    Processing count data: language representation
+    Processing count data: Language representation
     """
     LOGGER.info(process_language_representation.__doc__.strip())
     data = {}
@@ -170,13 +174,22 @@ if __name__ == "__main__":
             LOGGER.info(e.message)
         else:
             LOGGER.error(e.message)
-        sys.exit(e.code)
+        sys.exit(e.exit_code)
     except SystemExit as e:
-        LOGGER.error(f"System exit with code: {e.code}")
+        if e.code != 0:
+            LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
     except KeyboardInterrupt:
         LOGGER.info("(130) Halted via KeyboardInterrupt.")
         sys.exit(130)
     except Exception:
-        LOGGER.exception(f"(1) Unhandled exception: {traceback.format_exc()}")
+        traceback_formatted = textwrap.indent(
+            highlight(
+                traceback.format_exc(),
+                PythonTracebackLexer(),
+                TerminalFormatter(),
+            ),
+            "    ",
+        )
+        LOGGER.critical(f"(1) Unhandled exception:\n{traceback_formatted}")
         sys.exit(1)
