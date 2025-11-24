@@ -6,6 +6,7 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 
 # Third-party
+import pandas as pd
 from git import InvalidGitRepositoryError, NoSuchPathError, Repo
 from pandas import PeriodIndex
 from requests import Session
@@ -64,6 +65,46 @@ def get_session(accept_header=None, session=None):
     session.headers.update(headers)
 
     return session
+
+
+def open_data_file(logger, file_path, usecols=None):
+    """
+    Open a CSV data file safely and convert
+    expected errors into QuantifyingException.
+    This function is shared so all process/report
+    scripts use the same error behavior.
+
+    """
+
+    # File does not exist
+    if not os.path.isfile(file_path):
+        raise QuantifyingException(
+            message=f"Data file not found: {file_path}", exit_code=1
+        )
+
+    try:
+        # Reading the file
+        return pd.read_csv(file_path, usecols=usecols)
+
+    # Empty or invalid CSV file
+    except pd.errors.EmptyDataError:
+        raise QuantifyingException(
+            message=f"CSV file is empty or invalid: {file_path}", exit_code=1
+        )
+
+    # Permission denied
+    except PermissionError:
+        raise QuantifyingException(
+            message=f"Permission denied when accessing data file: {file_path}",
+            exit_code=1,
+        )
+
+    #  Any other unexpected issue
+    except Exception as e:
+        raise QuantifyingException(
+            message=f"Unexpected error opening file '{file_path}': {str(e)}",
+            exit_code=1,
+        )
 
 
 def git_fetch_and_merge(args, repo_path, branch=None):

@@ -11,7 +11,6 @@ import textwrap
 import traceback
 
 # Third-party
-import pandas as pd
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -80,7 +79,8 @@ def gcs_intro(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
     total_count = f"{data['Count'].sum():,d}"
     shared.update_readme(
         args,
@@ -111,7 +111,9 @@ def plot_products(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
+
     data = data[::-1]  # reverse order
 
     title = "Products totals and percentages"
@@ -156,7 +158,8 @@ def plot_tool_status(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "CC legal tools status"
@@ -199,7 +202,8 @@ def plot_latest_tools(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Latest CC legal tools"
@@ -241,7 +245,8 @@ def plot_prior_tools(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Prior CC legal tools"
@@ -286,7 +291,8 @@ def plot_retired_tools(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Retired CC legal tools"
@@ -332,7 +338,8 @@ def plot_countries_highest_usage(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Country"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
     total_count = f"{data['Count'].sum():,d}"
     data.sort_values(data_label, ascending=False, inplace=True)
     data = data[:10]  # limit to highest 10
@@ -385,7 +392,8 @@ def plot_languages_highest_usage(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Language"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
     total_count = f"{data['Count'].sum():,d}"
     data.sort_values(data_label, ascending=False, inplace=True)
     data = data[:10]  # limit to highest 10
@@ -439,7 +447,7 @@ def plot_free_culture(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Category"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
 
     title = "Approved for Free Cultural Works"
     plt = plot.combined_plot(

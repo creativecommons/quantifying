@@ -11,7 +11,6 @@ import textwrap
 import traceback
 
 # Third-party
-import pandas as pd
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -77,11 +76,8 @@ def load_data(args):
         PATHS["data"], f"{selected_quarter}", "1-fetch", "github_1_count.csv"
     )
 
-    if not os.path.exists(file_path):
-        LOGGER.error(f"Data file not found: {file_path}")
-        return pd.DataFrame()
+    data = shared.open_data_file(LOGGER, file_path)
 
-    data = pd.read_csv(file_path)
     LOGGER.info(f"Data loaded from {file_path}")
     return data
 
@@ -97,7 +93,8 @@ def github_intro(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "TOOL_IDENTIFIER"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
     total_repositories = data.loc["Total public repositories", "COUNT"]
     cc_total = data[data.index.str.startswith("CC")]["COUNT"].sum()
     cc_percentage = f"{(cc_total / total_repositories) * 100:.2f}%"
@@ -152,7 +149,8 @@ def plot_totals_by_license_type(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "License"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
+    data.set_index(name_label, inplace=True)
     data.sort_values(data_label, ascending=True, inplace=True)
     title = "Totals by license type"
     plt = plot.combined_plot(
@@ -201,7 +199,7 @@ def plot_totals_by_restriction(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Category"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
     title = "Totals by restriction"
     plt = plot.combined_plot(
