@@ -242,18 +242,21 @@ def classify_license(license_data):
             "cc-by-nc-2.5": "CC BY-NC 2.5",
             "cc-by-nc-2.0": "CC BY-NC 2.0",
             "cc-by-nc-1.0": "CC BY-NC 1.0",
+            "cc-nc": "CC BY-NC 4.0",
             # CC BY-ND licenses
             "cc-by-nd-4.0": "CC BY-ND 4.0",
             "cc-by-nd-3.0": "CC BY-ND 3.0",
             "cc-by-nd-2.5": "CC BY-ND 2.5",
             "cc-by-nd-2.0": "CC BY-ND 2.0",
             "cc-by-nd-1.0": "CC BY-ND 1.0",
+            "cc-nd": "CC BY-ND 4.0",
             # CC BY-NC-SA licenses
             "cc-by-nc-sa-4.0": "CC BY-NC-SA 4.0",
             "cc-by-nc-sa-3.0": "CC BY-NC-SA 3.0",
             "cc-by-nc-sa-2.5": "CC BY-NC-SA 2.5",
             "cc-by-nc-sa-2.0": "CC BY-NC-SA 2.0",
             "cc-by-nc-sa-1.0": "CC BY-NC-SA 1.0",
+            "cc-sa": "CC BY-SA 4.0",
             # CC BY-NC-ND licenses
             "cc-by-nc-nd-4.0": "CC BY-NC-ND 4.0",
             "cc-by-nc-nd-3.0": "CC BY-NC-ND 3.0",
@@ -264,17 +267,8 @@ def classify_license(license_data):
             "cc-zero": "CC0",
             "cc0-1.0": "CC0",
             "cc0": "CC0",
-            # Other CC licenses
-            "cc-nc": "CC NC",
-            "cc-sa": "CC SA",
-            "cc-nd": "CC ND",
-            # CC Certification
-            "cc-certification-1.0-us": "CC CERTIFICATION 1.0 US",
             # Legacy CC licenses
-            "cc-publicdomain": "CC Public Domain",
-            "cc-sampling": "CC Sampling",
-            "cc-sampling+": "CC Sampling+",
-            "cc-devnations": "CC Developing Nations",
+            "cc-publicdomain": "Public Domain Mark 1.0",
         }
 
         # Check if it's a CC license
