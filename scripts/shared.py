@@ -387,11 +387,6 @@ def open_data_file(file_path):
         QuantifyingException: If file doesn't exist or can't be opened
     """
     try:
-        if not os.path.exists(file_path):
-            raise QuantifyingException(
-                f"Data file not found: {file_path}",
-                exit_code=1
-            )
         
         with open(file_path, 'r', encoding='utf-8') as f:
             return f.read()
