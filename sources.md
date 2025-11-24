@@ -47,9 +47,9 @@ tool paths.
 **Description:** DOAJ is a comprehensive directory of open access journals that provides metadata about journals and their licensing policies. The API allows access to journal-level information including Creative Commons license support, publication years, and publisher details.
 
 **Official API Documentation:**
+- [Base URL](https://doaj.org/api/v4/)
 - [DOAJ API Documentation](https://doaj.org/api/docs)
 - [DOAJ API v4 Reference](https://doaj.org/api/v4/docs)
-- [Base URL](https://doaj.org/api/v4/)
 
 **API Information:**
 - No API key required
@@ -59,14 +59,6 @@ tool paths.
 - Search filters: Supports filtering by license type, publication year, subject, etc.
 - License detection: Extracts CC license information from journal metadata
 
-**Technical Details:**
-- Fetches journals that support Creative Commons licensing
-- Aggregates license counts by type (CC BY, CC BY-SA, CC BY-NC, etc.)
-- Tracks license adoption by publication year
-- Handles journals with multiple supported license types
-- Generates provenance metadata for data lineage
-
-**Script:** [`scripts/1-fetch/doaj_fetch.py`](scripts/1-fetch/doaj_fetch.py)
 
 
 ## Europeana
