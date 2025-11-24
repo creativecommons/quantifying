@@ -5,7 +5,8 @@ Fetch DOAJ journals with CC license information using API v4.
 Focus: Journal-level CC license adoption and temporal trends.
 Note: Articles do not contain license information in DOAJ API.
 
-This script focuses on essential data for quantifying Creative Commons adoption:
+This script focuses on essential data for quantifying Creative Commons
+adoption:
 - Journal CC license counts by type
 - Temporal trends (year-by-year adoption)
 
@@ -63,8 +64,12 @@ CC_LICENSE_TYPES = [
 
 # File Paths
 FILE_DOAJ_COUNT = shared.path_join(PATHS["data_1-fetch"], "doaj_1_count.csv")
-FILE_DOAJ_COUNTRY = shared.path_join(PATHS["data_1-fetch"], "doaj_3_count_by_country.csv")
-FILE_DOAJ_LANGUAGE = shared.path_join(PATHS["data_1-fetch"], "doaj_5_count_by_language.csv")
+FILE_DOAJ_COUNTRY = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_3_count_by_country.csv"
+)
+FILE_DOAJ_LANGUAGE = shared.path_join(
+    PATHS["data_1-fetch"], "doaj_5_count_by_language.csv"
+)
 FILE_PROVENANCE = shared.path_join(
     PATHS["data_1-fetch"], "doaj_provenance.yaml"
 )
@@ -75,7 +80,12 @@ FILE_DOAJ_YEAR = shared.path_join(
 # CSV Headers
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
 HEADER_COUNTRY = ["TOOL_IDENTIFIER", "COUNTRY_CODE", "COUNTRY_NAME", "COUNT"]
-HEADER_LANGUAGE = ["TOOL_IDENTIFIER", "LANGUAGE_CODE", "LANGUAGE_NAME", "COUNT"]
+HEADER_LANGUAGE = [
+    "TOOL_IDENTIFIER",
+    "LANGUAGE_CODE",
+    "LANGUAGE_NAME",
+    "COUNT",
+]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 
 # Runtime variables
@@ -165,13 +175,13 @@ def extract_license_types(license_info):
     """Extract all CC license types from DOAJ license information."""
     if not license_info:
         return []
-    
+
     cc_licenses = []
     for lic in license_info:
         lic_type = lic.get("type", "")
         if lic_type in CC_LICENSE_TYPES:
             cc_licenses.append(lic_type)
-    
+
     return cc_licenses
 
 
@@ -183,7 +193,9 @@ def process_journals(session, args):
     country_counts = defaultdict(Counter)
     language_counts = defaultdict(Counter)
     year_counts = defaultdict(Counter)
-    processed_journals = set()  # Track unique journals to avoid double counting
+    processed_journals = (
+        set()
+    )  # Track unique journals to avoid double counting
 
     total_processed = 0
     page = 1
@@ -200,6 +212,10 @@ def process_journals(session, args):
             response.raise_for_status()
             data = response.json()
         except requests.HTTPError as e:
+            # Handle 400 errors as end of data (DOAJ API behavior)
+            if hasattr(e, "response") and e.response.status_code == 400:
+                LOGGER.info(f"Reached end of available data at page {page}")
+                break
             raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
         except requests.RequestException as e:
             raise shared.QuantifyingException(f"Request Exception: {e}", 1)
@@ -260,7 +276,7 @@ def process_journals(session, args):
                     if isinstance(publisher_info, dict):
                         country_code = publisher_info.get("country", "Unknown")
                         country_counts[license_type][country_code] += 1
-                    
+
                     # Extract language information
                     languages = bibjson.get("language", [])
                     if languages:
@@ -332,12 +348,14 @@ def save_count_data(
         for lic, countries in country_counts.items():
             for country_code, count in countries.items():
                 country_name = get_country_name(country_code)
-                writer.writerow({
-                    "TOOL_IDENTIFIER": lic,
-                    "COUNTRY_CODE": country_code,
-                    "COUNTRY_NAME": country_name,
-                    "COUNT": count,
-                })
+                writer.writerow(
+                    {
+                        "TOOL_IDENTIFIER": lic,
+                        "COUNTRY_CODE": country_code,
+                        "COUNTRY_NAME": country_name,
+                        "COUNT": count,
+                    }
+                )
 
     # Save language counts with pycountry names
     with open(
@@ -350,12 +368,14 @@ def save_count_data(
         for lic, languages in language_counts.items():
             for lang_code, count in languages.items():
                 lang_name = get_language_name(lang_code)
-                writer.writerow({
-                    "TOOL_IDENTIFIER": lic,
-                    "LANGUAGE_CODE": lang_code,
-                    "LANGUAGE_NAME": lang_name,
-                    "COUNT": count,
-                })
+                writer.writerow(
+                    {
+                        "TOOL_IDENTIFIER": lic,
+                        "LANGUAGE_CODE": lang_code,
+                        "LANGUAGE_NAME": lang_name,
+                        "COUNT": count,
+                    }
+                )
 
     # Save year counts
     with open(
@@ -405,7 +425,10 @@ def query_doaj(args):
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
         "api_version": "v4",
-        "note": "Journal-level CC license data only - article counts not available via DOAJ API",
+        "note": (
+            "Journal-level CC license data only - "
+            "article counts not available via DOAJ API"
+        ),
     }
 
     try:
@@ -425,11 +448,14 @@ def query_doaj(args):
         )
 
     LOGGER.info(f"Unique CC-licensed journals processed: {journals_processed}")
-    
+
     # Calculate total license availability instances
     total_license_instances = sum(license_counts.values())
     LOGGER.info(f"Total CC license type instances: {total_license_instances}")
-    LOGGER.info("Note: Journals supporting multiple CC license types are counted once per license type")
+    LOGGER.info(
+        "Note: Journals supporting multiple CC license types are "
+        "counted once per license type"
+    )
 
 
 def main():
