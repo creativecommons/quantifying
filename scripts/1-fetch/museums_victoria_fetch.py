@@ -80,13 +80,6 @@ def parse_arguments():
     return args
 
 
-def get_requests_session():
-    """
-    Returns a configured requests session with retries and a User-Agent.
-    """
-    return shared.get_session()
-
-
 def initialize_data_file(file_path, header):
     with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
         writer = csv.DictWriter(file_obj, fieldnames=header, dialect="unix")
@@ -251,8 +244,7 @@ def main():
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     initialize_all_data_files(args)
-    session = get_requests_session()
-    data = fetch_museums_victoria_data(args, session)
+    data = fetch_museums_victoria_data(args, shared.get_session())
     write_counts_to_csv(args, data)
     args = shared.git_add_and_commit(
         args,
