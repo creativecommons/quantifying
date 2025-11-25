@@ -54,6 +54,16 @@ HEADER_LANGUAGE = ["LICENSE_TYPE", "LANGUAGE", "COUNT"]
 HEADER_TYPE = ["LICENSE_TYPE", "RESOURCE_TYPE", "COUNT"]
 HEADER_YEAR = ["LICENSE_TYPE", "YEAR", "COUNT"]
 
+# CC License mapping for Zenodo API
+cc_license_mapping = {
+    "cc-by": "CC BY 4.0",
+    "cc-by-sa": "CC BY-SA 4.0", 
+    "cc-by-nc": "CC BY-NC 4.0",
+    "cc-by-nd": "CC BY-ND 4.0",
+    "cc-by-nc-sa": "CC BY-NC-SA 4.0",
+    "cc-by-nc-nd": "CC BY-NC-ND 4.0",
+}
+
 
 def parse_arguments():
     """Parse command-line options, returns parsed argument namespace."""
