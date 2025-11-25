@@ -178,7 +178,9 @@ def main():
     shared.git_fetch_and_merge(args, PATHS["repo"])
 
     file_count = shared.path_join(PATHS["data_1-fetch"], "github_1_count.csv")
-    count_data = pd.read_csv(file_count, usecols=["TOOL_IDENTIFIER", "COUNT"])
+    count_data = shared.open_data_file(
+        LOGGER, file_count, usecols=["TOOL_IDENTIFIER", "COUNT"]
+    )
     process_totals_by_license(args, count_data)
     process_totals_by_restriction(args, count_data)
 
