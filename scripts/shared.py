@@ -75,7 +75,7 @@ def open_data_file(logger, file_path, usecols=None):
     scripts use the same error behavior.
     """
     try:
-        # Attempt reading the file
+        # Reading the file
         return pd.read_csv(file_path, usecols=usecols)
 
     # File does not exist

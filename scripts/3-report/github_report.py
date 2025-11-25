@@ -199,7 +199,7 @@ def plot_totals_by_restriction(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Category"
     data_label = "Count"
-    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path)
     data.set_index(name_label, inplace=True)
     data.sort_values(name_label, ascending=False, inplace=True)
     title = "Totals by restriction"
