@@ -5,10 +5,10 @@ count reports.
 
 This implementation uses Zenodo's REST API instead of OAI-PMH for more reliable
 license detection. Benefits include:
-- Structured license data (metadata.license.id) vs unreliable dc:rights text
-- Clear separation of access rights vs actual licenses
-- JSON parsing vs complex XML namespace handling
-- Standardized license identifiers vs free-text parsing
+- Structured license data (metadata.license.id) 
+- Clear separation of access rights
+- JSON parsing 
+- Standardized license identifiers
 """
 # Standard library
 import argparse
@@ -261,7 +261,6 @@ def fetch_zenodo_records(session, page=1, size=100, query="*"):
 
     Returns JSON response containing structured record data with:
     - metadata.license (structured license object)
-    - metadata.access_right (access status)
     - metadata.resource_type (structured type information)
     """
     params = {
@@ -290,7 +289,6 @@ def extract_record_info(record_json):
 
     Parses JSON structure:
     - metadata.license (structured license object)
-    - metadata.access_right (access status)
     - metadata.resource_type (structured type information)
     - metadata.publication_date (ISO date)
     - metadata.language (language code)
@@ -301,7 +299,6 @@ def extract_record_info(record_json):
         "date": None,
         "type": None,
         "language": None,
-        "access_right": None,
         "license_type": None,
     }
 
@@ -333,9 +330,6 @@ def extract_record_info(record_json):
         language = metadata.get("language")
         if language:
             record_info["language"] = standardize_language(language)
-
-        # Access right (separate from license)
-        record_info["access_right"] = metadata.get("access_right")
 
         # License - structured data from REST API
         license_data = metadata.get("license")
