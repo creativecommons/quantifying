@@ -34,7 +34,7 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 # API Configuration
-BASE_URL = "http://export.arxiv.org/api/query?"
+BASE_URL = "https://export.arxiv.org/api/query?"
 DEFAULT_FETCH_LIMIT = 800  # Default total papers to fetch
 
 # CSV Headers
