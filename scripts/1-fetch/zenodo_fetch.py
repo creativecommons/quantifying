@@ -287,11 +287,9 @@ def fetch_zenodo_records(session, page=1, size=100, query="*"):
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
-        LOGGER.error(f"Error fetching Zenodo records: {e}")
-        raise
+        raise shared.QuantifyingException(f"Error fetching Zenodo records: {e}")
     except json.JSONDecodeError as e:
-        LOGGER.error(f"Error parsing JSON response: {e}")
-        raise
+        raise shared.QuantifyingException(f"Error parsing JSON response: {e}")
 
 def extract_record_info(record_json):
     """
@@ -415,14 +413,12 @@ def main():
                 session, page=page, size=records_per_page, query=query
             )
         except (requests.RequestException, json.JSONDecodeError) as e:
-            LOGGER.error(f"Failed to fetch Zenodo records: {e}")
-            break
+            raise shared.QuantifyingException(f"Failed to fetch Zenodo records: {e}")
 
         if not response_data or "hits" not in response_data:
-            LOGGER.error(
+            raise shared.QuantifyingException(
                 "Invalid response from Zenodo REST API - stopping execution"
             )
-            break
 
         hits = response_data["hits"]
         records = hits.get("hits", [])
