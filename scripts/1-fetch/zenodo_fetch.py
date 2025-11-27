@@ -480,13 +480,13 @@ def main():
         failure_rate = extraction_failures / total_processed
         if failure_rate > 0.1:  # More than 10% failures
             raise shared.QuantifyingException(
-                f"Too many extraction failures: {extraction_failures}/{total_processed} "
-                f"({failure_rate:.1%}) - data quality issues detected"
+                f"Too many extraction failures: {extraction_failures}/"
+                f"{total_processed} ({failure_rate:.1%}) - data quality issues"
             )
         elif extraction_failures > 0:
             LOGGER.warning(
-                f"Extraction failures: {extraction_failures}/{total_processed} "
-                f"({failure_rate:.1%})"
+                f"Extraction failures: {extraction_failures}/"
+                f"{total_processed} ({failure_rate:.1%})"
             )
 
     if not all_records:
