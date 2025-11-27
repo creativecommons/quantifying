@@ -380,6 +380,8 @@ def main():
 
     session = setup_session()
     all_records = []
+    extraction_failures = 0
+    total_processed = 0
     license_counts = Counter()
     year_counts = defaultdict(Counter)
     type_counts = defaultdict(Counter)
@@ -440,9 +442,11 @@ def main():
                 break
 
             record_info = extract_record_info(record)
+            total_processed += 1
 
             # Skip records where extraction failed
             if not record_info:
+                extraction_failures += 1
                 continue
 
             # Only include records with valid licenses (CC filtering at API)
@@ -470,6 +474,20 @@ def main():
 
         # Be respectful to the API - increased delay for rate limiting
         time.sleep(2.0)
+
+    # Check for excessive extraction failures
+    if total_processed > 0:
+        failure_rate = extraction_failures / total_processed
+        if failure_rate > 0.1:  # More than 10% failures
+            raise shared.QuantifyingException(
+                f"Too many extraction failures: {extraction_failures}/{total_processed} "
+                f"({failure_rate:.1%}) - data quality issues detected"
+            )
+        elif extraction_failures > 0:
+            LOGGER.warning(
+                f"Extraction failures: {extraction_failures}/{total_processed} "
+                f"({failure_rate:.1%})"
+            )
 
     if not all_records:
         LOGGER.warning("No CC-licensed records found")
