@@ -5,9 +5,9 @@ count reports.
 
 This implementation uses Zenodo's REST API instead of OAI-PMH for more reliable
 license detection. Benefits include:
-- Structured license data (metadata.license.id) 
+- Structured license data (metadata.license.id)
 - Clear separation of access rights
-- JSON parsing 
+- JSON parsing
 - Standardized license identifiers
 """
 # Standard library
@@ -57,7 +57,7 @@ HEADER_YEAR = ["LICENSE_TYPE", "YEAR", "COUNT"]
 # CC License mapping for Zenodo API
 cc_license_mapping = {
     "cc-by": "CC BY 4.0",
-    "cc-by-sa": "CC BY-SA 4.0", 
+    "cc-by-sa": "CC BY-SA 4.0",
     "cc-by-nc": "CC BY-NC 4.0",
     "cc-by-nd": "CC BY-ND 4.0",
     "cc-by-nc-sa": "CC BY-NC-SA 4.0",
@@ -237,17 +237,17 @@ def classify_license(license_data):
             # Special cases that need custom mapping
             special_cases = {
                 "cc-zero": "CC0",
-                "cc0-1.0": "CC0", 
+                "cc0-1.0": "CC0",
                 "cc0": "CC0",
                 "cc-nc": "CC BY-NC 4.0",
-                "cc-nd": "CC BY-ND 4.0", 
+                "cc-nd": "CC BY-ND 4.0",
                 "cc-sa": "CC BY-SA 4.0",
                 "cc-publicdomain": "Public Domain Mark 1.0",
             }
-            
+
             if license_id in special_cases:
                 return special_cases[license_id]
-            
+
             # Normalize standard CC licenses: cc-by-4.0 -> CC BY 4.0
             if license_id.startswith("cc-by"):
                 return license_id.upper().replace("-", " ")
@@ -281,15 +281,16 @@ def fetch_zenodo_records(session, page=1, size=100, query="*"):
     }
 
     try:
-        response = session.get(
-            ZENODO_API_BASE_URL, params=params, timeout=15
-        )
+        response = session.get(ZENODO_API_BASE_URL, params=params, timeout=15)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
-        raise shared.QuantifyingException(f"Error fetching Zenodo records: {e}")
+        raise shared.QuantifyingException(
+            f"Error fetching Zenodo records: {e}"
+        )
     except json.JSONDecodeError as e:
         raise shared.QuantifyingException(f"Error parsing JSON response: {e}")
+
 
 def extract_record_info(record_json):
     """
@@ -413,7 +414,9 @@ def main():
                 session, page=page, size=records_per_page, query=query
             )
         except (requests.RequestException, json.JSONDecodeError) as e:
-            raise shared.QuantifyingException(f"Failed to fetch Zenodo records: {e}")
+            raise shared.QuantifyingException(
+                f"Failed to fetch Zenodo records: {e}"
+            )
 
         if not response_data or "hits" not in response_data:
             raise shared.QuantifyingException(
