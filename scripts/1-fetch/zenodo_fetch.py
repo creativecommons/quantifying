@@ -44,8 +44,8 @@ LOGGER, PATHS = shared.setup(__file__)
 DEFAULT_FETCH_LIMIT = (
     100000  # Increased to capture more CC licenses from 5.5M+ records
 )
-# API limitation: Zenodo supports 1000+ records per request, 300 chosen
-MAX_RECORDS_PER_REQUEST = 300
+# API limitation: Zenodo supports 25 records per request for unauthenticated calls
+MAX_RECORDS_PER_REQUEST = 25
 ZENODO_API_BASE_URL = "https://zenodo.org/api/records"
 
 # CSV Headers
@@ -265,7 +265,7 @@ def classify_license(license_data):
     return "Unknown"
 
 
-def fetch_zenodo_records(session, page=1, size=100, query="*"):
+def fetch_zenodo_records(session, page=1, size=100, query=""):
     """
     Fetch Zenodo records using REST API.
 
@@ -274,11 +274,14 @@ def fetch_zenodo_records(session, page=1, size=100, query="*"):
     - metadata.resource_type (structured type information)
     """
     params = {
-        "q": query,
         "size": min(size, MAX_RECORDS_PER_REQUEST),
         "page": page,
-        "sort": "bestmatch",
+        "sort": "newest",
     }
+    
+    # Only add query parameter if not empty
+    if query:
+        params["q"] = query
 
     try:
         response = session.get(ZENODO_API_BASE_URL, params=params, timeout=15)
@@ -389,7 +392,7 @@ def main():
 
     # Build query for all records - CC filtering happens during processing
     # Note: Zenodo's search API doesn't support reliable license field queries
-    base_query = "*"
+    base_query = ""  # Empty query returns all records
 
     if args.dates_back:
         from_year = datetime.now().year - args.dates_back
