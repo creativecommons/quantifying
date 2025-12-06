@@ -17,6 +17,7 @@ pandas = "*"
 plotly = "*"
 pillow = ">=11.3.0"  # Ensure dependency is secure
 Pyarrow = "*"
+pycountry = "*"
 Pygments = "*"
 python-dotenv = "*"
 PyYAML = "*"

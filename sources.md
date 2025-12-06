@@ -168,3 +168,29 @@ language edition of wikipedia. It runs on the Meta-Wiki API.
 - No API key required
 - Query limit: It is rate-limited only to prevent abuse
 - Data available through XML or JSON format
+
+
+## Zenodo
+
+**Description:** Zenodo is a general-purpose open repository developed under the
+European OpenAIRE program and operated by CERN. It allows researchers to deposit
+research papers, data sets, research software, reports, and any other research
+related digital artifacts. All uploads are assigned a Digital Object Identifier
+(DOI) and are made available under various Creative Commons licenses or in the
+public domain.
+
+**API documentation link:**
+- [Zenodo REST API Documentation](https://developers.zenodo.org/)
+- [Zenodo API Reference](https://zenodo.org/api/records)
+- [Base URL](https://zenodo.org/api/records)
+- [Zenodo Frontend](https://zenodo.org/)
+
+**API information:**
+- No API key required
+- Query limit: Rate-limited to prevent abuse (supports up to 1000+ records per
+  request)
+- Data available through JSON format
+- Supports search by various fields including license, resource type,
+  publication date, and language
+- Provides structured license metadata through REST API
+- Maximum 300 records per request (implementation choice for reliability)
