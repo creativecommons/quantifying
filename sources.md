@@ -42,6 +42,25 @@ tool paths.
 [prioritized-tool-urls]: data/prioritized-tool-urls.txt
 
 
+## DOAJ (Directory of Open Access Journals)
+
+**Description:** DOAJ is a comprehensive directory of open access journals that provides metadata about journals and their licensing policies. The API allows access to journal-level information including Creative Commons license support, publication years, and publisher details.
+
+**Official API Documentation:**
+- [Base URL](https://doaj.org/api/v4/)
+- [DOAJ API Documentation](https://doaj.org/api/docs)
+- [DOAJ API v4 Reference](https://doaj.org/api/v4/docs)
+
+**API Information:**
+- No API key required
+- Rate limiting: Reasonable use policy (no specific limits documented)
+- Data format: JSON
+- Pagination: 100 results per page (configurable up to 100)
+- Search filters: Supports filtering by license type, publication year, subject, etc.
+- License detection: Extracts CC license information from journal metadata
+
+
+
 ## Europeana
 
 **Description:**
