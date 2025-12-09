@@ -67,7 +67,12 @@ def get_session(accept_header=None, session=None):
     return session
 
 
-def open_data_file(logger, file_path, usecols=None):
+def open_data_file(
+    logger,
+    file_path,
+    usecols=None,
+    index_col=None,
+):
     """
     Open a CSV data file safely and convert
     expected errors into QuantifyingException.
@@ -76,27 +81,23 @@ def open_data_file(logger, file_path, usecols=None):
     """
     try:
         # Reading the file
-        return pd.read_csv(file_path, usecols=usecols)
-
+        return pd.read_csv(file_path, usecols=usecols, index_col=index_col)
     # File does not exist
     except FileNotFoundError:
         raise QuantifyingException(
             message=f"Data file not found: {file_path}", exit_code=1
         )
-
     # Empty or invalid CSV file
     except pd.errors.EmptyDataError:
         raise QuantifyingException(
             message=f"CSV file is empty or invalid: {file_path}", exit_code=1
         )
-
     # Permission denied
     except PermissionError:
         raise QuantifyingException(
             message=f"Permission denied when accessing data file: {file_path}",
             exit_code=1,
         )
-
     # Any other unexpected issue
     except Exception as e:
         raise QuantifyingException(

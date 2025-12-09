@@ -79,8 +79,7 @@ def gcs_intro(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
-    data = shared.open_data_file(LOGGER, file_path)
-    data.set_index(name_label, inplace=True)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     total_count = f"{data['Count'].sum():,d}"
     shared.update_readme(
         args,
@@ -111,8 +110,7 @@ def plot_products(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
-    data = shared.open_data_file(LOGGER, file_path)
-    data.set_index(name_label, inplace=True)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
 
     data = data[::-1]  # reverse order
 
@@ -158,8 +156,7 @@ def plot_tool_status(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = shared.open_data_file(LOGGER, file_path)
-    data.set_index(name_label, inplace=True)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "CC legal tools status"
@@ -202,8 +199,7 @@ def plot_latest_tools(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = shared.open_data_file(LOGGER, file_path)
-    data.set_index(name_label, inplace=True)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Latest CC legal tools"
@@ -245,8 +241,7 @@ def plot_prior_tools(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = shared.open_data_file(LOGGER, file_path)
-    data.set_index(name_label, inplace=True)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Prior CC legal tools"
@@ -291,8 +286,7 @@ def plot_retired_tools(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = shared.open_data_file(LOGGER, file_path)
-    data.set_index(name_label, inplace=True)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Retired CC legal tools"
@@ -338,8 +332,7 @@ def plot_countries_highest_usage(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Country"
     data_label = "Count"
-    data = shared.open_data_file(LOGGER, file_path)
-    data.set_index(name_label, inplace=True)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     total_count = f"{data['Count'].sum():,d}"
     data.sort_values(data_label, ascending=False, inplace=True)
     data = data[:10]  # limit to highest 10
@@ -392,8 +385,7 @@ def plot_languages_highest_usage(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Language"
     data_label = "Count"
-    data = shared.open_data_file(LOGGER, file_path)
-    data.set_index(name_label, inplace=True)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     total_count = f"{data['Count'].sum():,d}"
     data.sort_values(data_label, ascending=False, inplace=True)
     data = data[:10]  # limit to highest 10
