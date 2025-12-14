@@ -28,9 +28,9 @@ This project seeks to quantify the size and diversity of the creative commons le
       - [Tool identifier](https://creativecommons.org/share-your-work/cclicenses/): A unique identifier used to distinguish each Creative Commons legal tool within the dataset. This helps ensure consistency when tracking tools across different data sources.
       - [SPDX identifier](https://spdx.org/licenses/): A standardized identifier maintained by the Software Package Data Exchange (SPDX) project. It provides a consistent way to reference licenses and improves interoperability across systems.
 
-- 2-Process: In this phase, the fetched data is transformed into a structured and standardized format for analysis. The data is then analyzed and categorized based on defined criteria to extract insights that answer the meaningful questions identified during the fetch stage.
+2-Process: In this phase, the fetched data is transformed into a structured and standardized format for analysis. The data is then analyzed and categorized based on defined criteria to extract insights that answer the meaningful questions identified during the fetch stage.
 
-- 3-report: This phase focuses on presenting the results of the analysis. We generate graphs and summaries that clearly show trends, patterns, and distributions in the data. These reports help communicate key insights about the size, diversity, and characteristics of openly licensed and public-domain works.
+3-report: This phase focuses on presenting the results of the analysis. We generate graphs and summaries that clearly show trends, patterns, and distributions in the data. These reports help communicate key insights about the size, diversity, and characteristics of openly licensed and public-domain works.
 
 #### Automation script
 For automating these steps, the project uses Python scripts to fetch, process, and report data. GitHub Actions is used to automatically run these scripts on a defined schedule and on code updates. It handles task execution, manages dependencies, and ensures the workflow runs consistently.
