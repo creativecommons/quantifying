@@ -3,11 +3,11 @@
 
 
 ## Overview
-This project seeks to quantify the size and diversity of the creative commons legal tools. We aim to track the collection of works (articles, images, publications, etc.) that are openly licensed or in the public domain. The project automates data collection from multiple data sources, processes the data, and generates reports.
+This project seeks to quantify the size and diversity of the creative commons legal tools. We aim to track the collection of works (articles, images, publications, etc.) that are openly licensed or in the public domain. The project automates data collection from multiple data sources, processes the data, and generates meaningful reports.
 
 
 ### The three phases of generating a report
-- **1-Fetch**: This phase involves collecting data from a specific source using its API. Before writing any code, we plan the analyses we want to perform by asking meaningful questions about the data. We also consider API limitations (such as query limits) and design a query strategy to work within those constraints.
+- **1-Fetch**: This phase involves collecting data from a particular source using its API. Before writing any code, we plan the analyses we want to perform by asking meaningful questions about the data. We also consider API limitations (such as query limits) and design a query strategy to work within these limitations. Then we write a python script that gets the data, it is quite important to follow the format of the scripts existing in the project and use the modules and functions where applicable. It ensures consistency in the scripts and we can easily debug issues might arise.
 
 
    - **Meaningful questions**
@@ -22,21 +22,21 @@ This project seeks to quantify the size and diversity of the creative commons le
          region, language, domain/endeavor, etc.?
 
    - **Limitations of an API**
-      - Some data sources provide APIs with certain limitations. A common limitation is a daily or hourly query limit, which restricts how many requests can be made in a given time period. To work around this, we carefully plan our queries, batch requests where possible, and schedule fetch jobs to stay within the allowed limits.
+      - Some data sources provide APIs with query limits (it can be daily or hourly) depending on what is given in the documentation. This restricts how many requests that can be made in the specified period of time. It is important to plan a query strategy and schedule fetch jobs to stay within the allowed limits.
 
    - **Headings of data in 1-fetch**
       - [Tool identifier](https://creativecommons.org/share-your-work/cclicenses/): A unique identifier used to distinguish each Creative Commons legal tool within the dataset. This helps ensure consistency when tracking tools across different data sources.
-      - [SPDX identifier](https://spdx.org/licenses/): A standardized identifier maintained by the Software Package Data Exchange (SPDX) project. It provides a consistent way to reference licenses.
+      - [SPDX identifier](https://spdx.org/licenses/): A standardized identifier maintained by the Software Package Data Exchange (SPDX) project. It provides a consistent way to reference licenses in applications.
 
 
-- **2-Process**: In this phase, the fetched data is transformed into a structured and standardized format for analysis. The data is then analyzed and categorized based on defined criteria to extract insights that answer the meaningful questions identified during the fetch stage.
+- **2-Process**: In this phase, the fetched data is transformed into a structured and standardized format for analysis. The data is then analyzed and categorized based on defined criteria to extract insights that answer the meaningful questions identified during the 1-fetch phase.
 
 
 - **3-report**: This phase focuses on presenting the results of the analysis. We generate graphs and summaries that clearly show trends, patterns, and distributions in the data. These reports help communicate key insights about the size, diversity, and characteristics of openly licensed and public-domain works.
 
 
 ### Automation scripts
-For automating these steps, the project uses Python scripts to fetch, process, and report data. GitHub Actions is used to automatically run these scripts on a defined schedule and on code updates. It handles script execution, manages dependencies, and ensures the workflow runs consistently.
+For automating these phases, the project uses Python scripts to fetch, process, and report data. GitHub Actions is used to automatically run these scripts on a defined schedule and on code updates. It handles script execution, manages dependencies, and ensures the workflow runs consistently.
 
 - **Script assumptions**
   - Execution schedule for each quarter:
@@ -53,8 +53,7 @@ For automating these steps, the project uses Python scripts to fetch, process, a
 
    - *Scripts should complete within a maximum of 45 minutes*
       - *Scripts shouldn't take longer than 3 minutes with default options*
-      - That way there’s a quicker way to see what is happening when it is running; see execution, without errors, etc.
-      - Then later in production it can be run with longer options
+      - That way there’s a quicker way to see what is happening when it is running; see execution, without errors, etc. Then later in production it can be run with longer options
 
    - *Must be idempotent (Idempotence: [Wikipedia](https://en.wikipedia.org/wiki/Idempotence))*
       - This applies to both the data fetched and the data stored.
