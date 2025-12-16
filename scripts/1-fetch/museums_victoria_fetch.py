@@ -150,7 +150,7 @@ def fetch_museums_victoria_data(args, session):
 
     record_counts = defaultdict(lambda: defaultdict(int))
     media_counts = defaultdict(lambda: defaultdict(int))
-    licences_count = defaultdict(int)
+    licenses_count = defaultdict(int)
 
     # Iterate through each record type
     for record_type in RECORD_TYPES:
@@ -160,7 +160,7 @@ def fetch_museums_victoria_data(args, session):
         per_page = min(PER_PAGE, args.limit) if args.limit else PER_PAGE
 
         while True:
-            # 1. Construct the API query parameters
+            # Construct the API query parameters
             params = {
                 "envelope": "true",
                 "page": current_page,
@@ -187,12 +187,12 @@ def fetch_museums_victoria_data(args, session):
                 records_processed += 1
                 media_list = res.get("media", [])
                 for media_item in media_list:
-                    licence_data = media_item.get("licence")
+                    license_data = media_item.get("license")
 
-                    # COUNTING THE UNIQUE LICENCE TYPES
-                    license_short_name = licence_data.get("shortName")
+                    # Counting the unique license types
+                    license_short_name = license_data.get("shortName")
                     version_number = re.search(
-                        r"\b\d+\.\d+\b", licence_data.get("name")
+                        r"\b\d+\.\d+\b", license_data.get("name")
                     )
                     if version_number:
                         license_short_name = (
@@ -200,13 +200,13 @@ def fetch_museums_victoria_data(args, session):
                         )
 
                     if license_short_name:
-                        licences_count[license_short_name] += 1
+                        licenses_count[license_short_name] += 1
 
-                    # COUNTING LICENSES BY MEDIA TYPES
+                    # Counting licenses by media types
                     media_type = media_item.get("type")
                     media_counts[media_type][license_short_name] += 1
 
-                    # COUNTING LICENSES BY RECORD TYPES
+                    # Counting licenses by record types
                     record_counts[record_type][license_short_name] += 1
             if total_pages is None:
                 headers = data.get("headers", {})
@@ -224,7 +224,7 @@ def fetch_museums_victoria_data(args, session):
                 break
 
     return {
-        FILE1_COUNT: dict(sorted(licences_count.items())),
+        FILE1_COUNT: dict(sorted(licenses_count.items())),
         FILE2_MEDIA: sort_nested_defaultdict(media_counts),
         FILE3_RECORD: sort_nested_defaultdict(record_counts),
     }
