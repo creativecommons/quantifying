@@ -101,8 +101,8 @@ def wikipedia_intro(args):
         None,
         None,
         "This report provides insights into the usage of the Creative Commons"
-        " Attribution 4.0 International across the different language edition"
-        " of Wikipedia. The wikipedia data, below, uses the `Count` field from"
+        " Attribution 4.0 International across the different language editions"
+        " of Wikipedia. The Wikipedia data, below, uses the `Count` field from"
         " the Wikipedia API to quantify the number of articles in"
         " each language edition of Wikipedia."
         "\n"
@@ -111,11 +111,11 @@ def wikipedia_intro(args):
         f" {total_articles:,}. The top 10 languages account for"
         f" {top10_articles:,} articles, which is"
         f" {top10_percentage:,.2f}% of the total articles."
-        f" The average number of articles per language is"
+        " The average number of articles per language is"
         f" {average_articles:,.2f}.**"
         "\n"
-        "Thank you to Wikipedia and the Wikimedia Foundation for"
-        " making this data publicly available!",
+        "Thank you to the volunteers who curate this data and the Wikimedia"
+        " Foundation for making it publicly available!",
     )
 
 
@@ -157,10 +157,9 @@ def plot_language_representation(args):
         SECTION,
         title,
         image_path,
-        "Plots showing the language representation"
-        " across different language editions of Wikipedia."
-        " This shows how many languages are underrepresented"
-        " (below average number of articles) versus"
+        "Plots showing the language representation across different language"
+        " editions of Wikipedia. This shows how many languages are"
+        " underrepresented (below average number of articles) versus"
         " represented (above average number of articles).",
     )
 
@@ -203,11 +202,8 @@ def plot_highest_language_usage(args):
         SECTION,
         title,
         image_path,
-        "Plots showing the most represented language usage"
-        " across different language editions of Wikipedia."
-        " This shows which languages have the most articles"
-        " under CC BY-SA 4.0 in Wikipedia, highlighting languages with higher"
-        " langauge representation.",
+        "Plots showing the most represented languages across the different"
+        "language editions of Wikipedia.",
     )
 
 
@@ -249,11 +245,8 @@ def plot_least_language_usage(args):
         SECTION,
         title,
         image_path,
-        "Plots showing the least represented language usage"
-        " across different language editions of Wikipedia."
-        " This shows which languages have the least articles"
-        " under CC BY-SA 4.0 in Wikipedia, highlighting"
-        " languages with lower content representation.",
+        "Plots showing the least represented languages across the different"
+        " language editions of Wikipedia.",
     )
 
 
