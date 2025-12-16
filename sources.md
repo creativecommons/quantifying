@@ -121,6 +121,23 @@ and access towards related query data using a programmable search engine.
 - Data available through JSON format
 
 
+## Museums Victoria
+
+**Description:** Museums Victoria is Australia’s
+largest public museum organisation, and the principal custodian of the State’s scientific,
+cultural and heritage collections. Its API provides access to meta data on licenses, use rights
+and open access. We can also get information on article type, image license, display location,
+locality, museum location, etc. There are 150,000 objects available.
+
+**API documentation link**
+- [Museum Victoria API documentation](https://collections.museumsvictoria.com.au/developers)
+
+**API Information**
+- No API key required
+- No query limit
+- At the moment it only supports the GET verb and responses are in JSON only.
+
+
 ## Openverse
 
 **Description:** Openverse is a search engine for openly licensed media,
