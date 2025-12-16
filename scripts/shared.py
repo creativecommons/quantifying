@@ -74,10 +74,9 @@ def open_data_file(
     index_col=None,
 ):
     """
-    Open a CSV data file safely and convert
-    expected errors into QuantifyingException.
-    This function is shared so all process/report
-    scripts use the same error behavior.
+    Open a CSV data file safely and convert expected errors into
+    QuantifyingException. This shared function ensures all process/report
+    scripts benefit from the same error handling.
     """
     try:
         # Reading the file
@@ -96,12 +95,6 @@ def open_data_file(
     except PermissionError:
         raise QuantifyingException(
             message=f"Permission denied when accessing data file: {file_path}",
-            exit_code=1,
-        )
-    # Any other unexpected issue
-    except Exception as e:
-        raise QuantifyingException(
-            message=f"Unexpected error opening file '{file_path}': {str(e)}",
             exit_code=1,
         )
 
