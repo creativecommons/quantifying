@@ -132,7 +132,7 @@ Quantifying/
 ```
 
 
-## Development
+## How to set up
 
 ### Prerequisites
 
