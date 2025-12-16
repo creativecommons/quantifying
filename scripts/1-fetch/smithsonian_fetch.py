@@ -30,7 +30,7 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 API_DATA_GOV_TOKEN = os.getenv("API_DATA_GOV_TOKEN")
 FILE_1_METRICS = os.path.join(PATHS["data_phase"], "smithsonian_1_metrics.csv")
-FILE_2_UNITS = os.path.join(PATHS["data_phase"], "smithsonian_1_units.csv")
+FILE_2_UNITS = os.path.join(PATHS["data_phase"], "smithsonian_2_units.csv")
 HEADER_1_METRICS = [
     "CC0_RECORDS",
     "CC0_RECORDS_WITH_CC0_MEDIA",
