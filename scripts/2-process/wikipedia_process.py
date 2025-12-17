@@ -151,7 +151,9 @@ def main():
     file_count = shared.path_join(
         PATHS["data_1-fetch"], "wikipedia_count_by_languages.csv"
     )
-    count_data = pd.read_csv(file_count, usecols=["LANGUAGE_NAME_EN", "COUNT"])
+    count_data = shared.open_data_file(
+        LOGGER, file_count, usecols=["LANGUAGE_NAME_EN", "COUNT"]
+    )
     process_language_representation(args, count_data)
     process_highest_language_usage(args, count_data)
     process_least_language_usage(args, count_data)
