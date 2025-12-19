@@ -12,6 +12,7 @@ from pandas import PeriodIndex
 from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
+import pycountry
 
 # Constants
 STATUS_FORCELIST = [
@@ -402,3 +403,46 @@ def update_readme(
     logger.info(
         f"Updated README with new image and description for {entry_title}."
     )
+
+
+def get_language_name(lang_text):
+    """
+    Standardize language codes/names using pycountry.
+    
+    Args:
+        lang_text (str): Language code or name to standardize
+        
+    Returns:
+        str: Standardized language name or "Unknown" if not found
+    """
+    if not lang_text:
+        return "Unknown"
+    
+    lang_text = lang_text.strip().lower()
+    
+    # Try to find by alpha_2 code (e.g., 'en' -> 'English')
+    try:
+        language = pycountry.languages.get(alpha_2=lang_text)
+        if language:
+            return language.name
+    except (KeyError, AttributeError):
+        pass
+    
+    # Try to find by alpha_3 code (e.g., 'eng' -> 'English')
+    try:
+        language = pycountry.languages.get(alpha_3=lang_text)
+        if language:
+            return language.name
+    except (KeyError, AttributeError):
+        pass
+    
+    # Try to find by name (case-insensitive)
+    try:
+        for language in pycountry.languages:
+            if hasattr(language, 'name') and language.name.lower() == lang_text:
+                return language.name
+    except (KeyError, AttributeError):
+        pass
+    
+    # Return original text if no match found
+    return lang_text.title() if lang_text else "Unknown"
