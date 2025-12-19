@@ -11,7 +11,6 @@ import sys
 import traceback
 
 # Third-party
-# import pandas as pd
 import pandas as pd
 
 # Add parent directory so shared can be imported
@@ -127,49 +126,6 @@ def process_totals_by_restriction(args, count_data):
         PATHS["data_phase"], "github_totals_by_restriction.csv"
     )
     data_to_csv(args, data, file_path)
-
-
-# def load_quarter_data(quarter):
-#     """
-#     Load data for a specific quarter.
-#     """
-#     file_path = os.path.join(PATHS["data"], f"{quarter}",
-#       "1-fetch", "github_fetched")
-#     if not os.path.exists(file_path):
-#         LOGGER.error(f"Data file for quarter {quarter} not found.")
-#         return None
-#     return pd.read_csv(file_path)
-
-
-# def compare_data(current_quarter, previous_quarter):
-#     """
-#     Compare data between two quarters.
-#     """
-#     current_data = load_quarter_data(current_quarter)
-#     previous_data = load_quarter_data(previous_quarter)
-
-#     if current_data is None or previous_data is None:
-#         return
-
-#     Process data to compare totals
-
-
-# def parse_arguments():
-#     """
-#     Parses command-line arguments, returns parsed arguments.
-#     """
-#     LOGGER.info("Parsing command-line arguments")
-#     parser = argparse.ArgumentParser(
-#       description="Google Custom Search Comparison Report")
-#     parser.add_argument(
-#         "--current_quarter", type=str, required=True,
-#       help="Current quarter for comparison (e.g., 2024Q3)"
-#     )
-#     parser.add_argument(
-#         "--previous_quarter", type=str, required=True,
-#           help="Previous quarter for comparison (e.g., 2024Q2)"
-#     )
-#     return parser.parse_args()
 
 
 def main():
