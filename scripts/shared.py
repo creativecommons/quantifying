@@ -36,6 +36,58 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
+# HTTP status codes that should trigger retries
+RETRY_STATUS_FORCELIST = [
+    408,  # Request Timeout
+    429,  # Too Many Requests
+    500,  # Internal Server Error
+    502,  # Bad Gateway
+    503,  # Service Unavailable
+    504,  # Gateway Timeout
+]
+
+# User-Agent string for HTTP requests
+USER_AGENT = "QuantifyingTheCommons/1.0 (https://github.com/creativecommons/quantifying)"
+
+# Hyphenated to CC legal tool identifier mapping
+# Except PDM-1.0, follows SPDX identifier. Used by WikiCommons.
+LICENSE_NORMALIZATION = {
+    "CC-BY-4.0": "CC BY 4.0",
+    "CC-BY-SA-4.0": "CC BY-SA 4.0",
+    "CC-BY-NC-4.0": "CC BY-NC 4.0",
+    "CC-BY-NC-SA-4.0": "CC BY-NC-SA 4.0",
+    "CC-BY-NC-ND-4.0": "CC BY-NC-ND 4.0",
+    "CC-BY-ND-4.0": "CC BY-ND 4.0",
+    "CC-BY-3.0": "CC BY 3.0",
+    "CC-BY-SA-3.0": "CC BY-SA 3.0",
+    "CC-BY-NC-3.0": "CC BY-NC 3.0",
+    "CC-BY-NC-SA-3.0": "CC BY-NC-SA 3.0",
+    "CC-BY-NC-ND-3.0": "CC BY-NC-ND 3.0",
+    "CC-BY-ND-3.0": "CC BY-ND 3.0",
+    "CC-BY-2.5": "CC BY 2.5",
+    "CC-BY-SA-2.5": "CC BY-SA 2.5",
+    "CC-BY-NC-2.5": "CC BY-NC 2.5",
+    "CC-BY-NC-SA-2.5": "CC BY-NC-SA 2.5",
+    "CC-BY-NC-ND-2.5": "CC BY-NC-ND 2.5",
+    "CC-BY-ND-2.5": "CC BY-ND 2.5",
+    "CC-BY-2.0": "CC BY 2.0",
+    "CC-BY-SA-2.0": "CC BY-SA 2.0",
+    "CC-BY-NC-2.0": "CC BY-NC 2.0",
+    "CC-BY-NC-SA-2.0": "CC BY-NC-SA 2.0",
+    "CC-BY-NC-ND-2.0": "CC BY-NC-ND 2.0",
+    "CC-BY-ND-2.0": "CC BY-ND 2.0",
+    "CC-BY-1.0": "CC BY 1.0",
+    "CC-BY-SA-1.0": "CC BY-SA 1.0",
+    "CC-BY-NC-1.0": "CC BY-NC 1.0",
+    "CC-BY-NC-SA-1.0": "CC BY-NC-SA 1.0",
+    "CC-BY-NC-ND-1.0": "CC BY-NC-ND 1.0",
+    "CC-BY-ND-1.0": "CC BY-ND 1.0",
+    "CC0-1.0": "CC0 1.0",
+    "PDM-1.0": "PDM 1.0",
+}
+def get_session(accept_header=None):
+    """Create a reusable HTTP session with retry logic."""
+    session = Session()
 def get_session(accept_header=None, session=None):
     """
     Create or configure a reusable HTTPS session with retry logic and
