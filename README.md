@@ -36,7 +36,7 @@ See [`CONTRIBUTING.md`][org-contrib].
 
 ### The three phases of generating a report
 
-1. **1-Fetch**: This phase involves collecting data from a particular source
+1. **Fetch**: This phase involves collecting data from a particular source
    using its API. Before writing any code, we plan the analyses we want to
    perform by asking meaningful questions about the data. We also consider API
    limitations (such as query limits) and design a query strategy to work
@@ -70,11 +70,11 @@ See [`CONTRIBUTING.md`][org-contrib].
      - [SPDX identifier][spdx-identifier]: A standardized identifier maintained
        by the Software Package Data Exchange (SPDX) project. It provides a
        consistent way to reference licenses in applications.
-2. **2-Process**: In this phase, the fetched data is transformed into a
+2. **Process**: In this phase, the fetched data is transformed into a
    structured and standardized format for analysis. The data is then analyzed
    and categorized based on defined criteria to extract insights that answer
    the meaningful questions identified during the 1-fetch phase.
-3. **3-report**: This phase focuses on presenting the results of the analysis.
+3. **report**: This phase focuses on presenting the results of the analysis.
    We generate graphs and summaries that clearly show trends, patterns, and
    distributions in the data. These reports help communicate key insights about
    the size, diversity, and characteristics of openly licensed and public
