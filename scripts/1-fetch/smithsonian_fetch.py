@@ -28,7 +28,7 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
-API_DATA_GOV_TOKEN = os.getenv("API_DATA_GOV_TOKEN")
+DATA_GOV_API_KEY = os.getenv("DATA_GOV_API_KEY")
 FILE_1_METRICS = os.path.join(PATHS["data_phase"], "smithsonian_1_metrics.csv")
 FILE_2_UNITS = os.path.join(PATHS["data_phase"], "smithsonian_2_units.csv")
 HEADER_1_METRICS = [
@@ -122,15 +122,15 @@ def write_data(args, data_metrics, data_units):
 
 
 def query_smithsonian(args, session):
-    if not API_DATA_GOV_TOKEN:
+    if not DATA_GOV_API_KEY:
         raise shared.QuantifyingException(
-            "Authentication (API_DATA_GOV_TOKEN) required. Please ensure your"
+            "Authentication (DATA_GOV_API_KEY) required. Please ensure your"
             " API key is set in .env",
             1,
         )
     LOGGER.info("Fetch data from API")
     url = "https://api.si.edu/openaccess/api/v1.0/stats"
-    params = {"api_key": API_DATA_GOV_TOKEN}
+    params = {"api_key": DATA_GOV_API_KEY}
     try:
         with session.get(url, params=params) as response:
             response.raise_for_status()
