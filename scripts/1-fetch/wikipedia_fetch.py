@@ -67,7 +67,7 @@ def check_for_completion():
     try:
         with open(FILE_LANGUAGES, "r", newline="") as file_obj:
             reader = csv.DictReader(file_obj, dialect="unix")
-            if len(list(reader)) > 0:
+            if len(list(reader)) > 300:
                 raise shared.QuantifyingException(
                     f"Data fetch completed for {QUARTER}", 0
                 )

@@ -59,6 +59,13 @@ def parse_arguments():
     return args
 
 
+def check_for_data_file(file_path):
+    if os.path.exists(file_path):
+        raise shared.QuantifyingException(
+            f"Processed data already exists for {QUARTER}", 0
+        )
+
+
 def data_to_csv(args, data, file_path):
     if not args.enable_save:
         return
@@ -91,6 +98,7 @@ def process_totals_by_license(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_license.csv"
     )
+    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -125,6 +133,7 @@ def process_totals_by_restriction(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_restriction.csv"
     )
+    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
