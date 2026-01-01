@@ -63,6 +63,18 @@ def parse_arguments():
     return args
 
 
+def check_for_completion():
+    try:
+        with open(FILE_LANGUAGES, "r", newline="") as file_obj:
+            reader = csv.DictReader(file_obj, dialect="unix")
+            if len(list(reader)) > 300:
+                raise shared.QuantifyingException(
+                    f"Data fetch completed for {QUARTER}", 0
+                )
+    except FileNotFoundError:
+        pass  # File may not be found without --enable-save, etc.
+
+
 def write_data(args, tool_data):
     if not args.enable_save:
         return args
@@ -157,6 +169,7 @@ def query_wikipedia_languages(session):
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
+    check_for_completion()
     shared.git_fetch_and_merge(args, PATHS["repo"])
     session = shared.get_session()
     tool_data = query_wikipedia_languages(session)
