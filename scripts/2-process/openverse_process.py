@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This file is dedicated to processing GitHub data
+This file is dedicated to processing Openverse data
 for analysis and comparison between quarters.
 """
 # Standard library
@@ -9,6 +9,7 @@ import csv
 import os
 import sys
 import traceback
+from collections import defaultdict
 
 # Third-party
 import pandas as pd
@@ -78,25 +79,110 @@ def data_to_csv(args, data, file_path):
 
 def process_totals_by_license(args, count_data):
     """
-    Processing count data: totals by License
+    Processing count data: totals by license
     """
     LOGGER.info(process_totals_by_license.__doc__.strip())
-    data = {}
+    data = defaultdict(int)
 
     for row in count_data.itertuples(index=False):
         tool = str(row.TOOL_IDENTIFIER)
-        count = int(row.COUNT)
+        count = int(row.MEDIA_COUNT)
 
-        if tool == "Total public repositories":
-            continue
-
-        data[tool] = count
-
+        data[tool] += count
     data = pd.DataFrame(data.items(), columns=["License", "Count"])
     data.sort_values("License", ascending=True, inplace=True)
     data.reset_index(drop=True, inplace=True)
     file_path = shared.path_join(
-        PATHS["data_phase"], "github_totals_by_license.csv"
+        PATHS["data_phase"], "openverse_totals_by_license.csv"
+    )
+    check_for_data_file(file_path)
+    data_to_csv(args, data, file_path)
+
+
+def process_totals_by_media_type(args, count_data):
+    """
+    Processing count data: totals by media type
+    """
+    # https://creativecommons.org/public-domain/freeworks/
+    LOGGER.info(process_totals_by_media_type.__doc__.strip())
+    data = defaultdict(int)
+
+    for row in count_data.itertuples(index=False):
+        media_type = str(row.MEDIA_TYPE)
+        count = int(row.MEDIA_COUNT)
+
+        data[media_type] += count
+    data = pd.DataFrame(data.items(), columns=["Media_type", "Count"])
+    data.sort_values("Media_type", ascending=True, inplace=True)
+    file_path = shared.path_join(
+        PATHS["data_phase"], "openverse_totals_by_media_type.csv"
+    )
+    check_for_data_file(file_path)
+    data_to_csv(args, data, file_path)
+
+
+def process_totals_by_source(args, count_data):
+    """
+    Processing count data: totals by source
+    """
+    LOGGER.info(process_totals_by_source.__doc__.strip())
+    data = defaultdict(int)
+    for row in count_data.itertuples(index=False):
+        source = str(row.SOURCE)
+        count = int(row.MEDIA_COUNT)
+
+        data[source] += count
+    data = pd.DataFrame(data.items(), columns=["Source", "Count"])
+    data.sort_values("Source", ascending=True, inplace=True)
+    file_path = shared.path_join(
+        PATHS["data_phase"], "openverse_totals_by_source.csv"
+    )
+    check_for_data_file(file_path)
+    data_to_csv(args, data, file_path)
+
+
+def process_permissive_by_media_type(args, count_data):
+    """
+    Processing count data: permissive by media type
+    """
+    LOGGER.info(process_permissive_by_media_type.__doc__.strip())
+
+    data = defaultdict(int)
+
+    for row in count_data.itertuples(index=False):
+        tool = str(row.TOOL_IDENTIFIER)
+        media_type = str(row.MEDIA_TYPE)
+        count = int(row.MEDIA_COUNT)
+
+        if tool in ["CC0", "CC BY", "CC BY-SA"]:
+            data[media_type] += count
+
+    data = pd.DataFrame(data.items(), columns=["Media_type", "Count"])
+    data.sort_values("Media_type", ascending=True, inplace=True)
+
+    file_path = shared.path_join(
+        PATHS["data_phase"], "openverse_permissive_by_media_type.csv"
+    )
+    check_for_data_file(file_path)
+    data_to_csv(args, data, file_path)
+
+
+def process_permissive_by_source(args, count_data):
+    """
+    Processing count data: permissive content by source
+    """
+    LOGGER.info(process_permissive_by_source.__doc__.strip())
+    data = defaultdict(int)
+    for row in count_data.itertuples(index=False):
+        tool = str(row.TOOL_IDENTIFIER)
+        source = str(row.SOURCE)
+        count = int(row.MEDIA_COUNT)
+        if tool in ["CC0", "CC BY", "CC BY-SA"]:
+            data[source] += count
+    data = pd.DataFrame(data.items(), columns=["Source", "Count"])
+    data.sort_values("Source", ascending=True, inplace=True)
+    file_path = shared.path_join(
+        PATHS["data_phase"], "openverse_permissive_by_source.csv"
     )
     check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
@@ -106,32 +192,38 @@ def process_totals_by_restriction(args, count_data):
     """
     Processing count data: totals by restriction
     """
-    # https://creativecommons.org/public-domain/freeworks/
     LOGGER.info(process_totals_by_restriction.__doc__.strip())
-    data = {"Copyleft": 0, "Permissive": 0, "Public domain": 0}
+
+    data = {
+        "Copyleft": 0,
+        "Permissive": 0,
+        "Public domain": 0,
+        "Restricted": 0,
+    }
 
     for row in count_data.itertuples(index=False):
         tool = str(row.TOOL_IDENTIFIER)
-        count = int(row.COUNT)
+        count = int(row.MEDIA_COUNT)
 
-        if tool == "Total public repositories":
-            continue
-
-        if tool in ["BSD Zero Clause License", "CC0 1.0", "Unlicense"]:
+        if tool in ["CC0", "PDM"]:
             key = "Public domain"
-        elif tool in ["MIT No Attribution", "CC BY 4.0"]:
+
+        elif tool in ["CC BY"]:
             key = "Permissive"
-        elif tool in ["CC BY-SA 4.0"]:
+
+        elif tool in ["CC BY-SA"]:
             key = "Copyleft"
+
         else:
-            continue
+            key = "Restricted"
 
         data[key] += count
+
     data = pd.DataFrame(data.items(), columns=["Category", "Count"])
     data.sort_values("Category", ascending=True, inplace=True)
-    data.reset_index(drop=True, inplace=True)
+
     file_path = shared.path_join(
-        PATHS["data_phase"], "github_totals_by_restriction.csv"
+        PATHS["data_phase"], "openverse_totals_by_restriction.csv"
     )
     check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
@@ -142,13 +234,18 @@ def main():
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
 
-    file_count = shared.path_join(PATHS["data_1-fetch"], "github_1_count.csv")
+    file_count = shared.path_join(PATHS["data_1-fetch"], "openverse_fetch.csv")
     count_data = shared.open_data_file(
-        LOGGER, file_count, usecols=["TOOL_IDENTIFIER", "COUNT"]
+        LOGGER,
+        file_count,
+        usecols=["SOURCE", "MEDIA_TYPE", "TOOL_IDENTIFIER", "MEDIA_COUNT"],
     )
     process_totals_by_license(args, count_data)
+    process_totals_by_media_type(args, count_data)
+    process_totals_by_source(args, count_data)
+    process_permissive_by_media_type(args, count_data)
+    process_permissive_by_source(args, count_data)
     process_totals_by_restriction(args, count_data)
-
     # Push changes
     args = shared.git_add_and_commit(
         args,
