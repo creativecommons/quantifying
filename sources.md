@@ -174,10 +174,10 @@ provides access to information of all wikimedia projects including the different
 language edition of wikipedia. It runs on the Meta-Wiki API.
 
 **API documentation link:**
-[WIKIPEDIA_BASE_URL documentation](https://en.wikipedia.org/w/api.php)
-[WIKIPEDIA_BASE_URL reference page](https://www.mediawiki.org/wiki/API:Main_page)
-[WIKIPEDIA_MATRIX_URL documentation](https://meta.wikimedia.org/w/api.php)
-[WIKIPEDIA_MATRIX_URL reference page](https://www.mediawiki.org/wiki/API:Sitematrix)
+- [WIKIPEDIA_BASE_URL documentation](https://en.wikipedia.org/w/api.php)
+- [WIKIPEDIA_BASE_URL reference page](https://www.mediawiki.org/wiki/API:Main_page)
+- [WIKIPEDIA_MATRIX_URL documentation](https://meta.wikimedia.org/w/api.php)
+- [WIKIPEDIA_MATRIX_URL reference page](https://www.mediawiki.org/wiki/API:Sitematrix)
 
 **API information:**
 - No API key required
