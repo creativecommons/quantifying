@@ -103,7 +103,7 @@ def process_totals_by_media_type(args, count_data):
     """
     Processing count data: totals by media type
     """
-    # https://creativecommons.org/public-domain/freeworks/
+
     LOGGER.info(process_totals_by_media_type.__doc__.strip())
     data = defaultdict(int)
 
@@ -192,6 +192,7 @@ def process_totals_by_restriction(args, count_data):
     """
     Processing count data: totals by restriction
     """
+    # https://creativecommons.org/public-domain/freeworks/
     LOGGER.info(process_totals_by_restriction.__doc__.strip())
 
     data = {

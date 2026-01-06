@@ -98,13 +98,14 @@ def openverse_intro(args):
         " returned by API for search queries of the various legal tools."
         "\n"
         f" The results indicate that there are {total} count of audio"
-        " and images works under the Creative common license."
+        " and images that are licensed or put in the"
+        " public domain using a Creative Commons (CC) legal tool."
         " They respectively take a percentage of"
         f" {audio_percentage} and {images_percentage},"
         " of the total media count returned by the Openverse API."
         "\n"
-        f"There are {unique_sources} number of"
-        f" sources under the openverse API.\n"
+        f"There are {unique_sources} count of"
+        f" data sources under the openverse API.\n"
         "\n"
         "Thank you Openverse for providing a public API"
         " access to its media metadata!",
@@ -149,9 +150,8 @@ def plot_totals_by_license_type(args):
         SECTION,
         title,
         image_path,
-        "Plots showing totals by license type."
-        " This shows the distribution of different CC license"
-        " in the openverse API data.",
+        "Plots showing Creative Commons (CC) legal tool totals and"
+        " percentages.",
     )
 
 
@@ -192,9 +192,8 @@ def plot_totals_by_media_type(args):
         SECTION,
         title,
         image_path,
-        "Plots showing totals by the different media type."
-        " This shows the distribution of CC license types among"
-        " the audio and image contents in the openverse API data.",
+        "Plots showing Creative Commons (CC) legal tool"
+        " totals by each media type",
     )
 
 
@@ -234,15 +233,14 @@ def plot_totals_by_sources(args):
         SECTION,
         title,
         image_path,
-        "Plots showing totals by sources."
-        " This shows the distribution of different sources"
-        " in the openverse API data.",
+        "Plots showing Creative Commons (CC) legal tool totals"
+        " across the top 10 sources returned by openverse API.",
     )
 
 
 def plot_permissive_by_media_type(args):
     """
-    Create plots showing the level of permissive content by media type
+    Create plots showing the count of permissive content by media type
     """
     LOGGER.info(plot_permissive_by_media_type.__doc__.strip())
     file_path = shared.path_join(
@@ -277,14 +275,13 @@ def plot_permissive_by_media_type(args):
         SECTION,
         title,
         image_path,
-        "Plots showing totals by different levels of permissive content"
-        " by the two media types, audio and images.",
+        "Plots showing count of permissive content by media type.",
     )
 
 
 def plot_permissive_by_source(args):
     """
-    Create plots showing level of permissive by source
+    Create plots showing count of permissive content by source
     """
     LOGGER.info(plot_permissive_by_source.__doc__.strip())
     file_path = shared.path_join(
@@ -320,10 +317,8 @@ def plot_permissive_by_source(args):
         SECTION,
         title,
         image_path,
-        "Plots showing totals by different levels of permissive content"
-        " by the various sources."
-        " This tells us the openness of content and"
-        " how freely it can be used, shared or modified.",
+        "Plots showing count of permissive content"
+        " by top 10 sources in openverse.",
     )
 
 
@@ -364,8 +359,9 @@ def plot_totals_by_restriction(args):
         SECTION,
         title,
         image_path,
-        "Plots showing totals by different levels of restrictions."
-        "This shows the distribution of Public domain,"
+        "Plots showing totals by different levels of rights reserved"
+        " on openverse media contents."
+        " This shows the distribution of Public domain,"
         " Permissive, Copyleft and restricted"
         " licenses used in Openverse media contents.",
     )
