@@ -9,6 +9,7 @@ import os
 import sys
 import textwrap
 import traceback
+from pathlib import Path
 
 # Third-party
 from pygments import highlight
@@ -27,7 +28,7 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "1-gcs_report.py"
+SECTION = Path(__file__).name
 
 
 def parse_arguments():
