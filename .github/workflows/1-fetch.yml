@@ -1,7 +1,7 @@
 name: Fetch Data
 
 on:
-  schedule:
+  # schedule:
     # Normal schedule
     # # at 01:15 on all days in first month of each quarter
     # - cron: '15 1 * 1,4,7,10 *'
@@ -9,7 +9,7 @@ on:
     # - cron: '15 1 1-14 2,5,8,11 *'
     # Temp schedule
     # at 01:15 on all days in all months
-    - cron: '15 1 * * *'
+    # - cron: '15 1 * * *'
 
   workflow_dispatch:
 
