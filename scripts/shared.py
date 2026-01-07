@@ -269,6 +269,9 @@ def setup(current_file):
     return logger, paths
 
 
+# def section_order():
+
+
 def update_readme(
     args,
     section_title,
@@ -299,12 +302,12 @@ def update_readme(
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
-    section_start_line = f"<!-- {section_title} Start -->\n"
-    section_end_line = f"<!-- {section_title} End -->\n"
+    section_start_line = f"<!-- section start {section_title} -->\n"
+    section_end_line = f"<!-- section end {section_title} -->\n"
 
     # Define entry markers for each plot (optional) and description
-    entry_start_line = f"<!-- {entry_title} Start -->\n"
-    entry_end_line = f"<!-- {entry_title} End -->\n"
+    entry_start_line = f"<!-- entry start {entry_title} -->\n"
+    entry_end_line = f"<!-- entry end {entry_title} -->\n"
 
     if os.path.exists(readme_path):
         with open(readme_path, "r", encoding="utf-8") as f:
