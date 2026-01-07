@@ -269,7 +269,10 @@ def setup(current_file):
     return logger, paths
 
 
-# def section_order():
+def section_order():
+    report_dir = os.path.join(os.path.dirname(__file__), ".")
+    report_files = os.listdir(report_dir)
+    return report_files
 
 
 def update_readme(

@@ -25,7 +25,7 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "Wikipedia data"
+SECTION = "4-wikipedia_report.py"
 
 
 def parse_arguments():

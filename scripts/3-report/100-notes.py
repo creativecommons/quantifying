@@ -25,7 +25,7 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "Notes"
+SECTION = "100-notes.py"
 
 
 def parse_arguments():

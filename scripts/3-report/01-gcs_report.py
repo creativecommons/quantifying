@@ -27,7 +27,7 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "Google Custom Search (GCS)"
+SECTION = "1-gcs_report.py"
 
 
 def parse_arguments():
