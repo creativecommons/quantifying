@@ -270,7 +270,7 @@ def setup(current_file):
 
 
 def section_order():
-    report_dir = os.path.join(os.path.dirname(__file__), ".")
+    report_dir = os.path.join(os.path.dirname(__file__), "3-report")
     report_files = os.listdir(report_dir)
     return report_files
 
@@ -283,6 +283,11 @@ def update_readme(
     image_caption,
     entry_text=None,
 ):
+    logger = args.logger
+    paths = args.paths
+    ordered_sections = section_order()
+    logger.info("ordered_sections:", ordered_sections)
+    logger.info("section_title:", repr(section_title))
     """
     Update the README.md file with the generated images and descriptions.
     """
@@ -298,9 +303,6 @@ def update_readme(
             "The update_readme function requires an image path if an image"
             " caption is provided"
         )
-
-    logger = args.logger
-    paths = args.paths
 
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
@@ -324,26 +326,39 @@ def update_readme(
         lines.insert(0, title_line)
         lines.insert(1, "\n")
 
-    # We only need to know the position of the end to append new entries
+    # Locate the data source section if it is already present
     if section_start_line in lines:
-        # Locate the data source section if it is already present
         section_end_index = lines.index(section_end_line)
     else:
-        # Add the data source section if it is absent
-        lines.extend(
-            [
-                f"{section_start_line}",
-                "\n",
-                "\n",
-                f"## {section_title}\n",
-                "\n",
-                "\n",
-                f"{section_end_line}",
-                "\n",
-            ]
-        )
-        section_end_index = lines.index(section_end_line)
+        insert_index = None
+        # If not present, we find the position to insert the section
+        current_postion = ordered_sections.index(section_title)
+        # Sections that should come before this section
+        sections_before = ordered_sections[:current_postion]
+        # we find the last existing section that comes before this section
+        for prev_section in reversed(sections_before):
+            prev_end_line = f"<!-- section end {prev_section} -->\n"
+            if prev_end_line in lines:
+                insert_index = lines.index(prev_end_line) + 1
+                break
 
+        # If none exist, insert at the top (after README title)
+        if insert_index is None:
+            insert_index = 2 if len(lines) >= 2 else len(lines)
+        # Insert the new data source section at correct position
+        new_section_line = [
+            f"{section_start_line}",
+            "\n",
+            "\n",
+            f"## {section_title}\n",
+            "\n",
+            "\n",
+            f"{section_end_line}",
+            "\n",
+        ]
+        # Insert the section at the correct position
+        lines = lines[:insert_index] + new_section_line + lines[insert_index:]
+        section_end_index = lines.index(section_end_line)
     # Locate the entry if it is already present
     if entry_start_line in lines:
         entry_start_index = lines.index(entry_start_line)
