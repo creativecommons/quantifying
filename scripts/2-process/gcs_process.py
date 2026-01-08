@@ -62,6 +62,13 @@ def parse_arguments():
     return args
 
 
+def check_for_data_file(file_path):
+    if os.path.exists(file_path):
+        raise shared.QuantifyingException(
+            f"Processed data already exists for {QUARTER}", 0
+        )
+
+
 def data_to_csv(args, data, file_path):
     if not args.enable_save:
         return
@@ -111,6 +118,7 @@ def process_product_totals(args, count_data):
         data.items(), columns=["CC legal tool product", "Count"]
     )
     file_path = shared.path_join(PATHS["data_phase"], "gcs_product_totals.csv")
+    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -192,7 +200,8 @@ def process_latest_prior_retired_totals(args, count_data):
         file_path = shared.path_join(
             PATHS["data_phase"], f"gcs_status_{key}_totals.csv"
         )
-        data_to_csv(args, dataframe, file_path)
+    check_for_data_file(file_path)
+    data_to_csv(args, dataframe, file_path)
 
 
 def process_totals_by_free_cultural(args, count_data):
@@ -225,6 +234,7 @@ def process_totals_by_free_cultural(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_free_cultural.csv"
     )
+    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -259,6 +269,7 @@ def process_totals_by_restrictions(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_restrictions.csv"
     )
+    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -280,6 +291,7 @@ def process_totals_by_language(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_language.csv"
     )
+    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -301,6 +313,7 @@ def process_totals_by_country(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_country.csv"
     )
+    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
