@@ -28,6 +28,17 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
+FILE_PATHS = [
+    shared.path_join(
+        PATHS["data_phase"], "wikipedia_highest_language_usage.csv"
+    ),
+    shared.path_join(
+        PATHS["data_phase"], "wikipedia_least_language_usage.csv"
+    ),
+    shared.path_join(
+        PATHS["data_phase"], "wikipedia_language_representation.csv"
+    ),
+]
 
 
 def parse_arguments():
@@ -63,7 +74,7 @@ def parse_arguments():
     return args
 
 
-def check_for_data_file(file_path):
+def check_for_data_files(file_path):
     if os.path.exists(file_path):
         raise shared.QuantifyingException(
             f"Processed data already exists for {QUARTER}", 0
@@ -98,7 +109,6 @@ def process_highest_language_usage(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_highest_language_usage.csv"
     )
-    check_for_data_file(file_path)
     data_to_csv(args, top_10, file_path)
 
 
@@ -122,7 +132,6 @@ def process_least_language_usage(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_least_language_usage.csv"
     )
-    check_for_data_file(file_path)
     data_to_csv(args, bottom_10, file_path)
 
 
@@ -149,7 +158,6 @@ def process_language_representation(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_language_representation.csv"
     )
-    check_for_data_file(file_path)
     data_to_csv(args, language_counts, file_path)
 
 
@@ -157,6 +165,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    check_for_data_files(FILE_PATHS)
     file_count = shared.path_join(
         PATHS["data_1-fetch"], "wikipedia_count_by_languages.csv"
     )

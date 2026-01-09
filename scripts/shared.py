@@ -283,14 +283,15 @@ def update_readme(
     image_caption,
     entry_text=None,
 ):
+    """
+    Update the README.md file with the generated images and descriptions.
+    """
     logger = args.logger
     paths = args.paths
     ordered_sections = section_order()
     logger.info("ordered_sections:", ordered_sections)
     logger.info("section_title:", repr(section_title))
-    """
-    Update the README.md file with the generated images and descriptions.
-    """
+
     if not args.enable_save:
         return
     if image_path and not image_caption:
@@ -336,8 +337,8 @@ def update_readme(
         # Sections that should come before this section
         sections_before = ordered_sections[:current_postion]
         # we find the last existing section that comes before this section
-        for prev_section in reversed(sections_before):
-            prev_end_line = f"<!-- section end {prev_section} -->\n"
+        for prev_section_title in reversed(sections_before):
+            prev_end_line = f"<!-- section end {prev_section_title} -->\n"
             if prev_end_line in lines:
                 insert_index = lines.index(prev_end_line) + 1
                 break

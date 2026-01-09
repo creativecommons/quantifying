@@ -24,6 +24,10 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
+FILE_PATHS = [
+    shared.path_join(PATHS["data_phase"], "github_totals_by_license.csv"),
+    shared.path_join(PATHS["data_phase"], "github_totals_by_restriction.csv"),
+]
 
 
 def parse_arguments():
@@ -59,7 +63,7 @@ def parse_arguments():
     return args
 
 
-def check_for_data_file(file_path):
+def check_for_data_files(file_path):
     if os.path.exists(file_path):
         raise shared.QuantifyingException(
             f"Processed data already exists for {QUARTER}", 0
@@ -98,7 +102,6 @@ def process_totals_by_license(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_license.csv"
     )
-    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -133,7 +136,6 @@ def process_totals_by_restriction(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_restriction.csv"
     )
-    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -141,7 +143,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-
+    check_for_data_files(FILE_PATHS)
     file_count = shared.path_join(PATHS["data_1-fetch"], "github_1_count.csv")
     count_data = shared.open_data_file(
         LOGGER, file_count, usecols=["TOOL_IDENTIFIER", "COUNT"]

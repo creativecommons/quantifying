@@ -27,6 +27,17 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
+FILE_PATHS = [
+    shared.path_join(PATHS["data_phase"], "gcs_product_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_status_combined_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_status_lastest_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_status_prior_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_status_retired_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_totals_by_country.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_totals_by_free_cultural.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_totals_by_language.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_totals_by_restrictions.csv"),
+]
 
 
 def parse_arguments():
@@ -62,7 +73,7 @@ def parse_arguments():
     return args
 
 
-def check_for_data_file(file_path):
+def check_for_data_files(file_path):
     if os.path.exists(file_path):
         raise shared.QuantifyingException(
             f"Processed data already exists for {QUARTER}", 0
@@ -118,7 +129,6 @@ def process_product_totals(args, count_data):
         data.items(), columns=["CC legal tool product", "Count"]
     )
     file_path = shared.path_join(PATHS["data_phase"], "gcs_product_totals.csv")
-    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -200,8 +210,7 @@ def process_latest_prior_retired_totals(args, count_data):
         file_path = shared.path_join(
             PATHS["data_phase"], f"gcs_status_{key}_totals.csv"
         )
-    check_for_data_file(file_path)
-    data_to_csv(args, dataframe, file_path)
+        data_to_csv(args, dataframe, file_path)
 
 
 def process_totals_by_free_cultural(args, count_data):
@@ -234,7 +243,6 @@ def process_totals_by_free_cultural(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_free_cultural.csv"
     )
-    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -269,7 +277,6 @@ def process_totals_by_restrictions(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_restrictions.csv"
     )
-    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -291,7 +298,6 @@ def process_totals_by_language(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_language.csv"
     )
-    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -313,7 +319,6 @@ def process_totals_by_country(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_country.csv"
     )
-    check_for_data_file(file_path)
     data_to_csv(args, data, file_path)
 
 
@@ -321,6 +326,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    check_for_data_files(FILE_PATHS)
 
     # Count data
     file1_count = shared.path_join(PATHS["data_1-fetch"], "gcs_1_count.csv")
