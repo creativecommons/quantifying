@@ -42,13 +42,10 @@ the `./dev/update_legal_tools_data.sh` command.
 - [`dev/update_legal_tools_data.sh`][dev-cc-data-fetch]: Fetch script to update
   the CC Legal Tools metadata CSV file
 - [`data/cc-lega-tools.csv`][tools_csv]: CC Legal Tools metadata CSV
-- [`data/prioritized-tool-urls.txt`][prioritized-tool-urls]: a prioritized list
-  of all current CC legal tool URLs
 
 [tools_csv]: data/cc-legal-tools.csv
 [cc-legal-tools-data]: https://github.com/creativecommons/cc-legal-tools-data/
 [gh-data-tools-csv]: https://github.com/creativecommons/cc-legal-tools-data/blob/main/config/cc-legal-tools.csv
-[prioritized-tool-urls]: data/prioritized-tool-urls.txt
 
 
 ## Europeana
