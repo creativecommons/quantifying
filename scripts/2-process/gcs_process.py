@@ -73,11 +73,12 @@ def parse_arguments():
     return args
 
 
-def check_for_data_files(file_path):
-    if os.path.exists(file_path):
-        raise shared.QuantifyingException(
-            f"Processed data already exists for {QUARTER}", 0
-        )
+def check_for_data_files(file_paths):
+    for path in file_paths:
+        if os.path.exists(path):
+            raise shared.QuantifyingException(
+                f"Processed data already exists for {QUARTER}", 0
+            )
 
 
 def data_to_csv(args, data, file_path):
