@@ -14,6 +14,7 @@ Create a prioritized CC Legal Tool URLs file:
 4. Save prioritized CC Legal Tool URLs
 """
 # Standard library
+import csv
 import os
 import sys
 import textwrap
@@ -39,12 +40,14 @@ LOGGER.info("Script execution started")
 
 def get_tool_urls():
     LOGGER.info("Loading CC Legal Tool paths and adding prefix")
-    file_path = shared.path_join(PATHS["data"], "legal-tool-paths.txt")
-    prefix = "//creativecommons.org/"
+    file_path = shared.path_join(PATHS["data"], "cc-legal-tools.csv")
     tool_urls = []
     with open(file_path, "r", encoding="utf-8") as file_obj:
-        for line in file_obj:
-            tool_urls.append(f"{prefix}{line.strip()}")
+        rows = csv.DictReader(file_obj, dialect="unix")
+        for row in rows:
+            tool_urls.append(
+                row["CANONICAL_URL"].replace("https:", "").rstrip("/")
+            )
     return tool_urls
 
 

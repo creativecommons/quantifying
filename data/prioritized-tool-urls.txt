@@ -18,18 +18,11 @@
 //creativecommons.org/licenses/by-nc-sa/2.5
 //creativecommons.org/licenses/by-nd/2.5
 //creativecommons.org/licenses/by-sa/2.5
-//creativecommons.org/licenses/by/2.1
-//creativecommons.org/licenses/by-nc/2.1
-//creativecommons.org/licenses/by-nc-nd/2.1
-//creativecommons.org/licenses/by-nc-sa/2.1
-//creativecommons.org/licenses/by-nd/2.1
-//creativecommons.org/licenses/by-sa/2.1
 //creativecommons.org/licenses/by/2.0
 //creativecommons.org/licenses/by-nc/2.0
 //creativecommons.org/licenses/by-nc-nd/2.0
 //creativecommons.org/licenses/by-nc-sa/2.0
 //creativecommons.org/licenses/by-nd/2.0
-//creativecommons.org/licenses/by-nd-nc/2.0
 //creativecommons.org/licenses/by-sa/2.0
 //creativecommons.org/licenses/by/1.0
 //creativecommons.org/licenses/by-nc/1.0
@@ -558,7 +551,6 @@
 //creativecommons.org/licenses/by-nc-nd/2.0/jp
 //creativecommons.org/licenses/by-nc-sa/2.0/jp
 //creativecommons.org/licenses/by-nd/2.0/jp
-//creativecommons.org/licenses/by-nd-nc/2.0/jp
 //creativecommons.org/licenses/by-sa/2.0/jp
 //creativecommons.org/licenses/by/2.0/kr
 //creativecommons.org/licenses/by-nc/2.0/kr
@@ -615,11 +607,6 @@
 //creativecommons.org/licenses/by-nd-nc/1.0/nl
 //creativecommons.org/licenses/by-sa/1.0/nl
 //creativecommons.org/licenses/devnations/2.0
-//creativecommons.org/licenses/nc/2.0
-//creativecommons.org/licenses/nc-sa/2.0
-//creativecommons.org/licenses/nd/2.0
-//creativecommons.org/licenses/nd-nc/2.0
-//creativecommons.org/licenses/sa/2.0
 //creativecommons.org/licenses/nc/1.0
 //creativecommons.org/licenses/nc-sa/1.0
 //creativecommons.org/licenses/nc-sampling+/1.0
@@ -649,4 +636,4 @@
 //creativecommons.org/licenses/nc-sampling+/1.0/tw
 //creativecommons.org/licenses/sampling/1.0/tw
 //creativecommons.org/licenses/sampling+/1.0/tw
-//creativecommons.org/licenses/publicdomain
+//creativecommons.org/publicdomain/certification/1.0/us
