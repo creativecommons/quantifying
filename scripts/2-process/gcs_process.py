@@ -59,8 +59,12 @@ def parse_arguments():
     parser.add_argument(
         "--enable-git",
         action="store_true",
-        help="Enable git actions such as fetch, merge, add, commit, and push"
-        " (default: False)",
+        help="Enable git actions such as fetch, merge, add, commit, and push",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if processed files already exist",
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
@@ -73,9 +77,9 @@ def parse_arguments():
     return args
 
 
-def check_for_data_files(file_paths):
+def check_for_data_files(args, file_paths):
     for path in file_paths:
-        if os.path.exists(path):
+        if os.path.exists(path) and not args.force:
             raise shared.QuantifyingException(
                 f"Processed data already exists for {QUARTER}", 0
             )
@@ -327,7 +331,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    check_for_data_files(FILE_PATHS)
+    check_for_data_files(args, FILE_PATHS)
 
     # Count data
     file1_count = shared.path_join(PATHS["data_1-fetch"], "gcs_1_count.csv")
