@@ -11,7 +11,6 @@ import textwrap
 import traceback
 
 # Third-party
-import pandas as pd
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -87,9 +86,11 @@ def wikipedia_intro(args):
     )
     name_label = "LANGUAGE_NAME_EN"
     name_label_top10 = "Language"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     total_articles = data["COUNT"].sum()
-    top10 = pd.read_csv(file_path_top10, index_col=name_label_top10)
+    top10 = shared.open_data_file(
+        LOGGER, file_path_top10, index_col=name_label_top10
+    )
     top10_articles = top10["Count"].sum()
     top10_percentage = (top10_articles / total_articles) * 100
     average_articles = total_articles / len(data)
@@ -131,7 +132,7 @@ def plot_language_representation(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Category"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(data_label, ascending=True, inplace=True)
     title = "Language Representation"
     plt = plot.combined_plot(
@@ -176,7 +177,7 @@ def plot_highest_language_usage(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Language"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(data_label, ascending=True, inplace=True)
     title = "Most represented languages"
     plt = plot.combined_plot(
@@ -219,7 +220,7 @@ def plot_least_language_usage(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Language"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(data_label, ascending=True, inplace=True)
     title = "Least represented languages"
     plt = plot.combined_plot(

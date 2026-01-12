@@ -63,6 +63,13 @@ def parse_arguments():
     return args
 
 
+def check_for_data_file(file_path):
+    if os.path.exists(file_path):
+        raise shared.QuantifyingException(
+            f"Processed data already exists for {QUARTER}", 0
+        )
+
+
 def data_to_csv(args, data, file_path):
     if not args.enable_save:
         return
@@ -91,6 +98,7 @@ def process_highest_language_usage(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_highest_language_usage.csv"
     )
+    check_for_data_file(file_path)
     data_to_csv(args, top_10, file_path)
 
 
@@ -114,6 +122,7 @@ def process_least_language_usage(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_least_language_usage.csv"
     )
+    check_for_data_file(file_path)
     data_to_csv(args, bottom_10, file_path)
 
 
@@ -140,6 +149,7 @@ def process_language_representation(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_language_representation.csv"
     )
+    check_for_data_file(file_path)
     data_to_csv(args, language_counts, file_path)
 
 
@@ -147,11 +157,12 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-
     file_count = shared.path_join(
         PATHS["data_1-fetch"], "wikipedia_count_by_languages.csv"
     )
-    count_data = pd.read_csv(file_count, usecols=["LANGUAGE_NAME_EN", "COUNT"])
+    count_data = shared.open_data_file(
+        LOGGER, file_count, usecols=["LANGUAGE_NAME_EN", "COUNT"]
+    )
     process_language_representation(args, count_data)
     process_highest_language_usage(args, count_data)
     process_least_language_usage(args, count_data)

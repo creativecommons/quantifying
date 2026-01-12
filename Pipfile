@@ -5,38 +5,24 @@ name = "pypi"
 
 [packages]
 babel = "*"
-flickrapi = "*"
+cachetools = "*"  # Required by google-api-python-client
+feedparser = "*"
 GitPython = "*"
 google-api-python-client = "*"
-h11 = ">=0.16.0"  # Ensure dependency is secure
 internetarchive = ">=5.5.1"
-python-iso639 = "*"
-jupyterlab = ">=3.6.7"
 matplotlib = "*"
-numpy = "*"
 pandas = "*"
-plotly = "*"
-pillow = ">=11.3.0"  # Ensure dependency is secure
-Pyarrow = "*"
 Pygments = "*"
-python-dotenv = "*"
+python-iso639 = "*"
+PyYAML = "*"
 requests = ">=2.31.0"
-seaborn = "*"
-urllib3 = ">=2.5.0"
-wordcloud = "*"
+urllib3 = ">=2.6.3"  # Ensure dependency is secure
 
 [dev-packages]
 black = "*"
-"black[jupyter]" = "*"
 flake8 = "*"
 isort = "*"
 pre-commit = "*"
 
 [requires]
 python_version = "3.11"
-
-[scripts]
-gcs_fetched = "./scripts/1-fetch/gcs_fetched.py"
-flickr_fetched = "./scripts/1-fetch/flickr_fetched.py"
-gcs_processed = "./scripts/2-process/gcs_processed.py"
-gcs_reports = "./scripts/3-report/gcs_reports.py"

@@ -177,6 +177,21 @@ license_version breakdown.
 - Supported licenses: `by`, `by-nc`, `by-nc-nd`, `by-nc-sa`, `by-nd`, `by-sa`, `cc0`, `nc-sampling+`, `pdm`, `sampling+`
 
 
+## Smithsonian
+
+**Description:** The Smithsonian Institution Open Access API offers a metrics
+API for stats about CC0 objects/media.
+
+**API documentation link:**
+- [metrics - Documentation](https://edan.si.edu/openaccess/apidocs/#api-metrics)
+- [Developer Manual - api.data.gov](https://api.data.gov/docs/developer-manual/)
+
+**API information:**
+- API key required
+- Hourly Limit: 1,000 requests per hour
+- Data available in a JSON format
+
+
 ## Wikipedia
 
 **Description:** The Wikipedia API allows users to query statistics of pages,
@@ -189,10 +204,10 @@ provides access to information of all wikimedia projects including the different
 language edition of wikipedia. It runs on the Meta-Wiki API.
 
 **API documentation link:**
-[WIKIPEDIA_BASE_URL documentation](https://en.wikipedia.org/w/api.php)
-[WIKIPEDIA_BASE_URL reference page](https://www.mediawiki.org/wiki/API:Main_page)
-[WIKIPEDIA_MATRIX_URL documentation](https://meta.wikimedia.org/w/api.php)
-[WIKIPEDIA_MATRIX_URL reference page](https://www.mediawiki.org/wiki/API:Sitematrix)
+- [WIKIPEDIA_BASE_URL documentation](https://en.wikipedia.org/w/api.php)
+- [WIKIPEDIA_BASE_URL reference page](https://www.mediawiki.org/wiki/API:Main_page)
+- [WIKIPEDIA_MATRIX_URL documentation](https://meta.wikimedia.org/w/api.php)
+- [WIKIPEDIA_MATRIX_URL reference page](https://www.mediawiki.org/wiki/API:Sitematrix)
 
 **API information:**
 - No API key required
