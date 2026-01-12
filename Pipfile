@@ -8,12 +8,9 @@ cachetools = "*"  # Required by google-api-python-client
 feedparser = "*"
 GitPython = "*"
 google-api-python-client = "*"
-#h11 = ">=0.16.0"  # Ensure dependency is secure
 matplotlib = "*"
 pandas = "*"
-#pillow = ">=11.3.0"  # Ensure dependency is secure
 Pygments = "*"
-#python-dotenv = "*"
 PyYAML = "*"
 requests = ">=2.31.0"
 urllib3 = ">=2.6.3"  # Ensure dependency is secure
