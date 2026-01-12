@@ -251,7 +251,6 @@ def setup(current_file):
     # Paths
     paths = {}
     paths["repo"] = os.path.dirname(path_join(__file__, ".."))
-    paths["dotenv"] = path_join(paths["repo"], ".env")
     paths["data"] = os.path.dirname(
         os.path.abspath(os.path.realpath(current_file))
     )
