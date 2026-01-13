@@ -77,14 +77,6 @@ def parse_arguments():
     return args
 
 
-def check_for_data_files(args, file_paths):
-    for path in file_paths:
-        if os.path.exists(path) and not args.force:
-            raise shared.QuantifyingException(
-                f"Processed data already exists for {QUARTER}", 0
-            )
-
-
 def data_to_csv(args, data, file_path):
     if not args.enable_save:
         return
@@ -331,7 +323,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    check_for_data_files(args, FILE_PATHS)
+    shared.check_for_data_files(args, FILE_PATHS, QUARTER)
 
     # Count data
     file1_count = shared.path_join(PATHS["data_1-fetch"], "gcs_1_count.csv")

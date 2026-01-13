@@ -26,7 +26,13 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = Path(__file__).name
+SECTION_FILE = Path(__file__).name
+SECTION_TITLE = "Github"
+
+IMAGE_PATHS = [
+    shared.path_join(PATHS["data_phase"], "github_totals_by_license_type.png"),
+    shared.path_join(PATHS["data_phase"], "github_restriction.png"),
+]
 
 
 def parse_arguments():
@@ -56,6 +62,11 @@ def parse_arguments():
         help="Enable git actions such as fetch, merge, add, commit, and push"
         " (default: False)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if images files already exist",
+    )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
@@ -65,6 +76,14 @@ def parse_arguments():
     args.logger = LOGGER
     args.paths = PATHS
     return args
+
+
+def check_image_files(args, image_paths):
+    for path in image_paths:
+        if os.path.exists(path) and not args.force:
+            raise shared.QuantifyingException(
+                f"image file already exists for {path}", 0
+            )
 
 
 def load_data(args):
@@ -100,7 +119,8 @@ def github_intro(args):
     cc_percentage = f"{(cc_total / total_repositories) * 100:.2f}%"
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         "Overview",
         None,
         None,
@@ -111,7 +131,7 @@ def github_intro(args):
         f"** of the {total_repositories} total public repositories"
         " on GitHub that use a CC legal tool. Additionally,"
         " many more use a non-CC use a Public domain"
-        " equivalent legal tools.**\n"
+        " equivalent legal tools.\n"
         "\n"
         " The Github data showcases the different level of"
         " rights reserved on repositories We have Public"
@@ -121,7 +141,7 @@ def github_intro(args):
         " without restriction."
         " See more at"
         " [Public-domain-equivalent license]"
-        "(https://en.wikipedia.org/wiki/Public-domain-equivalent_license)"
+        "(https://en.wikipedia.org/wiki/Public-domain-equivalent_license).\n"
         " While a Permissive category of license contains works"
         " under MIT-0 and CC BY 4.0 allows users to"
         " reuse the code with some conditions and attribution"
@@ -130,7 +150,7 @@ def github_intro(args):
         " and Copyleft contains works under CC BY-SA 4.0."
         " which requires any derivative works to be licensed"
         " under the same terms."
-        " [Copyleft](https://en.wikipedia.org/wiki/Copyleft)"
+        " [Copyleft](https://en.wikipedia.org/wiki/Copyleft).\n"
         "\n"
         "Thank you GitHub for providing public API"
         " access to repository metadata!",
@@ -172,7 +192,8 @@ def plot_totals_by_license_type(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing totals by license type."
@@ -220,7 +241,8 @@ def plot_totals_by_restriction(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing totals by different levels of restrictions."
@@ -234,6 +256,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    check_image_files(args, IMAGE_PATHS)
     github_intro(args)
     plot_totals_by_license_type(args)
     plot_totals_by_restriction(args)

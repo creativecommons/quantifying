@@ -36,6 +36,16 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
+def check_for_data_files(args, file_paths, QUARTER):
+    if args.force:
+        return
+    for path in file_paths:
+        if os.path.exists(path):
+            raise QuantifyingException(
+                f"Processed data already exists for {QUARTER}", 0
+            )
+
+
 def get_session(accept_header=None, session=None):
     """
     Create or configure a reusable HTTPS session with retry logic and
@@ -272,11 +282,13 @@ def setup(current_file):
 def section_order():
     report_dir = os.path.join(os.path.dirname(__file__), "3-report")
     report_files = os.listdir(report_dir)
+    report_files.sort()
     return report_files
 
 
 def update_readme(
     args,
+    section_file,
     section_title,
     entry_title,
     image_path,
@@ -289,8 +301,8 @@ def update_readme(
     logger = args.logger
     paths = args.paths
     ordered_sections = section_order()
-    logger.info("ordered_sections:", ordered_sections)
-    logger.info("section_title:", repr(section_title))
+    logger.info(f"ordered_sections:, {ordered_sections}")
+    logger.info(f"section_title:, {section_title}")
 
     if not args.enable_save:
         return
@@ -308,8 +320,8 @@ def update_readme(
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
-    section_start_line = f"<!-- section start {section_title} -->\n"
-    section_end_line = f"<!-- section end {section_title} -->\n"
+    section_start_line = f"<!-- section start {section_file} -->\n"
+    section_end_line = f"<!-- section end {section_file} -->\n"
 
     # Define entry markers for each plot (optional) and description
     entry_start_line = f"<!-- entry start {entry_title} -->\n"
@@ -333,7 +345,7 @@ def update_readme(
     else:
         insert_index = None
         # If not present, we find the position to insert the section
-        current_postion = ordered_sections.index(section_title)
+        current_postion = ordered_sections.index(section_file)
         # Sections that should come before this section
         sections_before = ordered_sections[:current_postion]
         # we find the last existing section that comes before this section

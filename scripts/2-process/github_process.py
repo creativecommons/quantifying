@@ -69,14 +69,6 @@ def parse_arguments():
     return args
 
 
-def check_for_data_files(args, file_paths):
-    for path in file_paths:
-        if os.path.exists(path) and not args.force:
-            raise shared.QuantifyingException(
-                f"Processed data already exists for {QUARTER}", 0
-            )
-
-
 def data_to_csv(args, data, file_path):
     if not args.enable_save:
         return
@@ -150,7 +142,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    check_for_data_files(args, FILE_PATHS)
+    shared.check_for_data_files(args, FILE_PATHS, QUARTER)
     file_count = shared.path_join(PATHS["data_1-fetch"], "github_1_count.csv")
     count_data = shared.open_data_file(
         LOGGER, file_count, usecols=["TOOL_IDENTIFIER", "COUNT"]
@@ -176,7 +168,7 @@ if __name__ == "__main__":
             LOGGER.info(e.message)
         else:
             LOGGER.error(e.message)
-        sys.exit(e.code)
+        sys.exit(e.exit_code)
     except SystemExit as e:
         LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)

@@ -28,7 +28,8 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = Path(__file__).name
+SECTION_FILE = Path(__file__).name
+SECTION_TITLE = "Google Custom Search (GCS)"
 
 
 def parse_arguments():
@@ -84,7 +85,8 @@ def gcs_intro(args):
     total_count = f"{data['Count'].sum():,d}"
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         "Overview",
         None,
         None,
@@ -138,7 +140,8 @@ def plot_products(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing Creative Commons (CC) legal tool product totals and"
@@ -181,7 +184,8 @@ def plot_tool_status(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing Creative Commons (CC) legal tool status totals and"
@@ -224,7 +228,8 @@ def plot_latest_tools(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing latest Creative Commons (CC) legal tool totals and"
@@ -266,7 +271,8 @@ def plot_prior_tools(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing prior Creative Commons (CC) legal tool totals and"
@@ -312,7 +318,8 @@ def plot_retired_tools(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing retired Creative Commons (CC) legal tools total and"
@@ -361,7 +368,8 @@ def plot_countries_highest_usage(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing countries with the highest useage of the latest"
@@ -414,7 +422,8 @@ def plot_languages_highest_usage(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing languages with the highest useage of the latest"
@@ -461,7 +470,8 @@ def plot_free_culture(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing Approved for Free Cultural Works legal tool usage.",
