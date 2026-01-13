@@ -183,3 +183,26 @@ language edition of wikipedia. It runs on the Meta-Wiki API.
 - No API key required
 - Query limit: It is rate-limited only to prevent abuse
 - Data available through XML or JSON format
+
+
+## Getty Images
+
+**Description:**  
+The Getty Images API provides access to metadata for a large collection of
+commercial visual content, including images, illustrations, videos, and
+editorial media from Getty Images and iStock.
+
+The API exposes descriptive and licensing-related metadata without requiring
+access to the media files themselves, making it suitable for analysing patterns
+in licensed visual content.
+
+**API documentation link:**
+- https://developers.gettyimages.com/docs/
+
+**API information:**
+- API key required
+- Base URL: https://api.gettyimages.com/v3/
+- Data available in JSON format
+- Supports searching assets and retrieving metadata, including licensing and
+  usage restrictions
+
