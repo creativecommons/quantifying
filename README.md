@@ -143,7 +143,6 @@ Quantifying/
 │   │   │   └── README.md  # All generated reports are displayed in the README
 │   └── ...
 ├── dev/
-├── pre-automation/  # All Quantifying work prior to adding automation system
 ├── scripts/  # Run scripts for all phases
 │   ├── 1-fetch/
 │   ├── 2-process/
