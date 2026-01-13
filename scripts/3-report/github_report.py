@@ -29,11 +29,6 @@ QUARTER = os.path.basename(PATHS["data_quarter"])
 SECTION_FILE = Path(__file__).name
 SECTION_TITLE = "Github"
 
-IMAGE_PATHS = [
-    shared.path_join(PATHS["data_phase"], "github_totals_by_license_type.png"),
-    shared.path_join(PATHS["data_phase"], "github_restriction.png"),
-]
-
 
 def parse_arguments():
     """
@@ -76,14 +71,6 @@ def parse_arguments():
     args.logger = LOGGER
     args.paths = PATHS
     return args
-
-
-def check_image_files(args, image_paths):
-    for path in image_paths:
-        if os.path.exists(path) and not args.force:
-            raise shared.QuantifyingException(
-                f"image file already exists for {path}", 0
-            )
 
 
 def load_data(args):
@@ -256,7 +243,6 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    check_image_files(args, IMAGE_PATHS)
     github_intro(args)
     plot_totals_by_license_type(args)
     plot_totals_by_restriction(args)
