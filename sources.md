@@ -25,21 +25,27 @@ public domain. Below are the sources and their respective information:
 
 ## CC Legal Tools
 
-**Description:** A `.txt` file provided by Timid Robot containing all legal
-tool paths.
+**Description:** [`data/cc-lega-tools.csv`][tools_csv] contains metadata for
+all of the Creative Commons legal tools. The file can easily be updated with
+the `./dev/update_legal_tools_data.sh` command.
 
 **API documentation link:**
-- [`google_custom_search/legal-tool-paths.txt`][tools-paths]: a list of all
-  current Creative Commons (CC) legal tool paths
-- [`data/prioritized-tool-urls.txt`][prioritized-tool-urls]: a prioritized list
-  of all current CC legal tool URLs
+- [creativecommons/cc-legal-tools-data][cc-legal-tools-data]: _Legal tool
+  (licenses, public domain dedication, etc.) data for Creative Commons_
+  - [`config/cc-legal-tools.csv`][gh-data-tools-csv]
 
 **API information:**
 - No API key required
 - No query limits
 
-[tools-paths]:data/legal-tool-paths.txt
-[prioritized-tool-urls]: data/prioritized-tool-urls.txt
+**Additional files:**
+- [`dev/update_legal_tools_data.sh`][dev-cc-data-fetch]: Fetch script to update
+  the CC Legal Tools metadata CSV file
+- [`data/cc-lega-tools.csv`][tools_csv]: CC Legal Tools metadata CSV
+
+[tools_csv]: data/cc-legal-tools.csv
+[cc-legal-tools-data]: https://github.com/creativecommons/cc-legal-tools-data/
+[gh-data-tools-csv]: https://github.com/creativecommons/cc-legal-tools-data/blob/main/config/cc-legal-tools.csv
 
 
 ## Europeana
