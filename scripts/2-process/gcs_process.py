@@ -4,7 +4,6 @@ Process Google Custom Search (GCS) data.
 """
 # Standard library
 import argparse
-import csv
 import os
 import sys
 import textwrap
@@ -62,16 +61,6 @@ def parse_arguments():
     return args
 
 
-def data_to_csv(args, data, file_path):
-    if not args.enable_save:
-        return
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-    # emulate csv.unix_dialect
-    data.to_csv(
-        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
-    )
-
-
 def process_product_totals(args, count_data):
     """
     Processing count data: totals by product
@@ -111,7 +100,7 @@ def process_product_totals(args, count_data):
         data.items(), columns=["CC legal tool product", "Count"]
     )
     file_path = shared.path_join(PATHS["data_phase"], "gcs_product_totals.csv")
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path, PATHS)
 
 
 def process_latest_prior_retired_totals(args, count_data):
@@ -192,7 +181,7 @@ def process_latest_prior_retired_totals(args, count_data):
         file_path = shared.path_join(
             PATHS["data_phase"], f"gcs_status_{key}_totals.csv"
         )
-        data_to_csv(args, dataframe, file_path)
+        shared.data_to_csv(args, dataframe, file_path)
 
 
 def process_totals_by_free_cultural(args, count_data):
@@ -225,7 +214,7 @@ def process_totals_by_free_cultural(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_free_cultural.csv"
     )
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_totals_by_restrictions(args, count_data):
@@ -259,7 +248,7 @@ def process_totals_by_restrictions(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_restrictions.csv"
     )
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_totals_by_language(args, data):
@@ -280,7 +269,7 @@ def process_totals_by_language(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_language.csv"
     )
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_totals_by_country(args, data):
@@ -301,7 +290,7 @@ def process_totals_by_country(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_country.csv"
     )
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def main():

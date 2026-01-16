@@ -5,7 +5,6 @@ for analysis and comparison between quarters.
 """
 # Standard library
 import argparse
-import csv
 import os
 import sys
 import textwrap
@@ -70,16 +69,6 @@ def check_for_data_file(file_path):
         )
 
 
-def data_to_csv(args, data, file_path):
-    if not args.enable_save:
-        return
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-    # emulate csv.unix_dialect
-    data.to_csv(
-        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
-    )
-
-
 def process_highest_language_usage(args, count_data):
     """
     Processing count data: Most represented languages
@@ -99,7 +88,7 @@ def process_highest_language_usage(args, count_data):
         PATHS["data_phase"], "wikipedia_highest_language_usage.csv"
     )
     check_for_data_file(file_path)
-    data_to_csv(args, top_10, file_path)
+    shared.data_to_csv(args, top_10, file_path, PATHS)
 
 
 def process_least_language_usage(args, count_data):
@@ -123,7 +112,7 @@ def process_least_language_usage(args, count_data):
         PATHS["data_phase"], "wikipedia_least_language_usage.csv"
     )
     check_for_data_file(file_path)
-    data_to_csv(args, bottom_10, file_path)
+    shared.data_to_csv(args, bottom_10, file_path, PATHS)
 
 
 def process_language_representation(args, count_data):
@@ -150,7 +139,7 @@ def process_language_representation(args, count_data):
         PATHS["data_phase"], "wikipedia_language_representation.csv"
     )
     check_for_data_file(file_path)
-    data_to_csv(args, language_counts, file_path)
+    shared.data_to_csv(args, language_counts, file_path, PATHS)
 
 
 def main():

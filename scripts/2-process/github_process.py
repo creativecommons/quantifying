@@ -5,7 +5,6 @@ for analysis and comparison between quarters.
 """
 # Standard library
 import argparse
-import csv
 import os
 import sys
 import traceback
@@ -66,16 +65,6 @@ def check_for_data_file(file_path):
         )
 
 
-def data_to_csv(args, data, file_path):
-    if not args.enable_save:
-        return
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-    # emulate csv.unix_dialect
-    data.to_csv(
-        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
-    )
-
-
 def process_totals_by_license(args, count_data):
     """
     Processing count data: totals by License
@@ -99,7 +88,7 @@ def process_totals_by_license(args, count_data):
         PATHS["data_phase"], "github_totals_by_license.csv"
     )
     check_for_data_file(file_path)
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path, PATHS)
 
 
 def process_totals_by_restriction(args, count_data):
@@ -134,7 +123,7 @@ def process_totals_by_restriction(args, count_data):
         PATHS["data_phase"], "github_totals_by_restriction.csv"
     )
     check_for_data_file(file_path)
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path, PATHS)
 
 
 def main():
