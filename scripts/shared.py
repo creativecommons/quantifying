@@ -1,4 +1,5 @@
 # Standard library
+import csv
 import logging
 import os
 import sys
@@ -34,6 +35,16 @@ class QuantifyingException(Exception):
         self.exit_code = exit_code if exit_code is not None else 1
         self.message = message
         super().__init__(self.message)
+
+
+def data_to_csv(args, data, file_path, PATHS):
+    if not args.enable_save:
+        return
+    os.makedirs(PATHS["data_phase"], exist_ok=True)
+    # emulate csv.unix_dialect
+    data.to_csv(
+        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
+    )
 
 
 def get_session(accept_header=None, session=None):
