@@ -68,6 +68,15 @@ def parse_arguments():
     return args
 
 
+def check_report_completion(args):
+    last_entry = shared.path_join(
+        PATHS["data_phase"], "wikipedia_least_language_usage.png"
+    )
+    if os.path.exists(last_entry) and not args.force:
+        LOGGER.info(f"{last_entry} already exists. Script completed")
+        return
+
+
 def wikipedia_intro(args):
     """
     Write Wikipedia introduction.
@@ -261,6 +270,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    check_report_completion(args)
     wikipedia_intro(args)
     plot_language_representation(args)
     plot_highest_language_usage(args)
