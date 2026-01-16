@@ -70,6 +70,13 @@ def parse_arguments():
     return args
 
 
+def check_report_completion(args):
+    last_entry = shared.path_join(PATHS["data_phase"], "gcs_free_culture.png")
+    if os.path.exists(last_entry) and not args.force:
+        LOGGER.info(f"{last_entry} already exists. Script completed")
+        return
+
+
 def gcs_intro(args):
     """
     Write Google Custom Search (GCS) introduction.
@@ -491,7 +498,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-
+    check_report_completion(args)
     gcs_intro(args)
     plot_products(args)
     plot_tool_status(args)
