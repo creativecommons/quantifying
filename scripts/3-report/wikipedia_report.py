@@ -9,6 +9,7 @@ import os
 import sys
 import textwrap
 import traceback
+from pathlib import Path
 
 # Third-party
 from pygments import highlight
@@ -25,7 +26,8 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "Wikipedia data"
+SECTION_FILE = Path(__file__).name
+SECTION_TITLE = "Wikipedia"
 
 
 def parse_arguments():
@@ -97,7 +99,8 @@ def wikipedia_intro(args):
     language_count = len(data)
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         "Overview",
         None,
         None,
@@ -155,7 +158,8 @@ def plot_language_representation(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing the language representation across different language"
@@ -200,7 +204,8 @@ def plot_highest_language_usage(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing the most represented languages across the different"
@@ -243,7 +248,8 @@ def plot_least_language_usage(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing the least represented languages across the different"

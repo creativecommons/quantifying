@@ -8,6 +8,7 @@ import os
 import sys
 import textwrap
 import traceback
+from pathlib import Path
 
 # Third-party
 from pygments import highlight
@@ -25,7 +26,8 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "Notes"
+SECTION_FILE = Path(__file__).name
+SECTION_TITLE = "Notes"
 
 
 def parse_arguments():
@@ -72,7 +74,8 @@ def data_locations(args):
     """
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         "Data locations",
         None,
         None,
@@ -100,7 +103,8 @@ def usage(args):
     """
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         "Usage",
         None,
         None,
