@@ -207,6 +207,13 @@ def paths_update(logger, paths, old_quarter, new_quarter):
     return paths
 
 
+def paths_list_update(logger, paths_list, old_quarter, new_quarter):
+    logger.info(f"Updating paths: replacing {old_quarter} with {new_quarter}")
+    for index, path in enumerate(paths_list):
+        paths_list[index] = path.replace(old_quarter, new_quarter)
+    return paths_list
+
+
 class ColoredFormatter(logging.Formatter):
     """Adds colors to log messages."""
 
@@ -301,8 +308,8 @@ def update_readme(
     logger = args.logger
     paths = args.paths
     ordered_sections = section_order()
-    logger.info(f"ordered_sections:, {ordered_sections}")
-    logger.info(f"section_title:, {section_title}")
+    logger.info(f"ordered_sections: {ordered_sections}")
+    logger.info(f"section_title: {section_title}")
 
     if not args.enable_save:
         return

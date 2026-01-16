@@ -44,6 +44,7 @@ def parse_arguments():
     """
     Parse command-line options, returns parsed argument namespace.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -70,8 +71,12 @@ def parse_arguments():
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
-        global PATHS
+        global FILE_PATHS, PATHS
+        FILE_PATHS = shared.paths_list_update(
+            LOGGER, FILE_PATHS, QUARTER, args.quarter
+        )
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
