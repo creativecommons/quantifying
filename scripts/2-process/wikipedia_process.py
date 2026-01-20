@@ -27,12 +27,24 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
+FILE_PATHS = [
+    shared.path_join(
+        PATHS["data_phase"], "wikipedia_highest_language_usage.csv"
+    ),
+    shared.path_join(
+        PATHS["data_phase"], "wikipedia_least_language_usage.csv"
+    ),
+    shared.path_join(
+        PATHS["data_phase"], "wikipedia_language_representation.csv"
+    ),
+]
 
 
 def parse_arguments():
     """
     Parse command-line options, returns parsed argument namespace.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -51,22 +63,25 @@ def parse_arguments():
         help="Enable git actions such as fetch, merge, add, commit, and push"
         " (default: False)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if processed files already exist",
+    )
+
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
-        global PATHS
+        global FILE_PATHS, PATHS
+        FILE_PATHS = shared.paths_list_update(
+            LOGGER, FILE_PATHS, QUARTER, args.quarter
+        )
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
-
-
-def check_for_data_file(file_path):
-    if os.path.exists(file_path):
-        raise shared.QuantifyingException(
-            f"Processed data already exists for {QUARTER}", 0
-        )
 
 
 def process_highest_language_usage(args, count_data):
@@ -87,7 +102,6 @@ def process_highest_language_usage(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_highest_language_usage.csv"
     )
-    check_for_data_file(file_path)
     shared.data_to_csv(args, top_10, file_path, PATHS)
 
 
@@ -111,9 +125,7 @@ def process_least_language_usage(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_least_language_usage.csv"
     )
-    check_for_data_file(file_path)
     shared.data_to_csv(args, bottom_10, file_path, PATHS)
-
 
 def process_language_representation(args, count_data):
     """
@@ -138,7 +150,6 @@ def process_language_representation(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_language_representation.csv"
     )
-    check_for_data_file(file_path)
     shared.data_to_csv(args, language_counts, file_path, PATHS)
 
 
@@ -146,6 +157,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    shared.check_for_data_files(args, FILE_PATHS, QUARTER)
     file_count = shared.path_join(
         PATHS["data_1-fetch"], "wikipedia_count_by_languages.csv"
     )

@@ -23,12 +23,17 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
+FILE_PATHS = [
+    shared.path_join(PATHS["data_phase"], "github_totals_by_license.csv"),
+    shared.path_join(PATHS["data_phase"], "github_totals_by_restriction.csv"),
+]
 
 
 def parse_arguments():
     """
     Parse command-line options, returns parsed argument namespace.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -47,22 +52,25 @@ def parse_arguments():
         help="Enable git actions such as fetch, merge, add, commit, and push"
         " (default: False)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if processed files already exist",
+    )
+
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
-        global PATHS
+        global FILE_PATHS, PATHS
+        FILE_PATHS = shared.paths_list_update(
+            LOGGER, FILE_PATHS, QUARTER, args.quarter
+        )
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
-
-
-def check_for_data_file(file_path):
-    if os.path.exists(file_path):
-        raise shared.QuantifyingException(
-            f"Processed data already exists for {QUARTER}", 0
-        )
 
 
 def process_totals_by_license(args, count_data):
@@ -86,9 +94,7 @@ def process_totals_by_license(args, count_data):
     data.reset_index(drop=True, inplace=True)
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_license.csv"
-    )
-    check_for_data_file(file_path)
-    shared.data_to_csv(args, data, file_path, PATHS)
+    shared.data_to_csv(args, data, file_paths, PATH)
 
 
 def process_totals_by_restriction(args, count_data):
@@ -122,7 +128,6 @@ def process_totals_by_restriction(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_restriction.csv"
     )
-    check_for_data_file(file_path)
     shared.data_to_csv(args, data, file_path, PATHS)
 
 
@@ -130,7 +135,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-
+    shared.check_for_data_files(args, FILE_PATHS, QUARTER)
     file_count = shared.path_join(PATHS["data_1-fetch"], "github_1_count.csv")
     count_data = shared.open_data_file(
         LOGGER, file_count, usecols=["TOOL_IDENTIFIER", "COUNT"]
@@ -156,7 +161,7 @@ if __name__ == "__main__":
             LOGGER.info(e.message)
         else:
             LOGGER.error(e.message)
-        sys.exit(e.code)
+        sys.exit(e.exit_code)
     except SystemExit as e:
         LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)
