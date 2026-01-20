@@ -59,6 +59,11 @@ def parse_arguments():
         help="Enable git actions such as fetch, merge, add, commit, and push"
         " (default: False)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if report files exist",
+    )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
@@ -71,10 +76,20 @@ def parse_arguments():
 
 
 def check_report_completion(args):
-    last_entry = shared.path_join(PATHS["data_phase"], "gcs_free_culture.png")
-    if os.path.exists(last_entry) and not args.force:
-        LOGGER.info(f"{last_entry} already exists. Script completed")
+    """ "
+    The function checks for the last plot and image
+    caption created in this script. This helps to
+    immediately know if all plots in the script have
+    been created and should not be regenerated.
+
+    """
+    if args.force:
         return
+    last_entry = shared.path_join(PATHS["data_phase"], "gcs_free_culture.png")
+    if os.path.exists(last_entry):
+        raise shared.QuantifyingException(
+            f"{last_entry} already exists. Report script completed", 0
+        )
 
 
 def gcs_intro(args):
