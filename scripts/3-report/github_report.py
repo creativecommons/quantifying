@@ -62,6 +62,11 @@ def parse_arguments():
         action="store_true",
         help="Regenerate data even if images files already exist",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if report files exist",
+    )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
@@ -71,6 +76,25 @@ def parse_arguments():
     args.logger = LOGGER
     args.paths = PATHS
     return args
+
+
+def check_report_completion(args):
+    """ "
+    The function checks for the last plot and image
+    caption created in this script. This helps to
+    immediately know if all plots in the script have
+    been created and should not be regenerated.
+
+    """
+    if args.force:
+        return
+    last_entry = shared.path_join(
+        PATHS["data_phase"], "github_restriction.png"
+    )
+    if os.path.exists(last_entry):
+        raise shared.QuantifyingException(
+            f"{last_entry} already exists. Report script completed", 0
+        )
 
 
 def load_data(args):
@@ -243,6 +267,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    check_report_completion(args)
     github_intro(args)
     plot_totals_by_license_type(args)
     plot_totals_by_restriction(args)
