@@ -120,7 +120,7 @@ def process_product_totals(args, count_data):
         data.items(), columns=["CC legal tool product", "Count"]
     )
     file_path = shared.path_join(PATHS["data_phase"], "gcs_product_totals.csv")
-    shared.data_to_csv(args, data, file_path, PATHS)
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_latest_prior_retired_totals(args, count_data):

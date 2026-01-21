@@ -94,7 +94,8 @@ def process_totals_by_license(args, count_data):
     data.reset_index(drop=True, inplace=True)
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_license.csv"
-    shared.data_to_csv(args, data, file_paths, PATH)
+    )
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_totals_by_restriction(args, count_data):
@@ -128,7 +129,7 @@ def process_totals_by_restriction(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_restriction.csv"
     )
-    shared.data_to_csv(args, data, file_path, PATHS)
+    shared.data_to_csv(args, data, file_path)
 
 
 def main():

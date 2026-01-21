@@ -37,14 +37,16 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
-def data_to_csv(args, data, file_path, PATHS):
+def data_to_csv(args, data, file_path):
     if not args.enable_save:
         return
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
+    os.makedirs(args.paths["data_phase"], exist_ok=True)
     # emulate csv.unix_dialect
     data.to_csv(
         file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
     )
+
+
 def check_for_data_files(args, file_paths, QUARTER):
     if args.force:
         return
