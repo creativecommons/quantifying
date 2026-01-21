@@ -60,11 +60,6 @@ def parse_arguments():
     parser.add_argument(
         "--force",
         action="store_true",
-        help="Regenerate data even if images files already exist",
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
         help="Regenerate data even if report files exist",
     )
     args = parser.parse_args()
