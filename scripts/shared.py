@@ -335,12 +335,12 @@ def update_readme(
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
-    section_start_line = f"<!-- section start {section_file} -->\n"
-    section_end_line = f"<!-- section end {section_file} -->\n"
+    section_start_line = f"<!-- SECTION start {section_file} -->\n"
+    section_end_line = f"<!-- SECTION end {section_file} -->\n"
 
     # Define entry markers for each plot (optional) and description
-    entry_start_line = f"<!-- entry start {entry_title} -->\n"
-    entry_end_line = f"<!-- entry end {entry_title} -->\n"
+    entry_start_line = f"<!-- {section_file} entry start {entry_title} -->\n"
+    entry_end_line = f"<!-- {section_file} entry end {entry_title} -->\n"
 
     if os.path.exists(readme_path):
         with open(readme_path, "r", encoding="utf-8") as f:
@@ -365,7 +365,7 @@ def update_readme(
         sections_before = ordered_sections[:current_postion]
         # we find the last existing section that comes before this section
         for prev_section_title in reversed(sections_before):
-            prev_end_line = f"<!-- section end {prev_section_title} -->\n"
+            prev_end_line = f"<!-- SECTION end {prev_section_title} -->\n"
             if prev_end_line in lines:
                 insert_index = lines.index(prev_end_line) + 1
                 break
