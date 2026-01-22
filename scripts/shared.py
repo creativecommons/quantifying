@@ -47,13 +47,21 @@ def data_to_csv(args, data, file_path):
     )
 
 
-def check_for_data_files(args, file_paths, QUARTER):
+def check_completion_file_exists(args, file_paths):
+    """ "
+    This function checks if expected output files
+    exists. If any exist and --force is not provided,
+    the script exits early by raising a QuantifyingException.
+    In the case of a report file, we check if last output exists.
+    """
     if args.force:
         return
+    if isinstance(file_paths, str):
+        file_paths = [file_paths]
     for path in file_paths:
         if os.path.exists(path):
             raise QuantifyingException(
-                f"Processed data already exists for {QUARTER}", 0
+                f"Output files already exists for {args.quarter}", 0
             )
 
 
