@@ -30,6 +30,7 @@ LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
 SECTION_FILE = Path(__file__).name
 SECTION_TITLE = "Google Custom Search (GCS)"
+LAST_ENTRY = shared.path_join(PATHS["data_phase"], "gcs_free_culture.png")
 
 
 def parse_arguments():
@@ -73,23 +74,6 @@ def parse_arguments():
     args.logger = LOGGER
     args.paths = PATHS
     return args
-
-
-def check_report_completion(args):
-    """ "
-    The function checks for the last plot and image
-    caption created in this script. This helps to
-    immediately know if all plots in the script have
-    been created and should not be regenerated.
-
-    """
-    if args.force:
-        return
-    last_entry = shared.path_join(PATHS["data_phase"], "gcs_free_culture.png")
-    if os.path.exists(last_entry):
-        raise shared.QuantifyingException(
-            f"{last_entry} already exists. Report script completed", 0
-        )
 
 
 def gcs_intro(args):
@@ -513,7 +497,7 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    check_report_completion(args)
+    shared.check_completion_file_exists(args, LAST_ENTRY)
     gcs_intro(args)
     plot_products(args)
     plot_tool_status(args)
