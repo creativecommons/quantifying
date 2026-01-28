@@ -34,6 +34,7 @@ def parse_arguments():
     """
     Parses command-line arguments, returns parsed arguments.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line arguments")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -66,7 +67,7 @@ def parse_arguments():
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
-        global PATHS, QUARTER
+        global PATHS
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
         QUARTER = args.quarter
     args.logger = LOGGER
@@ -267,10 +268,10 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    LAST_ENTRY = shared.path_join(
+    last_entry = shared.path_join(
         PATHS["data_phase"], "wikipedia_least_language_usage.png"
     )
-    shared.check_completion_file_exists(args, LAST_ENTRY)
+    shared.check_completion_file_exists(args, last_entry)
     wikipedia_intro(args)
     plot_language_representation(args)
     plot_highest_language_usage(args)
