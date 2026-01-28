@@ -28,9 +28,6 @@ LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
 SECTION_FILE = Path(__file__).name
 SECTION_TITLE = "Wikipedia"
-LAST_ENTRY = shared.path_join(
-    PATHS["data_phase"], "wikipedia_least_language_usage.png"
-)
 
 
 def parse_arguments():
@@ -69,8 +66,9 @@ def parse_arguments():
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
-        global PATHS
+        global PATHS, QUARTER
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
@@ -269,6 +267,9 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    LAST_ENTRY = shared.path_join(
+        PATHS["data_phase"], "wikipedia_least_language_usage.png"
+    )
     shared.check_completion_file_exists(args, LAST_ENTRY)
     wikipedia_intro(args)
     plot_language_representation(args)
