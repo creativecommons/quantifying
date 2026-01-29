@@ -164,7 +164,7 @@ def stacked_barh_plot(
     plt.rcParams.update({"font.family": "monospace", "figure.dpi": 300})
 
     height = max(2.5, 1 + len(data) * 0.5)
-    ax = plt.subplots(figsize=(8, height), layout="constrained")
+    fig, ax = plt.subplots(figsize=(8, height), layout="constrained")
 
     colors = colormaps["tab10"].colors
     left = [0] * len(data)
@@ -201,10 +201,9 @@ def stacked_barh_plot(
 
     plt.suptitle(title)
     plt.annotate(
-        f"Creative Commons (CC)\n"
-        f"bar x scale: {xscale or 'linear'}, data from {args.quarter}"(
-            0.95, 5
-        ),
+        f"Creative Commons (CC)\nbar x scale: {xscale}, data from"
+        f" {args.quarter}",
+        (0.95, 5),
         xycoords=("figure fraction", "figure points"),
         color="gray",
         fontsize="x-small",
