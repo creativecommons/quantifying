@@ -1,4 +1,5 @@
 # Standard library
+import csv
 import logging
 import os
 import sys
@@ -36,13 +37,31 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
-def check_for_data_files(args, file_paths, QUARTER):
+def data_to_csv(args, data, file_path):
+    if not args.enable_save:
+        return
+    os.makedirs(args.paths["data_phase"], exist_ok=True)
+    # emulate csv.unix_dialect
+    data.to_csv(
+        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
+    )
+
+
+def check_completion_file_exists(args, file_paths):
+    """ "
+    This function checks if expected output files
+    exists. If any exist and --force is not provided,
+    the script exits early by raising a QuantifyingException.
+    In the case of a report file, we check if last output exists.
+    """
     if args.force:
         return
+    if isinstance(file_paths, str):
+        file_paths = [file_paths]
     for path in file_paths:
         if os.path.exists(path):
             raise QuantifyingException(
-                f"Processed data already exists for {QUARTER}", 0
+                f"Output files already exists for {args.quarter}", 0
             )
 
 
@@ -326,12 +345,12 @@ def update_readme(
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
-    section_start_line = f"<!-- section start {section_file} -->\n"
-    section_end_line = f"<!-- section end {section_file} -->\n"
+    section_start_line = f"<!-- SECTION start {section_file} -->\n"
+    section_end_line = f"<!-- SECTION end {section_file} -->\n"
 
     # Define entry markers for each plot (optional) and description
-    entry_start_line = f"<!-- entry start {entry_title} -->\n"
-    entry_end_line = f"<!-- entry end {entry_title} -->\n"
+    entry_start_line = f"<!-- {section_file} entry start {entry_title} -->\n"
+    entry_end_line = f"<!-- {section_file} entry end {entry_title} -->\n"
 
     if os.path.exists(readme_path):
         with open(readme_path, "r", encoding="utf-8") as f:
@@ -356,7 +375,7 @@ def update_readme(
         sections_before = ordered_sections[:current_postion]
         # we find the last existing section that comes before this section
         for prev_section_title in reversed(sections_before):
-            prev_end_line = f"<!-- section end {prev_section_title} -->\n"
+            prev_end_line = f"<!-- SECTION end {prev_section_title} -->\n"
             if prev_end_line in lines:
                 insert_index = lines.index(prev_end_line) + 1
                 break
