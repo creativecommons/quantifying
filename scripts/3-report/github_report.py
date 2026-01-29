@@ -27,7 +27,7 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
 SECTION_FILE = Path(__file__).name
-SECTION_TITLE = "Github"
+SECTION_TITLE = "GitHub"
 
 
 def parse_arguments():
@@ -122,7 +122,7 @@ def github_intro(args):
         " many more use a non-CC use a Public domain"
         " equivalent legal tools.\n"
         "\n"
-        " The Github data showcases the different level of"
+        " The GitHub data showcases the different level of"
         " rights reserved on repositories We have Public"
         " domain which includes works released under CC0, 0BSD and Unlicense"
         " meaning developers have waived all their rights to a software."

@@ -101,7 +101,7 @@ def gcs_intro(args):
         " API for search queries of the legal tool URLs (quoted and using"
         " `linkSite` for accuracy), countries codes, and language codes.\n"
         "\n"
-        f"**The results indicate there are a total of {total_count} online"
+        f"**The results indicate there are approximately {total_count} online"
         " works in the commons--documents that are licensed or put in the"
         " public domain using a Creative Commons (CC) legal tool.**\n"
         "\n"
