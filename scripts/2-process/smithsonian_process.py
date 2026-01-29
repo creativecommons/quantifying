@@ -24,8 +24,8 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
 FILE_PATHS = [
-    shared.path_join(PATHS["data_phase"], "github_totals_by_license.csv"),
-    shared.path_join(PATHS["data_phase"], "github_totals_by_restriction.csv"),
+    shared.path_join(PATHS["data_phase"], "smithsonian_totals_by_units.csv"),
+    shared.path_join(PATHS["data_phase"], "smithsonian_totals_by_records.csv"),
 ]
 
 
