@@ -179,7 +179,10 @@ def stacked_barh_plot(
             label=label,
             log=(xscale == "log"),
         )
-        left = [left + v for left, v in zip(left, data[label])]
+        left = [
+            current_left + width
+            for current_left, width in zip(left, data[label])
+        ]
 
     ax.set_xlabel("Number of works")
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(number_formatter))
