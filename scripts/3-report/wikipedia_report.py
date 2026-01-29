@@ -34,6 +34,7 @@ def parse_arguments():
     """
     Parses command-line arguments, returns parsed arguments.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line arguments")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -68,28 +69,10 @@ def parse_arguments():
     if args.quarter != QUARTER:
         global PATHS
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
-
-
-def check_report_completion(args):
-    """ "
-    The function checks for the last plot and image
-    caption created in this script. This helps to
-    immediately know if all plots in the script have
-    been created and should not be regenerated.
-
-    """
-    if args.force:
-        return
-    last_entry = shared.path_join(
-        PATHS["data_phase"], "wikipedia_least_language_usage.png"
-    )
-    if os.path.exists(last_entry):
-        raise shared.QuantifyingException(
-            f"{last_entry} already exists. Report script completed", 0
-        )
 
 
 def wikipedia_intro(args):
@@ -285,7 +268,10 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    check_report_completion(args)
+    last_entry = shared.path_join(
+        PATHS["data_phase"], "wikipedia_least_language_usage.png"
+    )
+    shared.check_completion_file_exists(args, last_entry)
     wikipedia_intro(args)
     plot_language_representation(args)
     plot_highest_language_usage(args)
