@@ -69,7 +69,8 @@ LICENSE_MAPPING = {
     "http://creativecommons.org/licenses/by-nd/4.0/": "CC BY-ND 4.0",
     "http://creativecommons.org/licenses/by-sa/3.0/": "CC BY-SA 3.0",
     "http://creativecommons.org/licenses/by-sa/4.0/": "CC BY-SA 4.0",
-    "http://creativecommons.org/licenses/publicdomain": "CC CERTIFICATION 1.0 US",
+    "http://creativecommons.org/licenses/publicdomain": "CC CERTIFICATION 1.0"
+    " US",
     "http://creativecommons.org/publicdomain/zero/1.0/": "CC0 1.0",
     "http://creativecommons.org/share-your-work/public-domain/cc0/": "CC0",
 }
@@ -598,10 +599,9 @@ def query_arxiv(args):
                 metadata = extract_metadata_from_xml(record_xml)
 
                 # Only process CC-licensed papers
-                if (
-                    metadata["license"] != "Unknown"
-                    and metadata["license"].startswith("CC")
-                ):
+                if metadata["license"] != "Unknown" and metadata[
+                    "license"
+                ].startswith("CC"):
                     license_info = metadata["license"]
                     category = metadata["category"]
                     year = metadata["year"]
@@ -637,7 +637,8 @@ def query_arxiv(args):
                 LOGGER.info("No more records available")
                 break
 
-            # OAI-PMH recommends delays between requests
+            # OAI-PMH requires a 3 second delay between requests
+            # https://info.arxiv.org/help/api/tou.html#rate-limits
             time.sleep(3)
 
         except requests.HTTPError as e:
