@@ -599,9 +599,7 @@ def query_arxiv(args):
                 metadata = extract_metadata_from_xml(record_xml)
 
                 # Only process CC-licensed papers
-                if metadata["license"] != "Unknown" and metadata[
-                    "license"
-                ].startswith("CC"):
+                if metadata["license"].startswith("CC"):
                     license_info = metadata["license"]
                     category = metadata["category"]
                     year = metadata["year"]
