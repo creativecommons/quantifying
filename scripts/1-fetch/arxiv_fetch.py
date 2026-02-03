@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 """
 Fetch ArXiv papers with CC license information using OAI-PMH API.
-
-This script uses ArXiv's OAI-PMH interface to harvest papers with structured
-license metadata, providing more accurate CC license detection than text-based
-pattern matching. Focuses on recent years where CC licensing is more common.
 """
 # Standard library
 import argparse
@@ -16,7 +12,7 @@ import time
 import traceback
 import xml.etree.ElementTree as ET  # XML parsing for OAI-PMH responses
 from collections import Counter, defaultdict
-from datetime import datetime  # Date calculations for harvesting ranges
+from datetime import datetime, timezone
 from operator import itemgetter
 
 # Third-party
@@ -270,9 +266,8 @@ def parse_arguments():
         type=int,
         default=DEFAULT_FETCH_LIMIT,
         help=(
-            f"Total limit of papers to fetch "
-            f"(default: {DEFAULT_FETCH_LIMIT}). "
-            f"Note: Uses OAI-PMH API for structured license data."
+            f"Total limit of papers to fetch (default: {DEFAULT_FETCH_LIMIT})."
+            " Use a value of -1 to remove limit."
         ),
     )
     parser.add_argument(
@@ -280,9 +275,9 @@ def parse_arguments():
         type=int,
         default=DEFAULT_YEARS_BACK,
         help=(
-            f"Number of years back from current year to harvest "
-            f"(default: {DEFAULT_YEARS_BACK}). "
-            f"Reduces dataset size and focuses on recent CC-licensed papers."
+            "Number of years back from current year to harvest (default:"
+            f" {DEFAULT_YEARS_BACK}). Use a value of -1 to specify"
+            " <earliestDatestamp>."
         ),
     )
     parser.add_argument(
@@ -295,9 +290,27 @@ def parse_arguments():
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
     )
+
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
+    # Restrict args.years_back to earliest datetime and initialize
+    # args.from_date
+    #
+    # Earliest is hard coded here. Occasionally, it should be verified against
+    # <earliestDatestamp> in: https://oaipmh.arxiv.org/oai?verb=Identify
+    earliest_date = datetime(2005, 9, 16, tzinfo=timezone.utc)
+    this_year = datetime.now(timezone.utc).year
+    if args.years_back == -1:
+        arg_date = earliest_date
+    else:
+        start_year = this_year - args.years_back
+        arg_date = datetime(start_year, 1, 1, tzinfo=timezone.utc)
+        if arg_date < earliest_date:
+            arg_date = earliest_date
+    args.from_date = arg_date.strftime("%Y-%m-%d")
+    args.years_back = this_year - arg_date.year
+
     return args
 
 
@@ -531,13 +544,8 @@ def query_arxiv(args):
     LOGGER.info("Beginning to fetch results from ArXiv OAI-PMH API")
     session = shared.get_session()
 
-    # Calculate date range for harvesting
-    current_year = datetime.now().year
-    start_year = current_year - args.years_back
-    from_date = f"{start_year}-01-01"
-
     LOGGER.info(
-        f"Harvesting papers from {from_date} onwards "
+        f"Harvesting papers from {args.from_date} onwards "
         f"({args.years_back} years back)"
     )
 
@@ -550,7 +558,10 @@ def query_arxiv(args):
     total_fetched = 0
     resumption_token = None
 
-    while total_fetched < args.limit:
+    # Proceed is set to False when limit reached or end of records (missing
+    # resumption token)
+    proceed = True
+    while proceed:
         try:
             # Build OAI-PMH request URL
             if resumption_token:
@@ -564,7 +575,7 @@ def query_arxiv(args):
                 query_params = {
                     "verb": "ListRecords",
                     "metadataPrefix": "arXiv",
-                    "from": from_date,
+                    "from": args.from_date,
                 }
 
             # Make API request
@@ -591,7 +602,8 @@ def query_arxiv(args):
             batch_cc_count = 0
 
             for record in records:
-                if total_fetched >= args.limit:
+                if args.limit > 0 and args.limit <= total_fetched:
+                    proceed = False
                     break
 
                 # Convert record to string for metadata extraction
@@ -628,12 +640,14 @@ def query_arxiv(args):
             resumption_element = root.find(
                 ".//{http://www.openarchives.org/OAI/2.0/}resumptionToken"
             )
-            if resumption_element is not None and resumption_element.text:
+            if not proceed:
+                break
+            elif resumption_element is not None and resumption_element.text:
                 resumption_token = resumption_element.text
                 LOGGER.info("Continuing with resumption token...")
             else:
                 LOGGER.info("No more records available")
-                break
+                proceed = False
 
             # OAI-PMH requires a 3 second delay between requests
             # https://info.arxiv.org/help/api/tou.html#rate-limits
@@ -657,7 +671,7 @@ def query_arxiv(args):
     # Save provenance
     provenance_data = {
         "total_fetched": total_fetched,
-        "from_date": from_date,
+        "from_date": args.from_date,
         "years_back": args.years_back,
         "limit": args.limit,
         "quarter": QUARTER,
