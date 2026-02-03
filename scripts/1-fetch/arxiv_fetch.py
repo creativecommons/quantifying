@@ -11,7 +11,6 @@ import sys
 import textwrap
 import time
 import traceback
-import xml.etree.ElementTree as ET  # XML parsing for OAI-PMH responses
 from collections import Counter, defaultdict
 from copy import copy
 from datetime import datetime, timezone
@@ -20,6 +19,7 @@ from operator import itemgetter
 # Third-party
 import requests
 import yaml
+from lxml import etree
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -339,11 +339,7 @@ def extract_license_from_xml(record_xml):
     Extract CC license information from OAI-PMH XML record.
     Returns normalized license identifier or specific error indicator.
     """
-    try:
-        root = ET.fromstring(record_xml)
-    except ET.ParseError as e:
-        LOGGER.error(f"Licensing extraction failed: XML Parse Error: {e}")
-        return "XML Parse Error"
+    root = etree.fromstring(record_xml)
 
     # Find license element in arXiv namespace
     license_element = root.find(".//{http://arxiv.org/OAI/arXiv/}license")
@@ -371,11 +367,7 @@ def extract_metadata_from_xml(record_xml):
 
     Returns dict with category, year, author_count, and license info.
     """
-    try:
-        root = ET.fromstring(record_xml)
-    except ET.ParseError as e:
-        LOGGER.error(f"Metadata extraction failed: XML Parse Error: {e}")
-        return {}
+    root = etree.fromstring(record_xml)
 
     # Extract category (primary category from categories field)
     categories_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}categories")
@@ -471,10 +463,7 @@ def query_arxiv(args, session):
         except requests.RequestException as e:
             raise shared.QuantifyingException(f"Request Exception: {e}", 1)
 
-        try:
-            root = ET.fromstring(response.content)
-        except ET.ParseError as e:
-            raise shared.QuantifyingException(f"XML Parse Error: {e}", 1)
+        root = etree.fromstring(response.content)
 
         # Check for errors
         error_element = root.find(
@@ -497,7 +486,7 @@ def query_arxiv(args, session):
             total_fetched += 1
 
             # Convert record to string for metadata extraction
-            record_xml = ET.tostring(record, encoding="unicode")
+            record_xml = etree.tostring(record, encoding="unicode")
             metadata = extract_metadata_from_xml(record_xml)
 
             # Only process CC-licensed articles
