@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-Fetch ArXiv papers with CC license information using OAI-PMH API.
+Fetch ArXiv articles with CC license information using OAI-PMH API.
+OAI-PMH: Open Archives Initiative Protocol for Metadata Havesting.
 """
 # Standard library
 import argparse
@@ -12,6 +13,7 @@ import time
 import traceback
 import xml.etree.ElementTree as ET  # XML parsing for OAI-PMH responses
 from collections import Counter, defaultdict
+from copy import copy
 from datetime import datetime, timezone
 from operator import itemgetter
 
@@ -32,45 +34,8 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
-# API Configuration - Updated to use OAI-PMH for structured license data
 BASE_URL = "https://oaipmh.arxiv.org/oai"
-# Implementation choice: Set to 1000 CC-licensed papers for balanced collection
-# This is NOT an ArXiv API requirement - ArXiv only requires "responsible" use
-# The 3-second delays between requests ensure compliance with OAI-PMH practices
-DEFAULT_FETCH_LIMIT = 1000  # Default total CC-licensed papers to fetch
-DEFAULT_YEARS_BACK = 5  # Default years to look back from current year
-
-# CSV Headers
-HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
-HEADER_CATEGORY_REPORT = [
-    "TOOL_IDENTIFIER",
-    "CATEGORY_CODE",
-    "CATEGORY_LABEL",
-    "COUNT",
-]
-HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
-HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
-
-# License mapping for structured data from OAI-PMH
-LICENSE_MAPPING = {
-    "http://creativecommons.org/licenses/by/3.0/": "CC BY 3.0",
-    "http://creativecommons.org/licenses/by/4.0/": "CC BY 4.0",
-    "http://creativecommons.org/licenses/by-nc/3.0/": "CC BY-NC 3.0",
-    "http://creativecommons.org/licenses/by-nc/4.0/": "CC BY-NC 4.0",
-    "http://creativecommons.org/licenses/by-nc-nd/3.0/": "CC BY-NC-ND 3.0",
-    "http://creativecommons.org/licenses/by-nc-nd/4.0/": "CC BY-NC-ND 4.0",
-    "http://creativecommons.org/licenses/by-nc-sa/3.0/": "CC BY-NC-SA 3.0",
-    "http://creativecommons.org/licenses/by-nc-sa/4.0/": "CC BY-NC-SA 4.0",
-    "http://creativecommons.org/licenses/by-nd/3.0/": "CC BY-ND 3.0",
-    "http://creativecommons.org/licenses/by-nd/4.0/": "CC BY-ND 4.0",
-    "http://creativecommons.org/licenses/by-sa/3.0/": "CC BY-SA 3.0",
-    "http://creativecommons.org/licenses/by-sa/4.0/": "CC BY-SA 4.0",
-    "http://creativecommons.org/licenses/publicdomain": "CC CERTIFICATION 1.0"
-    " US",
-    "http://creativecommons.org/publicdomain/zero/1.0/": "CC0 1.0",
-    "http://creativecommons.org/share-your-work/public-domain/cc0/": "CC0",
-}
-
+# Defaults should result in quick operation (not complete operation)
 # ArXiv Categories - manually curated from ArXiv official taxonomy
 # Source: https://arxiv.org/category_taxonomy
 CATEGORIES = {
@@ -230,8 +195,9 @@ CATEGORIES = {
     "nucl-th": "Nuclear Theory",
     "quant-ph": "Quantum Physics",
 }
-
-# File Paths
+DEFAULT_FETCH_LIMIT = 1000
+DEFAULT_YEARS_BACK = 5
+# CSV file paths
 FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
 )
@@ -242,12 +208,19 @@ FILE_ARXIV_COUNT = shared.path_join(PATHS["data_1-fetch"], "arxiv_1_count.csv")
 FILE_ARXIV_YEAR = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_3_count_by_year.csv"
 )
-# records metadata for each run for audit, reproducibility, and provenance
 FILE_PROVENANCE = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_provenance.yaml"
 )
-
-# Runtime variables
+# CSV headers
+HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
+HEADER_CATEGORY_REPORT = [
+    "TOOL_IDENTIFIER",
+    "CATEGORY_CODE",
+    "CATEGORY_LABEL",
+    "COUNT",
+]
+HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
+HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
 
@@ -255,31 +228,12 @@ QUARTER = os.path.basename(PATHS["data_quarter"])
 def parse_arguments():
     """Parse command-line options, returns parsed argument namespace.
 
-    Note: The --limit parameter sets the total number of papers to fetch.
+    Note: The --limit parameter sets the total number of articles to fetch.
     The --years-back parameter limits harvesting to recent years where
     CC licensing is more common.
     """
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=DEFAULT_FETCH_LIMIT,
-        help=(
-            f"Total limit of papers to fetch (default: {DEFAULT_FETCH_LIMIT})."
-            " Use a value of -1 to remove limit."
-        ),
-    )
-    parser.add_argument(
-        "--years-back",
-        type=int,
-        default=DEFAULT_YEARS_BACK,
-        help=(
-            "Number of years back from current year to harvest (default:"
-            f" {DEFAULT_YEARS_BACK}). Use a value of -1 to specify"
-            " <earliestDatestamp>."
-        ),
-    )
     parser.add_argument(
         "--enable-save",
         action="store_true",
@@ -289,6 +243,25 @@ def parse_arguments():
         "--enable-git",
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=DEFAULT_FETCH_LIMIT,
+        help=(
+            "Limit number of fetched articles (default:"
+            f" {DEFAULT_FETCH_LIMIT}). Use a value of -1 to remove limit."
+        ),
+    )
+    parser.add_argument(
+        "--years-back",
+        type=int,
+        default=DEFAULT_YEARS_BACK,
+        help=(
+            "Number of years back from current year to fetch (default:"
+            f" {DEFAULT_YEARS_BACK}). Use a value of -1 to specify"
+            " <earliestDatestamp>."
+        ),
     )
 
     args = parser.parse_args()
@@ -339,6 +312,28 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET)
 
 
+def get_license_mapping():
+    global LICENSE_MAPPING
+    LOGGER.info("Loading CC Legal Tool metadata for license mapping")
+    file_path = shared.path_join(PATHS["data"], "cc-legal-tools.csv")
+    license_mapping = {}
+    with open(file_path, "r", encoding="utf-8") as file_obj:
+        rows = csv.DictReader(file_obj, dialect="unix")
+        for row in rows:
+            simple_url = row["CANONICAL_URL"].replace("https://", "")
+            simple_url = simple_url.rstrip("/")
+            identifier = row["IDENTIFIER"]
+            license_mapping[simple_url] = identifier
+
+    # Add legacy entry
+    simple_url = "creativecommons.org/licenses/publicdomain"
+    license_mapping[simple_url] = "CERTIFICATION 1.0 US"
+
+    LICENSE_MAPPING = dict(
+        sorted(license_mapping.items(), key=lambda item: item[1])
+    )
+
+
 def extract_license_from_xml(record_xml):
     """
     Extract CC license information from OAI-PMH XML record.
@@ -355,9 +350,12 @@ def extract_license_from_xml(record_xml):
 
     if license_element is not None and license_element.text:
         license_url = license_element.text.strip()
+        simple_url = copy(license_url).replace("http://", "")
+        simple_url = simple_url.replace("https://", "")
+        simple_url = simple_url.rstrip("/")
         # Check exact mapping first
-        if license_url in LICENSE_MAPPING:
-            return LICENSE_MAPPING[license_url]
+        if simple_url in LICENSE_MAPPING:
+            return LICENSE_MAPPING[simple_url]
         # Validate CC URLs more strictly
         elif "creativecommons.org" in license_url.lower():
             return f"CC (ambiguous): {license_url}"
@@ -424,17 +422,11 @@ def bucket_author_count(author_count):
 
 def query_arxiv(args, session):
     """
-    Main function to query ArXiv OAI-PMH API and collect CC license data.
-
-    Uses structured license metadata from OAI-PMH instead of text search.
-    Harvests papers from recent years to focus on CC-licensed content.
+    Query ArXiv OAI-PMH API and return information about CC licensed articles.
     """
-
-    LOGGER.info("Beginning to fetch results from ArXiv OAI-PMH API")
-
     LOGGER.info(
-        f"Harvesting papers from {args.from_date} onwards "
-        f"({args.years_back} years back)"
+        f"Querying articles from {args.from_date} onwards ({args.years_back}"
+        " years back)"
     )
 
     # Data structures for counting
@@ -444,6 +436,7 @@ def query_arxiv(args, session):
     author_counts = defaultdict(lambda: defaultdict(int))
 
     total_fetched = 0
+    cc_articles_found = 0
     resumption_token = None
 
     # Proceed is set to False when limit reached or end of records (missing
@@ -501,12 +494,13 @@ def query_arxiv(args, session):
             if args.limit > 0 and args.limit <= total_fetched:
                 proceed = False
                 break
+            total_fetched += 1
 
             # Convert record to string for metadata extraction
             record_xml = ET.tostring(record, encoding="unicode")
             metadata = extract_metadata_from_xml(record_xml)
 
-            # Only process CC-licensed papers
+            # Only process CC-licensed articles
             if metadata["license"].startswith("CC"):
                 license_info = metadata["license"]
                 category = metadata["category"]
@@ -525,11 +519,12 @@ def query_arxiv(args, session):
                 # Count by author count and license
                 author_counts[license_info][author_count] += 1
 
-                total_fetched += 1
                 batch_cc_count += 1
+                cc_articles_found += 1
 
         LOGGER.info(
-            f"  Batch completed: {batch_cc_count} CC-licensed papers found"
+            f"  Batch CC licensed articles: {batch_cc_count}, Total"
+            f" CC-licensed articles: {cc_articles_found}"
         )
 
         # Check for resumption token
@@ -548,16 +543,13 @@ def query_arxiv(args, session):
         # https://info.arxiv.org/help/api/tou.html#rate-limits
         time.sleep(3)
 
-    LOGGER.info(f"Total papers with CC licenses fetched: {total_fetched}")
-
     data = {
         "author_counts": author_counts,
         "category_counts": category_counts,
         "license_counts": license_counts,
         "year_counts": year_counts,
     }
-
-    return data, total_fetched
+    return data, cc_articles_found
 
 
 def rows_to_csv(args, fieldnames, rows, file_path):
@@ -634,7 +626,7 @@ def write_data(args, data):
     rows_to_csv(args, HEADER_YEAR, rows, FILE_ARXIV_YEAR)
 
 
-def write_provence(args, total_fetched):
+def write_provence(args, cc_articles_found):
     """
     Write provenance information to YAML file.
     """
@@ -643,7 +635,7 @@ def write_provence(args, total_fetched):
 
     # Save provenance
     provenance_data = {
-        "total_fetched": total_fetched,
+        "cc_articles_found": cc_articles_found,
         "from_date": args.from_date,
         "years_back": args.years_back,
         "limit": args.limit,
@@ -667,15 +659,15 @@ def write_provence(args, total_fetched):
 
 def main():
     """Main function."""
-    LOGGER.info("Script execution started.")
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     initialize_all_data_files(args)
+    get_license_mapping()
     session = shared.get_session()
-    data, total_fetched = query_arxiv(args, session)
+    data, cc_articles_found = query_arxiv(args, session)
     write_data(args, data)
-    write_provence(args, total_fetched)
+    write_provence(args, cc_articles_found)
     args = shared.git_add_and_commit(
         args,
         PATHS["repo"],
