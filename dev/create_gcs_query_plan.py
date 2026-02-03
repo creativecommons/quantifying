@@ -5,6 +5,7 @@ import os
 import sys
 import textwrap
 import traceback
+from copy import deepcopy
 from types import SimpleNamespace
 
 # Third-party
@@ -26,48 +27,12 @@ LOGGER, PATHS = shared.setup(__file__)
 LOGGER.info("Script execution started")
 
 
-def assign_tool_parts(url):
-    tool = SimpleNamespace()
-    tool.url = url
-    dirs = url.strip().split("/")[3:]
-    tool.category = dirs[0]
-    tool.unit = dirs[1]
-    if len(dirs) > 2:
-        tool.version = dirs[2]
-        tool.ver_sort = 999 - int(float(dirs[2]) * 10)
-    else:
-        tool.version = None
-        tool.ver_sort = 999
-    if len(dirs) == 4:
-        tool.jurisdiction = dirs[3]
-        tool.jur_sort = dirs[3]
-    else:
-        tool.jurisdiction = None
+def sort_tools(tool):
+    tool.ver_sort = 999 - int(float(tool.version) * 10)
+    if tool.jurisdiction == "":
         tool.jur_sort = "A"
-
-    # Identifier code is based on CC Legal Tools application:
-    # https://github.com/creativecommons/cc-legal-tools-app/blob/c3ac573871c7e20517539851de16998307f20d78/legal_tools/models.py#L677-L694
-    if tool.version is not None:
-        tool.identifier = f"{tool.unit} {tool.version}"
     else:
-        tool.identifier = f"{tool.unit}"
-
-    if tool.unit == "mark":
-        tool.identifier = f"PDM {tool.version}"
-    elif tool.unit == "zero":
-        tool.identifier = f"CC0 {tool.version}"
-    elif tool.category == "licenses":
-        tool.identifier = f"CC {tool.identifier}"
-
-    if tool.jurisdiction:
-        tool.identifier = f"{tool.identifier} {tool.jurisdiction}"
-    tool.identifier = tool.identifier.upper()
-
-    return tool
-
-
-def sort_tools(url):
-    tool = assign_tool_parts(url)
+        tool.jur_sort = tool.jurisdiction
     # Priority 1: 4.0 licenses
     if tool.category == "licenses" and tool.version == "4.0":
         priority = 1
@@ -78,32 +43,32 @@ def sort_tools(url):
     elif (
         tool.category == "licenses"
         and tool.unit.startswith("by")
-        and tool.version is not None
-        and tool.jurisdiction is None
+        and tool.version != ""
+        and tool.jurisdiction == ""
     ):
         priority = 3
     # Priority 4: ported 1.0-3.0 by* licenses
     elif (
         tool.category == "licenses"
         and tool.unit.startswith("by")
-        and tool.version is not None
-        and tool.jurisdiction is not None
+        and tool.version != ""
+        and tool.jurisdiction != ""
     ):
         priority = 4
     # Priority 5: unported 1.0-3.0 non-by* licenses
     elif (
         tool.category == "licenses"
         and not tool.unit.startswith("by")
-        and tool.version is not None
-        and tool.jurisdiction is None
+        and tool.version != ""
+        and tool.jurisdiction == ""
     ):
         priority = 5
     # Priority 6: ported 1.0-3.0 non-by* licenses
     elif (
         tool.category == "licenses"
         and not tool.unit.startswith("by")
-        and tool.version is not None
-        and tool.jurisdiction is not None
+        and tool.version != ""
+        and tool.jurisdiction != ""
     ):
         priority = 6
     # Priority 7: miscellaneous
@@ -112,17 +77,29 @@ def sort_tools(url):
     return f"{priority}-{tool.ver_sort}-{tool.jur_sort}-{tool.unit}"
 
 
-def get_tool_urls():
-    LOGGER.info("Loading CC Legal Tool paths and adding prefix")
-    file_path = shared.path_join(PATHS["data"], "legal-tool-paths.txt")
-    prefix = "//creativecommons.org/"
-    tool_urls = []
+def get_tools_metadata_namespace():
+    LOGGER.info("Loading CC Legal Tool metadata")
+    file_path = shared.path_join(PATHS["data"], "cc-legal-tools.csv")
+    tools_metadata = []
     with open(file_path, "r", encoding="utf-8") as file_obj:
-        for line in file_obj:
-            tool_urls.append(f"{prefix}{line.strip()}")
-    LOGGER.info("Prioritizing CC Legal Tool URLs")
-    tool_urls.sort(key=sort_tools)
-    return tool_urls
+        rows = csv.DictReader(file_obj, dialect="unix")
+        for row in rows:
+            tool = SimpleNamespace()
+            for key, value in row.items():
+                setattr(tool, key.lower(), value)
+            tool.canonical_url = tool.canonical_url.replace("https:", "")
+            tool.canonical_url = tool.canonical_url.rstrip("/")
+            tools_metadata.append(tool)
+            # Add tool with legacy URL for CERTIFICATION 1.0 US
+            if tool.identifier == "CERTIFICATION 1.0 US":
+                legacy_tool = deepcopy(tool)
+                legacy_tool.canonical_url = (
+                    "//creativecommons.org/licenses/publicdomain"
+                )
+                tools_metadata.append(legacy_tool)
+    LOGGER.info("Prioritizing CC Legal Tool metadata entries")
+    tools_metadata.sort(key=sort_tools)
+    return tools_metadata
 
 
 def load_countries():
@@ -139,61 +116,59 @@ def load_languages():
     return languages
 
 
-def create_query_plan(tool_urls, countries, languages):
-    tool_data = {}
-    for url in tool_urls:
-        tool = assign_tool_parts(url)
-        tool_data[tool.identifier] = tool
-
+def create_query_plan(tools_metadata, countries, languages):
     plan = []
-
     # ideal: all tools, all countries, all languages: 5,522,440
 
     # cr: Google Country Collection value
     # lr: Google Language Collection value
 
-    # Group 1: All tools without cr or lr
-    #           subtotal:    652
-    for identifier, tool in tool_data.items():
-        plan.append({"TOOL_URL": tool.url, "TOOL_IDENTIFIER": identifier})
+    # Group 1: All tools (without country or language) is 640
+    for tool in tools_metadata:
+        plan.append(
+            {
+                "TOOL_URL": tool.canonical_url,
+                "TOOL_IDENTIFIER": tool.identifier,
+            }
+        )
 
-    # Group 2: 4.0 licenses (6) by language (35)
-    #          CC0 (1) by language (35)
-    #          PDM (1) by language (35)
-    #          subtotal:    280
-    for identifier, tool in tool_data.items():
+    # Group 2: 4.0 licenses (6) by language (35) is 210
+    #          CC0 (1) by language (35) .........is  35
+    #          PDM (1) by language (35) .........is  35
+    #          ......................... ..subtotal 280
+    for tool in tools_metadata:
         if (
             tool.category == "licenses" and tool.version == "4.0"
         ) or tool.unit in ("mark", "zero"):
             for pair in languages:
                 plan.append(
                     {
-                        "TOOL_URL": tool.url,
-                        "TOOL_IDENTIFIER": identifier,
+                        "TOOL_URL": tool.canonical_url,
+                        "TOOL_IDENTIFIER": tool.identifier,
                         "LANGUAGE": pair["language"],
                         "LR": pair["lr"],
                     }
                 )
 
-    # Group 3: 4.0 licenses (6) by country (242)
-    #          CC0 (1) by country (242)
-    #          PDM (1) by country (242)
-    #          subtotal: 1,936
-    for identifier, tool in tool_data.items():
+    # Group 3: 4.0 licenses (6) by country (242) is 1,452
+    #          CC0 (1) by country (242)..........is   242
+    #          PDM (1) by country (242)..........is   242
+    #          ............................subtotal 1,936
+    for tool in tools_metadata:
         if (
             tool.category == "licenses" and tool.version == "4.0"
         ) or tool.unit in ("mark", "zero"):
             for pair in countries:
                 plan.append(
                     {
-                        "TOOL_URL": tool.url,
-                        "TOOL_IDENTIFIER": identifier,
+                        "TOOL_URL": tool.canonical_url,
+                        "TOOL_IDENTIFIER": tool.identifier,
                         "COUNTRY": pair["country"],
                         "CR": pair["cr"],
                     }
                 )
 
-    # plan total: 2,868
+    # plan total: 2,856
     LOGGER.info(f"Plan entries: {len(plan)}")
     return plan
 
@@ -219,10 +194,10 @@ def save_plan(plan):
 
 
 def main():
-    tool_urls = get_tool_urls()
+    tools_metadata = get_tools_metadata_namespace()
     countries = load_countries()
     languages = load_languages()
-    plan = create_query_plan(tool_urls, countries, languages)
+    plan = create_query_plan(tools_metadata, countries, languages)
     save_plan(plan)
 
 

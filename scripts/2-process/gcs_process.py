@@ -4,7 +4,6 @@ Process Google Custom Search (GCS) data.
 """
 # Standard library
 import argparse
-import csv
 import os
 import sys
 import textwrap
@@ -27,12 +26,24 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
+FILE_PATHS = [
+    shared.path_join(PATHS["data_phase"], "gcs_product_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_status_combined_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_status_lastest_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_status_prior_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_status_retired_totals.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_totals_by_country.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_totals_by_free_cultural.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_totals_by_language.csv"),
+    shared.path_join(PATHS["data_phase"], "gcs_totals_by_restrictions.csv"),
+]
 
 
 def parse_arguments():
     """
     Parse command-line options, returns parsed argument namespace.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -48,28 +59,26 @@ def parse_arguments():
     parser.add_argument(
         "--enable-git",
         action="store_true",
-        help="Enable git actions such as fetch, merge, add, commit, and push"
-        " (default: False)",
+        help="Enable git actions such as fetch, merge, add, commit, and push",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if processed files already exist",
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
-        global PATHS
+        global FILE_PATHS, PATHS
+        FILE_PATHS = shared.paths_list_update(
+            LOGGER, FILE_PATHS, QUARTER, args.quarter
+        )
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
-
-
-def data_to_csv(args, data, file_path):
-    if not args.enable_save:
-        return
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-    # emulate csv.unix_dialect
-    data.to_csv(
-        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
-    )
 
 
 def process_product_totals(args, count_data):
@@ -111,7 +120,7 @@ def process_product_totals(args, count_data):
         data.items(), columns=["CC legal tool product", "Count"]
     )
     file_path = shared.path_join(PATHS["data_phase"], "gcs_product_totals.csv")
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_latest_prior_retired_totals(args, count_data):
@@ -192,7 +201,7 @@ def process_latest_prior_retired_totals(args, count_data):
         file_path = shared.path_join(
             PATHS["data_phase"], f"gcs_status_{key}_totals.csv"
         )
-        data_to_csv(args, dataframe, file_path)
+        shared.data_to_csv(args, dataframe, file_path)
 
 
 def process_totals_by_free_cultural(args, count_data):
@@ -225,7 +234,7 @@ def process_totals_by_free_cultural(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_free_cultural.csv"
     )
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_totals_by_restrictions(args, count_data):
@@ -259,7 +268,7 @@ def process_totals_by_restrictions(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_restrictions.csv"
     )
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_totals_by_language(args, data):
@@ -280,7 +289,7 @@ def process_totals_by_language(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_language.csv"
     )
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_totals_by_country(args, data):
@@ -301,17 +310,20 @@ def process_totals_by_country(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_country.csv"
     )
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    shared.check_completion_file_exists(args, FILE_PATHS)
 
     # Count data
     file1_count = shared.path_join(PATHS["data_1-fetch"], "gcs_1_count.csv")
-    count_data = pd.read_csv(file1_count, usecols=["TOOL_IDENTIFIER", "COUNT"])
+    count_data = shared.open_data_file(
+        LOGGER, file1_count, usecols=["TOOL_IDENTIFIER", "COUNT"]
+    )
     process_product_totals(args, count_data)
     process_latest_prior_retired_totals(args, count_data)
     process_totals_by_free_cultural(args, count_data)
@@ -321,8 +333,10 @@ def main():
     file2_language = shared.path_join(
         PATHS["data_1-fetch"], "gcs_2_count_by_language.csv"
     )
-    language_data = pd.read_csv(
-        file2_language, usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"]
+    language_data = shared.open_data_file(
+        LOGGER,
+        file2_language,
+        usecols=["TOOL_IDENTIFIER", "LANGUAGE", "COUNT"],
     )
     process_totals_by_language(args, language_data)
 
@@ -330,8 +344,8 @@ def main():
     file3_country = shared.path_join(
         PATHS["data_1-fetch"], "gcs_3_count_by_country.csv"
     )
-    country_data = pd.read_csv(
-        file3_country, usecols=["TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
+    country_data = shared.open_data_file(
+        LOGGER, file3_country, usecols=["TOOL_IDENTIFIER", "COUNTRY", "COUNT"]
     )
     process_totals_by_country(args, country_data)
 

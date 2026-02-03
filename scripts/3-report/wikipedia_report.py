@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 This file is dedicated to visualizing and analyzing the data collected
-from GitHub.
+from Wikipedia.
 """
 # Standard library
 import argparse
@@ -27,7 +27,7 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
 SECTION_FILE = Path(__file__).name
-SECTION_TITLE = "GitHub"
+SECTION_TITLE = "Wikipedia"
 
 
 def parse_arguments():
@@ -75,37 +75,35 @@ def parse_arguments():
     return args
 
 
-def load_data(args):
+def wikipedia_intro(args):
     """
-    Load the collected data from the CSV file.
+    Write Wikipedia introduction.
     """
-    selected_quarter = args.quarter
-
-    file_path = os.path.join(
-        PATHS["data"], f"{selected_quarter}", "1-fetch", "github_1_count.csv"
-    )
-
-    data = shared.open_data_file(LOGGER, file_path)
-
-    LOGGER.info(f"Data loaded from {file_path}")
-    return data
-
-
-def github_intro(args):
-    """
-    Write GitHub introduction.
-    """
-    LOGGER.info(github_intro.__doc__.strip())
+    LOGGER.info(wikipedia_intro.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_1-fetch"],
-        "github_1_count.csv",
+        "wikipedia_count_by_languages.csv",
     )
-    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
-    name_label = "TOOL_IDENTIFIER"
+    LOGGER.info(f"data file:" f"{file_path.replace(PATHS['repo'], '.')}")
+    file_path_top10 = shared.path_join(
+        PATHS["data_2-process"],
+        "wikipedia_highest_language_usage.csv",
+    )
+    LOGGER.info(
+        f"Data file (Most represented langauge):"
+        f"{file_path_top10.replace(PATHS['repo'], '.')}"
+    )
+    name_label = "LANGUAGE_NAME_EN"
+    name_label_top10 = "Language"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
-    total_repositories = data.loc["Total public repositories", "COUNT"]
-    cc_total = data[data.index.str.startswith("CC")]["COUNT"].sum()
-    cc_percentage = f"{(cc_total / total_repositories) * 100:.2f}%"
+    total_articles = data["COUNT"].sum()
+    top10 = shared.open_data_file(
+        LOGGER, file_path_top10, index_col=name_label_top10
+    )
+    top10_articles = top10["Count"].sum()
+    top10_percentage = (top10_articles / total_articles) * 100
+    average_articles = total_articles / len(data)
+    language_count = len(data)
     shared.update_readme(
         args,
         SECTION_FILE,
@@ -113,104 +111,40 @@ def github_intro(args):
         "Overview",
         None,
         None,
-        "The GitHub data, below, uses the `total_count`"
-        " returned by API for search queries of the various legal tools."
+        "This report provides insights into the usage of the Creative Commons"
+        " Attribution 4.0 International across the different language editions"
+        " of Wikipedia. The Wikipedia data, below, uses the `Count` field from"
+        " the Wikipedia API to quantify the number of articles in"
+        " each language edition of Wikipedia."
         "\n"
-        f"**The results indicate that {cc_total} ({cc_percentage})"
-        f"** of the {total_repositories} total public repositories"
-        " on GitHub that use a CC legal tool. Additionally,"
-        " many more use a non-CC use a Public domain"
-        " equivalent legal tools.\n"
+        f"**The total number of Wikipedia articles across"
+        f" {language_count} languages is"
+        f" {total_articles:,}. The top 10 languages account for"
+        f" {top10_articles:,} articles, which is"
+        f" {top10_percentage:,.2f}% of the total articles."
+        " The average number of articles per language is"
+        f" {average_articles:,.2f}.**"
         "\n"
-        " The GitHub data showcases the different level of"
-        " rights reserved on repositories We have Public"
-        " domain which includes works released under CC0, 0BSD and Unlicense"
-        " meaning developers have waived all their rights to a software."
-        " Allowing anyone to freely use, modify, and distribute the code"
-        " without restriction."
-        " See more at"
-        " [Public-domain-equivalent license]"
-        "(https://en.wikipedia.org/wiki/Public-domain-equivalent_license).\n"
-        " While a Permissive category of license contains works"
-        " under MIT-0 and CC BY 4.0 allows users to"
-        " reuse the code with some conditions and attribution"
-        " [Permissive license]"
-        "(https://en.wikipedia.org/wiki/Permissive_software_license)"
-        " and Copyleft contains works under CC BY-SA 4.0."
-        " which requires any derivative works to be licensed"
-        " under the same terms."
-        " [Copyleft](https://en.wikipedia.org/wiki/Copyleft).\n"
-        "\n"
-        "Thank you GitHub for providing public API"
-        " access to repository metadata!",
+        "Thank you to the volunteers who curate this data and the Wikimedia"
+        " Foundation for making it publicly available!",
     )
 
 
-def plot_totals_by_license_type(args):
+def plot_language_representation(args):
     """
-    Create plots showing totals by license type
+    Create plots showing language representation
     """
-    LOGGER.info(plot_totals_by_license_type.__doc__.strip())
+    LOGGER.info(plot_language_representation.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"],
-        "github_totals_by_license.csv",
-    )
-    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
-    name_label = "License"
-    data_label = "Count"
-    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
-    data.sort_values(data_label, ascending=True, inplace=True)
-    title = "Totals by license type"
-    plt = plot.combined_plot(
-        args=args,
-        data=data,
-        title=title,
-        name_label=name_label,
-        data_label=data_label,
-    )
-
-    image_path = shared.path_join(
-        PATHS["data_phase"], "github_totals_by_license_type.png"
-    )
-    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
-
-    if args.enable_save:
-        # Create the directory if it does not exist
-        os.makedirs(PATHS["data_phase"], exist_ok=True)
-        plt.savefig(image_path)
-
-    shared.update_readme(
-        args,
-        SECTION_FILE,
-        SECTION_TITLE,
-        title,
-        image_path,
-        "Plots showing totals by license type."
-        " This shows the distribution of different CC license"
-        " and non CC license used in GitHub repositories."
-        " Allowing Commons to evaluate how freely softwares on"
-        " GitHub are being used, modified, and shared"
-        " and how developers choose to share their works."
-        " See more at [SPDX License List]"
-        "(https://spdx.org/licenses/)",
-    )
-
-
-def plot_totals_by_restriction(args):
-    """
-    Create plots showing totals by restriction
-    """
-    LOGGER.info(plot_totals_by_restriction.__doc__.strip())
-    file_path = shared.path_join(
-        PATHS["data_2-process"],
-        "github_totals_by_restriction.csv",
+        "wikipedia_language_representation.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Category"
     data_label = "Count"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
-    data.sort_values(name_label, ascending=False, inplace=True)
-    title = "Totals by restriction"
+    data.sort_values(data_label, ascending=True, inplace=True)
+    title = "Language Representation"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -220,9 +154,10 @@ def plot_totals_by_restriction(args):
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "github_restriction.png"
+        PATHS["data_phase"], "wikipedia_language_representation.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
     if args.enable_save:
         # Create the directory if it does not exist
         os.makedirs(PATHS["data_phase"], exist_ok=True)
@@ -234,10 +169,98 @@ def plot_totals_by_restriction(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing totals by different levels of restrictions."
-        " This shows the distribution of Public domain,"
-        " Permissive, and Copyleft"
-        " licenses used in GitHub repositories.",
+        "Plots showing the language representation across different language"
+        " editions of Wikipedia. This shows how many languages are"
+        " underrepresented (below average number of articles) versus"
+        " represented (above average number of articles).",
+    )
+
+
+def plot_highest_language_usage(args):
+    """
+    Create plots showing totals by license type
+    """
+    LOGGER.info(plot_highest_language_usage.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"],
+        "wikipedia_highest_language_usage.csv",
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    name_label = "Language"
+    data_label = "Count"
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+    data.sort_values(data_label, ascending=True, inplace=True)
+    title = "Most represented languages"
+    plt = plot.combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        name_label=name_label,
+        data_label=data_label,
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "wikipedia_highest_language_usage.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path)
+
+    shared.update_readme(
+        args,
+        SECTION_FILE,
+        SECTION_TITLE,
+        title,
+        image_path,
+        "Plots showing the most represented languages across the different"
+        "language editions of Wikipedia.",
+    )
+
+
+def plot_least_language_usage(args):
+    """
+    Create plots showing totals by license type
+    """
+    LOGGER.info(plot_least_language_usage.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"],
+        "wikipedia_least_language_usage.csv",
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    name_label = "Language"
+    data_label = "Count"
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+    data.sort_values(data_label, ascending=True, inplace=True)
+    title = "Least represented languages"
+    plt = plot.combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        name_label=name_label,
+        data_label=data_label,
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "wikipedia_least_language_usage.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path)
+
+    shared.update_readme(
+        args,
+        SECTION_FILE,
+        SECTION_TITLE,
+        title,
+        image_path,
+        "Plots showing the least represented languages across the different"
+        " language editions of Wikipedia.",
     )
 
 
@@ -246,19 +269,20 @@ def main():
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     last_entry = shared.path_join(
-        PATHS["data_phase"], "github_restriction.png"
+        PATHS["data_phase"], "wikipedia_least_language_usage.png"
     )
     shared.check_completion_file_exists(args, last_entry)
-    github_intro(args)
-    plot_totals_by_license_type(args)
-    plot_totals_by_restriction(args)
+    wikipedia_intro(args)
+    plot_language_representation(args)
+    plot_highest_language_usage(args)
+    plot_least_language_usage(args)
 
     # Add and commit changes
     args = shared.git_add_and_commit(
         args,
         PATHS["repo"],
         PATHS["data_quarter"],
-        f"Add and commit GitHub reports for {QUARTER}",
+        f"Add and commit Wikipedia report for {QUARTER}",
     )
     shared.git_push_changes(args, PATHS["repo"])
 
