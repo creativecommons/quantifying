@@ -363,8 +363,25 @@ def extract_record_metadata(record):
     """
     Extract paper metadata from OAI-PMH XML record.
 
-    Returns dict with category, year, author_count, and license info.
+    Returns dict with author_count, category, year, and license info.
     """
+
+    # Extract license first to avoid unnecessary work
+    license_info = extract_record_license(record)
+    if not license_info.startswith("CC"):
+        return {}
+
+    # Extract added on
+    added_on_elem = record.find(
+        ".//{http://www.openarchives.org/OAI/2.0/}datestamp"
+    )
+    if added_on_elem is not None and added_on_elem.text:
+        added_on = added_on_elem.text.strip()
+
+    # Extract author count
+    authors = record.findall(".//{http://arxiv.org/OAI/arXiv/}author")
+    author_count = len(authors) if authors else 0
+
     # Extract category (primary category from categories field)
     categories_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}categories")
     if categories_elem is not None and categories_elem.text:
@@ -373,7 +390,7 @@ def extract_record_metadata(record):
     else:
         category = "Unknown"
 
-    # Extract year from 1) updated date, 2) created date
+    # Extract year from 1) updated, 2) created
     updated_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}updated")
     if updated_elem is not None and updated_elem.text:
         try:
@@ -396,19 +413,14 @@ def extract_record_metadata(record):
         else:
             year = "Unknown"
 
-    # Extract author count
-    authors = record.findall(".//{http://arxiv.org/OAI/arXiv/}author")
-    author_count = len(authors) if authors else 0
-
-    # Extract license
-    license_info = extract_record_license(record)
-
-    return {
-        "category": category,
-        "year": year,
+    metadata = {
+        "added_on": added_on,
         "author_count": author_count,
+        "category": category,
         "license": license_info,
+        "year": year,
     }
+    return metadata
 
 
 def bucket_author_count(author_count):
@@ -435,10 +447,10 @@ def query_arxiv(args, session):
     year_counts = defaultdict(lambda: defaultdict(int))
     author_counts = defaultdict(lambda: defaultdict(int))
 
+    batch = 1
     total_fetched = 0
     cc_articles_found = 0
-    max_year = False
-    min_year = False
+    min_added_on = False
     resumption_token = None
 
     # Proceed is set to False when limit reached or end of records (missing
@@ -462,7 +474,10 @@ def query_arxiv(args, session):
             verb = "starting"
 
         # Make API request
-        LOGGER.info(f"Fetching batch {verb} from record {total_fetched}")
+        LOGGER.info(
+            f"Fetching batch {batch} {verb} from record {total_fetched}"
+        )
+        batch += 1
 
         try:
             # Build OAI-PMH request URL
@@ -484,7 +499,7 @@ def query_arxiv(args, session):
                 f"OAI-PMH Error: {error_element.text}", 1
             )
 
-        # Process records
+        # Process batch of article records
         records = root.findall(
             ".//{http://www.openarchives.org/OAI/2.0/}record"
         )
@@ -496,38 +511,34 @@ def query_arxiv(args, session):
             total_fetched += 1
 
             metadata = extract_record_metadata(record)
-            # Only process CC-licensed articles
-            if metadata["license"].startswith("CC"):
-                license_info = metadata["license"]
-                category = metadata["category"]
-                year = metadata["year"]
-                author_count = metadata["author_count"]
+            if not metadata:  # Only true for CC licensed articles
+                continue
+            added_on = metadata["added_on"]
+            if not min_added_on or added_on < min_added_on:
+                min_added_on = added_on
 
-                # Count by license
-                license_counts[license_info] += 1
+            license_info = metadata["license"]
 
-                # Count by category and license
-                category_counts[license_info][category] += 1
+            # Count by author count and license
+            author_count = metadata["author_count"]
+            author_counts[license_info][author_count] += 1
 
-                # Count by year and license
-                year_counts[license_info][year] += 1
+            # Count by category and license
+            category = metadata["category"]
+            category_counts[license_info][category] += 1
 
-                # Count by author count and license
-                author_counts[license_info][author_count] += 1
+            # Count by license
+            license_counts[license_info] += 1
 
-                batch_cc_count += 1
-                cc_articles_found += 1
-                if not min_year or year < min_year:
-                    min_year = year
-                if not max_year or year > max_year:
-                    max_year = year
+            # Count by year and license
+            year = metadata["year"]
+            year_counts[license_info][year] += 1
 
-        if min_year == max_year:
-            LOGGER.info(f"  Batch articles were added in {min_year}")
-        else:
-            LOGGER.info(
-                f"  Batch articles are from {min_year} through {max_year}"
-            )
+            batch_cc_count += 1
+            cc_articles_found += 1
+
+        if min_added_on:
+            LOGGER.info(f"  Earliest CC article addition: {min_added_on}")
         LOGGER.info(
             f"  Batch CC licensed articles: {batch_cc_count}, Total"
             f" CC-licensed articles: {cc_articles_found}"
@@ -544,6 +555,7 @@ def query_arxiv(args, session):
         else:
             LOGGER.info("No more records available")
             proceed = False
+            break
 
         # OAI-PMH requires a 3 second delay between requests
         # https://info.arxiv.org/help/api/tou.html#rate-limits
@@ -640,15 +652,18 @@ def write_provence(args, cc_articles_found):
         return args
 
     # Save provenance
+    desc = "Open Archives Initiative Protocol for Metadata Havesting (OAI-PMH)"
     provenance_data = {
+        "api_description": desc,
+        "api_endpoint": BASE_URL,
+        "arguments": {
+            "from_date": args.from_date,
+            "limit": args.limit,
+            "years_back": args.years_back,
+        },
         "cc_articles_found": cc_articles_found,
-        "from_date": args.from_date,
-        "years_back": args.years_back,
-        "limit": args.limit,
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
-        "api_endpoint": BASE_URL,
-        "method": "OAI-PMH structured license harvesting",
     }
 
     # Write provenance YAML for auditing
@@ -664,7 +679,6 @@ def write_provence(args, cc_articles_found):
 
 
 def main():
-    """Main function."""
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
