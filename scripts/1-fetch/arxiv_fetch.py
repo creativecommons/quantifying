@@ -334,15 +334,13 @@ def get_license_mapping():
     )
 
 
-def extract_license_from_xml(record_xml):
+def extract_record_license(record):
     """
     Extract CC license information from OAI-PMH XML record.
     Returns normalized license identifier or specific error indicator.
     """
-    root = etree.fromstring(record_xml)
-
     # Find license element in arXiv namespace
-    license_element = root.find(".//{http://arxiv.org/OAI/arXiv/}license")
+    license_element = record.find(".//{http://arxiv.org/OAI/arXiv/}license")
 
     if license_element is not None and license_element.text:
         license_url = license_element.text.strip()
@@ -361,39 +359,49 @@ def extract_license_from_xml(record_xml):
         return "No license field"
 
 
-def extract_metadata_from_xml(record_xml):
+def extract_record_metadata(record):
     """
     Extract paper metadata from OAI-PMH XML record.
 
     Returns dict with category, year, author_count, and license info.
     """
-    root = etree.fromstring(record_xml)
-
     # Extract category (primary category from categories field)
-    categories_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}categories")
+    categories_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}categories")
     if categories_elem is not None and categories_elem.text:
         # Take first category as primary
         category = categories_elem.text.strip().split()[0]
     else:
         category = "Unknown"
 
-    # Extract year from created date
-    created_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}created")
-    if created_elem is not None and created_elem.text:
+    # Extract year from 1) updated date, 2) created date
+    updated_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}updated")
+    if updated_elem is not None and updated_elem.text:
         try:
-            year = created_elem.text.strip()[:4]  # Extract year
+            year = updated_elem.text.strip()[:4]  # Extract year
         except (AttributeError, IndexError) as e:
             LOGGER.error(
-                f"Failed to extract year from '{created_elem.text}': {e}"
+                f"Failed to extract year from '{updated_elem.text}': {e}"
             )
+            year = "Unknown"
+    else:
+        created_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}created")
+        if created_elem is not None and created_elem.text:
+            try:
+                year = created_elem.text.strip()[:4]  # Extract year
+            except (AttributeError, IndexError) as e:
+                LOGGER.error(
+                    f"Failed to extract year from '{created_elem.text}': {e}"
+                )
+                year = "Unknown"
+        else:
             year = "Unknown"
 
     # Extract author count
-    authors = root.findall(".//{http://arxiv.org/OAI/arXiv/}author")
+    authors = record.findall(".//{http://arxiv.org/OAI/arXiv/}author")
     author_count = len(authors) if authors else 0
 
     # Extract license
-    license_info = extract_license_from_xml(record_xml)
+    license_info = extract_record_license(record)
 
     return {
         "category": category,
@@ -429,6 +437,8 @@ def query_arxiv(args, session):
 
     total_fetched = 0
     cc_articles_found = 0
+    max_year = False
+    min_year = False
     resumption_token = None
 
     # Proceed is set to False when limit reached or end of records (missing
@@ -485,10 +495,7 @@ def query_arxiv(args, session):
                 break
             total_fetched += 1
 
-            # Convert record to string for metadata extraction
-            record_xml = etree.tostring(record, encoding="unicode")
-            metadata = extract_metadata_from_xml(record_xml)
-
+            metadata = extract_record_metadata(record)
             # Only process CC-licensed articles
             if metadata["license"].startswith("CC"):
                 license_info = metadata["license"]
@@ -510,7 +517,17 @@ def query_arxiv(args, session):
 
                 batch_cc_count += 1
                 cc_articles_found += 1
+                if not min_year or year < min_year:
+                    min_year = year
+                if not max_year or year > max_year:
+                    max_year = year
 
+        if min_year == max_year:
+            LOGGER.info(f"  Batch articles were added in {min_year}")
+        else:
+            LOGGER.info(
+                f"  Batch articles are from {min_year} through {max_year}"
+            )
         LOGGER.info(
             f"  Batch CC licensed articles: {batch_cc_count}, Total"
             f" CC-licensed articles: {cc_articles_found}"
