@@ -346,33 +346,25 @@ def extract_license_from_xml(record_xml):
     """
     try:
         root = ET.fromstring(record_xml)
-
-        # Find license element in arXiv namespace
-        license_element = root.find(".//{http://arxiv.org/OAI/arXiv/}license")
-
-        if license_element is not None and license_element.text:
-            license_url = license_element.text.strip()
-
-            # Check exact mapping first
-            if license_url in LICENSE_MAPPING:
-                return LICENSE_MAPPING[license_url]
-
-            # Validate CC URLs more strictly
-            if "creativecommons.org/licenses/" in license_url.lower():
-                return f"CC (unmapped): {license_url}"
-            elif "creativecommons.org" in license_url.lower():
-                return f"CC (ambiguous): {license_url}"
-
-            return "Non-CC"
-
-        return "No license field"
-
     except ET.ParseError as e:
-        LOGGER.error(f"XML parsing failed: {e}")
-        return "XML parse error"
-    except Exception as e:
-        LOGGER.error(f"License extraction failed: {e}")
-        return "Extraction error"
+        LOGGER.error(f"Licensing extraction failed: XML Parse Error: {e}")
+        return "XML Parse Error"
+
+    # Find license element in arXiv namespace
+    license_element = root.find(".//{http://arxiv.org/OAI/arXiv/}license")
+
+    if license_element is not None and license_element.text:
+        license_url = license_element.text.strip()
+        # Check exact mapping first
+        if license_url in LICENSE_MAPPING:
+            return LICENSE_MAPPING[license_url]
+        # Validate CC URLs more strictly
+        elif "creativecommons.org" in license_url.lower():
+            return f"CC (ambiguous): {license_url}"
+        else:
+            return "Non-CC"
+    else:
+        return "No license field"
 
 
 def extract_metadata_from_xml(record_xml):
@@ -383,157 +375,54 @@ def extract_metadata_from_xml(record_xml):
     """
     try:
         root = ET.fromstring(record_xml)
+    except ET.ParseError as e:
+        LOGGER.error(f"Metadata extraction failed: XML Parse Error: {e}")
+        return {}
 
-        # Extract category (primary category from categories field)
-        categories_elem = root.find(
-            ".//{http://arxiv.org/OAI/arXiv/}categories"
-        )
+    # Extract category (primary category from categories field)
+    categories_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}categories")
+    if categories_elem is not None and categories_elem.text:
+        # Take first category as primary
+        category = categories_elem.text.strip().split()[0]
+    else:
         category = "Unknown"
-        if categories_elem is not None and categories_elem.text:
-            # Take first category as primary
-            category = categories_elem.text.strip().split()[0]
 
-        # Extract year from created date
-        created_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}created")
-        year = "Unknown"
-        if created_elem is not None and created_elem.text:
-            try:
-                year = created_elem.text.strip()[:4]  # Extract year
-            except (AttributeError, IndexError) as e:
-                LOGGER.warning(
-                    f"Failed to extract year from '{created_elem.text}': {e}"
-                )
-                year = "Unknown"
+    # Extract year from created date
+    created_elem = root.find(".//{http://arxiv.org/OAI/arXiv/}created")
+    if created_elem is not None and created_elem.text:
+        try:
+            year = created_elem.text.strip()[:4]  # Extract year
+        except (AttributeError, IndexError) as e:
+            LOGGER.error(
+                f"Failed to extract year from '{created_elem.text}': {e}"
+            )
+            year = "Unknown"
 
-        # Extract author count
-        authors = root.findall(".//{http://arxiv.org/OAI/arXiv/}author")
-        author_count = len(authors) if authors else 0
+    # Extract author count
+    authors = root.findall(".//{http://arxiv.org/OAI/arXiv/}author")
+    author_count = len(authors) if authors else 0
 
-        # Extract license
-        license_info = extract_license_from_xml(record_xml)
+    # Extract license
+    license_info = extract_license_from_xml(record_xml)
 
-        return {
-            "category": category,
-            "year": year,
-            "author_count": author_count,
-            "license": license_info,
-        }
-
-    except Exception as e:
-        LOGGER.error(f"Metadata extraction error: {e}")
-        return {
-            "category": "Unknown",
-            "year": "Unknown",
-            "author_count": 0,
-            "license": "Unknown",
-        }
+    return {
+        "category": category,
+        "year": year,
+        "author_count": author_count,
+        "license": license_info,
+    }
 
 
 def bucket_author_count(author_count):
-    """Convert author count to predefined buckets: "1", "2", "3", "4", "5+"."""
+    """
+    Convert author count to predefined buckets: "1", "2", "3", "4", "5+".
+    """
     if author_count <= 4:
         return str(author_count)
     return "5+"
 
 
-def save_count_data(
-    license_counts, category_counts, year_counts, author_counts
-):
-    """
-    Save all collected data to CSV files.
-
-    """
-    # license_counts: {license: count}
-    # category_counts: {license: {category_code: count}}
-    # year_counts: {license: {year: count}}
-    # author_counts: {license: {author_count: count}}
-
-    # Save license counts
-    data = []
-    for license_name, count in license_counts.items():
-        data.append({"TOOL_IDENTIFIER": license_name, "COUNT": count})
-    data.sort(key=itemgetter("TOOL_IDENTIFIER"))
-    with open(
-        FILE_ARXIV_COUNT, "w", encoding="utf-8", newline="\n"
-    ) as file_handle:
-        writer = csv.DictWriter(
-            file_handle, fieldnames=HEADER_COUNT, dialect="unix"
-        )
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-    # Save category report with labels
-    data = []
-    for license_name, categories in category_counts.items():
-        for code, count in categories.items():
-            label = CATEGORIES.get(code, code)
-            data.append(
-                {
-                    "TOOL_IDENTIFIER": license_name,
-                    "CATEGORY_CODE": code,
-                    "CATEGORY_LABEL": label,
-                    "COUNT": count,
-                }
-            )
-    data.sort(key=itemgetter("TOOL_IDENTIFIER", "CATEGORY_CODE"))
-    with open(
-        FILE_ARXIV_CATEGORY_REPORT, "w", encoding="utf-8", newline="\n"
-    ) as file_handle:
-        writer = csv.DictWriter(
-            file_handle, fieldnames=HEADER_CATEGORY_REPORT, dialect="unix"
-        )
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-    # Save year counts
-    data = []
-    for license_name, years in year_counts.items():
-        for year, count in years.items():
-            data.append(
-                {"TOOL_IDENTIFIER": license_name, "YEAR": year, "COUNT": count}
-            )
-    data.sort(key=itemgetter("TOOL_IDENTIFIER", "YEAR"))
-    with open(
-        FILE_ARXIV_YEAR, "w", encoding="utf-8", newline="\n"
-    ) as file_handle:
-        writer = csv.DictWriter(
-            file_handle, fieldnames=HEADER_YEAR, dialect="unix"
-        )
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-    # Save author buckets summary
-    data = []
-    for license_name, author_count_data in author_counts.items():
-        # build buckets across licenses
-        bucket_counts = Counter()
-        for author_count, count in author_count_data.items():
-            bucket = bucket_author_count(author_count)
-            bucket_counts[bucket] += count
-        for bucket, count in bucket_counts.items():
-            data.append(
-                {
-                    "TOOL_IDENTIFIER": license_name,
-                    "AUTHOR_BUCKET": bucket,
-                    "COUNT": count,
-                }
-            )
-    data.sort(key=itemgetter("TOOL_IDENTIFIER", "AUTHOR_BUCKET"))
-    with open(
-        FILE_ARXIV_AUTHOR_BUCKET, "w", encoding="utf-8", newline="\n"
-    ) as file_handle:
-        writer = csv.DictWriter(
-            file_handle, fieldnames=HEADER_AUTHOR_BUCKET, dialect="unix"
-        )
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-
-def query_arxiv(args):
+def query_arxiv(args, session):
     """
     Main function to query ArXiv OAI-PMH API and collect CC license data.
 
@@ -542,7 +431,6 @@ def query_arxiv(args):
     """
 
     LOGGER.info("Beginning to fetch results from ArXiv OAI-PMH API")
-    session = shared.get_session()
 
     LOGGER.info(
         f"Harvesting papers from {args.from_date} onwards "
@@ -562,111 +450,196 @@ def query_arxiv(args):
     # resumption token)
     proceed = True
     while proceed:
+        if resumption_token:
+            # Continue with resumption token
+            query_params = {
+                "verb": "ListRecords",
+                "resumptionToken": resumption_token,
+            }
+            verb = "resuming"
+        else:
+            # Initial request with date range
+            query_params = {
+                "verb": "ListRecords",
+                "metadataPrefix": "arXiv",
+                "from": args.from_date,
+            }
+            verb = "starting"
+
+        # Make API request
+        LOGGER.info(f"Fetching batch {verb} from record {total_fetched}")
+
         try:
             # Build OAI-PMH request URL
-            if resumption_token:
-                # Continue with resumption token
-                query_params = {
-                    "verb": "ListRecords",
-                    "resumptionToken": resumption_token,
-                }
-            else:
-                # Initial request with date range
-                query_params = {
-                    "verb": "ListRecords",
-                    "metadataPrefix": "arXiv",
-                    "from": args.from_date,
-                }
-
-            # Make API request
-            LOGGER.info(f"Fetching batch starting from record {total_fetched}")
             response = session.get(BASE_URL, params=query_params, timeout=60)
             response.raise_for_status()
-
-            # Parse XML response
-            root = ET.fromstring(response.content)
-
-            # Check for errors
-            error_element = root.find(
-                ".//{http://www.openarchives.org/OAI/2.0/}error"
-            )
-            if error_element is not None:
-                raise shared.QuantifyingException(
-                    f"OAI-PMH Error: {error_element.text}", 1
-                )
-
-            # Process records
-            records = root.findall(
-                ".//{http://www.openarchives.org/OAI/2.0/}record"
-            )
-            batch_cc_count = 0
-
-            for record in records:
-                if args.limit > 0 and args.limit <= total_fetched:
-                    proceed = False
-                    break
-
-                # Convert record to string for metadata extraction
-                record_xml = ET.tostring(record, encoding="unicode")
-                metadata = extract_metadata_from_xml(record_xml)
-
-                # Only process CC-licensed papers
-                if metadata["license"].startswith("CC"):
-                    license_info = metadata["license"]
-                    category = metadata["category"]
-                    year = metadata["year"]
-                    author_count = metadata["author_count"]
-
-                    # Count by license
-                    license_counts[license_info] += 1
-
-                    # Count by category and license
-                    category_counts[license_info][category] += 1
-
-                    # Count by year and license
-                    year_counts[license_info][year] += 1
-
-                    # Count by author count and license
-                    author_counts[license_info][author_count] += 1
-
-                    total_fetched += 1
-                    batch_cc_count += 1
-
-            LOGGER.info(
-                f"Batch completed: {batch_cc_count} CC-licensed papers found"
-            )
-
-            # Check for resumption token
-            resumption_element = root.find(
-                ".//{http://www.openarchives.org/OAI/2.0/}resumptionToken"
-            )
-            if not proceed:
-                break
-            elif resumption_element is not None and resumption_element.text:
-                resumption_token = resumption_element.text
-                LOGGER.info("Continuing with resumption token...")
-            else:
-                LOGGER.info("No more records available")
-                proceed = False
-
-            # OAI-PMH requires a 3 second delay between requests
-            # https://info.arxiv.org/help/api/tou.html#rate-limits
-            time.sleep(3)
-
         except requests.HTTPError as e:
             raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
         except requests.RequestException as e:
             raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+
+        try:
+            root = ET.fromstring(response.content)
         except ET.ParseError as e:
             raise shared.QuantifyingException(f"XML Parse Error: {e}", 1)
-        except Exception as e:
-            raise shared.QuantifyingException(f"Unexpected error: {e}", 1)
 
-    # Save results
-    if args.enable_save:
-        save_count_data(
-            license_counts, category_counts, year_counts, author_counts
+        # Check for errors
+        error_element = root.find(
+            ".//{http://www.openarchives.org/OAI/2.0/}error"
         )
+        if error_element is not None:
+            raise shared.QuantifyingException(
+                f"OAI-PMH Error: {error_element.text}", 1
+            )
+
+        # Process records
+        records = root.findall(
+            ".//{http://www.openarchives.org/OAI/2.0/}record"
+        )
+        batch_cc_count = 0
+        for record in records:
+            if args.limit > 0 and args.limit <= total_fetched:
+                proceed = False
+                break
+
+            # Convert record to string for metadata extraction
+            record_xml = ET.tostring(record, encoding="unicode")
+            metadata = extract_metadata_from_xml(record_xml)
+
+            # Only process CC-licensed papers
+            if metadata["license"].startswith("CC"):
+                license_info = metadata["license"]
+                category = metadata["category"]
+                year = metadata["year"]
+                author_count = metadata["author_count"]
+
+                # Count by license
+                license_counts[license_info] += 1
+
+                # Count by category and license
+                category_counts[license_info][category] += 1
+
+                # Count by year and license
+                year_counts[license_info][year] += 1
+
+                # Count by author count and license
+                author_counts[license_info][author_count] += 1
+
+                total_fetched += 1
+                batch_cc_count += 1
+
+        LOGGER.info(
+            f"  Batch completed: {batch_cc_count} CC-licensed papers found"
+        )
+
+        # Check for resumption token
+        resumption_element = root.find(
+            ".//{http://www.openarchives.org/OAI/2.0/}resumptionToken"
+        )
+        if not proceed:
+            break
+        elif resumption_element is not None and resumption_element.text:
+            resumption_token = resumption_element.text
+        else:
+            LOGGER.info("No more records available")
+            proceed = False
+
+        # OAI-PMH requires a 3 second delay between requests
+        # https://info.arxiv.org/help/api/tou.html#rate-limits
+        time.sleep(3)
+
+    LOGGER.info(f"Total papers with CC licenses fetched: {total_fetched}")
+
+    data = {
+        "author_counts": author_counts,
+        "category_counts": category_counts,
+        "license_counts": license_counts,
+        "year_counts": year_counts,
+    }
+
+    return data, total_fetched
+
+
+def rows_to_csv(args, fieldnames, rows, file_path):
+    if not args.enable_save:
+        return args
+
+    with open(file_path, "w", encoding="utf-8", newline="\n") as file_handle:
+        writer = csv.DictWriter(
+            file_handle, fieldnames=fieldnames, dialect="unix"
+        )
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+
+
+def write_data(args, data):
+    """
+    Write fetched data to CSV files.
+    """
+    # Save author buckets report
+    # fetched_data["author_counts"]: {license: {author_count: count}}
+    rows = []
+    for license_name, author_count_data in data["author_counts"].items():
+        # build buckets across licenses
+        bucket_counts = Counter()
+        for author_count, count in author_count_data.items():
+            bucket = bucket_author_count(author_count)
+            bucket_counts[bucket] += count
+        for bucket, count in bucket_counts.items():
+            rows.append(
+                {
+                    "TOOL_IDENTIFIER": license_name,
+                    "AUTHOR_BUCKET": bucket,
+                    "COUNT": count,
+                }
+            )
+    rows.sort(key=itemgetter("TOOL_IDENTIFIER", "AUTHOR_BUCKET"))
+    rows_to_csv(args, HEADER_AUTHOR_BUCKET, rows, FILE_ARXIV_AUTHOR_BUCKET)
+
+    # Save category report with labels
+    # fetched_data["category_counts"]: {license: {category_code: count}}
+    rows = []
+    for license_name, categories in data["category_counts"].items():
+        for code, count in categories.items():
+            label = CATEGORIES.get(code, code)
+            rows.append(
+                {
+                    "TOOL_IDENTIFIER": license_name,
+                    "CATEGORY_CODE": code,
+                    "CATEGORY_LABEL": label,
+                    "COUNT": count,
+                }
+            )
+    rows.sort(key=itemgetter("TOOL_IDENTIFIER", "CATEGORY_CODE"))
+    rows_to_csv(args, HEADER_CATEGORY_REPORT, rows, FILE_ARXIV_CATEGORY_REPORT)
+
+    # Save license counts report
+    # fetched_data["license_counts"]: {license: count}
+    rows = []
+    for license_name, count in data["license_counts"].items():
+        rows.append({"TOOL_IDENTIFIER": license_name, "COUNT": count})
+    rows.sort(key=itemgetter("TOOL_IDENTIFIER"))
+    rows_to_csv(args, HEADER_COUNT, rows, FILE_ARXIV_COUNT)
+
+    # Save year count report
+    # fetched_data["year_counts"]: {license: {year: count}}
+    rows = []
+    for license_name, years in data["year_counts"].items():
+        for year, count in years.items():
+            rows.append(
+                {"TOOL_IDENTIFIER": license_name, "YEAR": year, "COUNT": count}
+            )
+    rows.sort(key=itemgetter("TOOL_IDENTIFIER", "YEAR"))
+    rows_to_csv(args, HEADER_YEAR, rows, FILE_ARXIV_YEAR)
+
+
+def write_provence(args, total_fetched):
+    """
+    Write provenance information to YAML file.
+    """
+    if not args.enable_save:
+        return args
 
     # Save provenance
     provenance_data = {
@@ -681,24 +654,15 @@ def query_arxiv(args):
     }
 
     # Write provenance YAML for auditing
-    try:
-        with open(
-            FILE_PROVENANCE, "w", encoding="utf-8", newline="\n"
-        ) as file_handle:
-            yaml.dump(
-                provenance_data,
-                file_handle,
-                default_flow_style=False,
-                indent=2,
-            )
-    except Exception as e:
-        LOGGER.error(f"Failed to write provenance file: {e}")
-        raise shared.QuantifyingException(
-            f"Provenance file write failed: {e}", 1
+    with open(
+        FILE_PROVENANCE, "w", encoding="utf-8", newline="\n"
+    ) as file_handle:
+        yaml.dump(
+            provenance_data,
+            file_handle,
+            default_flow_style=False,
+            indent=2,
         )
-
-    LOGGER.info(f"Total papers with CC licenses fetched: {total_fetched}")
-    LOGGER.info(f"License distribution: {dict(license_counts)}")
 
 
 def main():
@@ -708,7 +672,10 @@ def main():
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     initialize_all_data_files(args)
-    query_arxiv(args)
+    session = shared.get_session()
+    data, total_fetched = query_arxiv(args, session)
+    write_data(args, data)
+    write_provence(args, total_fetched)
     args = shared.git_add_and_commit(
         args,
         PATHS["repo"],
