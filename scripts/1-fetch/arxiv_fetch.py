@@ -259,8 +259,8 @@ def parse_arguments():
         default=DEFAULT_YEARS_BACK,
         help=(
             "Number of years back from current year to fetch (default:"
-            f" {DEFAULT_YEARS_BACK}). Use a value of -1 to specify"
-            " <earliestDatestamp>."
+            f" {DEFAULT_YEARS_BACK}). Use a value of -1 to specify 2008-02-05"
+            " (first date a CC licensed article was added)."
         ),
     )
 
@@ -270,9 +270,9 @@ def parse_arguments():
     # Restrict args.years_back to earliest datetime and initialize
     # args.from_date
     #
-    # Earliest is hard coded here. Occasionally, it should be verified against
-    # <earliestDatestamp> in: https://oaipmh.arxiv.org/oai?verb=Identify
-    earliest_date = datetime(2005, 9, 16, tzinfo=timezone.utc)
+    # Survey of records indicated the first CC licenced article was added on
+    # 2008-02-05
+    earliest_date = datetime(2008, 2, 5, tzinfo=timezone.utc)
     this_year = datetime.now(timezone.utc).year
     if args.years_back == -1:
         arg_date = earliest_date
@@ -371,12 +371,12 @@ def extract_record_metadata(record):
     if not license_info.startswith("CC"):
         return {}
 
-    # Extract added on
-    added_on_elem = record.find(
-        ".//{http://www.openarchives.org/OAI/2.0/}datestamp"
-    )
-    if added_on_elem is not None and added_on_elem.text:
-        added_on = added_on_elem.text.strip()
+    #  # Extract added on
+    #  added_on_elem = record.find(
+    #      ".//{http://www.openarchives.org/OAI/2.0/}datestamp"
+    #  )
+    #  if added_on_elem is not None and added_on_elem.text:
+    #      added_on = added_on_elem.text.strip()
 
     # Extract author count
     authors = record.findall(".//{http://arxiv.org/OAI/arXiv/}author")
@@ -414,7 +414,7 @@ def extract_record_metadata(record):
             year = "Unknown"
 
     metadata = {
-        "added_on": added_on,
+        #  "added_on": added_on,
         "author_count": author_count,
         "category": category,
         "license": license_info,
@@ -450,7 +450,7 @@ def query_arxiv(args, session):
     batch = 1
     total_fetched = 0
     cc_articles_found = 0
-    min_added_on = False
+    #  min_added_on = False
     resumption_token = None
 
     # Proceed is set to False when limit reached or end of records (missing
@@ -513,9 +513,10 @@ def query_arxiv(args, session):
             metadata = extract_record_metadata(record)
             if not metadata:  # Only true for CC licensed articles
                 continue
-            added_on = metadata["added_on"]
-            if not min_added_on or added_on < min_added_on:
-                min_added_on = added_on
+
+            #  added_on = metadata["added_on"]
+            #  if not min_added_on or added_on < min_added_on:
+            #      min_added_on = added_on
 
             license_info = metadata["license"]
 
@@ -537,8 +538,9 @@ def query_arxiv(args, session):
             batch_cc_count += 1
             cc_articles_found += 1
 
-        if min_added_on:
-            LOGGER.info(f"  Earliest CC article addition: {min_added_on}")
+        #  if min_added_on:
+        #      LOGGER.info(f"  Earliest CC article addition: {min_added_on}")
+
         LOGGER.info(
             f"  Batch CC licensed articles: {batch_cc_count}, Total"
             f" CC-licensed articles: {cc_articles_found}"
