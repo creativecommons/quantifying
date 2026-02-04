@@ -243,13 +243,12 @@ def extract_record_metadata(args, record):
     authors = record.findall(".//{http://arxiv.org/OAI/arXiv/}author")
     metadata["author_count"] = len(authors) if authors else 0
 
-    # Extract category (primary category from categories field)
+    # Extract categories
     categories_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}categories")
     if categories_elem is not None and categories_elem.text:
-        # Take first category as primary
-        metadata["category"] = categories_elem.text.strip().split()[0]
+        metadata["categories"] = categories_elem.text.strip().split()
     else:
-        metadata["category"] = "Unknown"
+        metadata["categories"] = False
 
     # Set identifer
     metadata["identifer"] = identifer
@@ -387,7 +386,6 @@ def query_arxiv(args, session):
 
             if args.show_added and metadata["added_on"]:
                 cc_articles_added.append(metadata["added_on"])
-
             identifer = metadata["identifer"]
 
             # Count by author count and identifer
@@ -395,8 +393,10 @@ def query_arxiv(args, session):
             author_counts[identifer][author_count] += 1
 
             # Count by category and identifer
-            category = metadata["category"]
-            category_counts[identifer][category] += 1
+            categories = metadata["categories"]
+            if metadata["categories"]:
+                for category in categories:
+                    category_counts[identifer][category] += 1
 
             # Count by identifer
             tool_counts[identifer] += 1
