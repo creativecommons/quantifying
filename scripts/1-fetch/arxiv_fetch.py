@@ -13,7 +13,6 @@ import time
 import traceback
 from collections import Counter, defaultdict
 from copy import copy
-from datetime import datetime, timezone
 from operator import itemgetter
 
 # Third-party
@@ -37,7 +36,6 @@ LOGGER, PATHS = shared.setup(__file__)
 BASE_URL = "https://oaipmh.arxiv.org/oai"
 # Defaults should result in quick operation (not complete operation)
 DEFAULT_FETCH_LIMIT = 4500  # Fetch 3 batches of 1,500 articles each
-DEFAULT_YEARS_BACK = 5
 # CSV file paths
 FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
@@ -91,40 +89,13 @@ def parse_arguments():
         default=DEFAULT_FETCH_LIMIT,
         help=(
             "Limit number of fetched articles (default:"
-            f" {DEFAULT_FETCH_LIMIT}). Use a value of -1 to remove limit."
+            f" {DEFAULT_FETCH_LIMIT}). Use a value of -1 to fetch all articles"
+            " (remove limit)."
         ),
     )
-    parser.add_argument(
-        "--years-back",
-        type=int,
-        default=DEFAULT_YEARS_BACK,
-        help=(
-            "Number of years back from current year to fetch (default:"
-            f" {DEFAULT_YEARS_BACK}). Use a value of -1 to specify 2008-02-05"
-            " (first date a CC licensed article was added)."
-        ),
-    )
-
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
-    # Restrict args.years_back to earliest datetime and initialize
-    # args.from_date
-    #
-    # Survey of records indicated the first CC licenced article was added on
-    # 2008-02-05
-    earliest_date = datetime(2008, 2, 5, tzinfo=timezone.utc)
-    this_year = datetime.now(timezone.utc).year
-    if args.years_back == -1:
-        arg_date = earliest_date
-    else:
-        start_year = this_year - args.years_back
-        arg_date = datetime(start_year, 1, 1, tzinfo=timezone.utc)
-        if arg_date < earliest_date:
-            arg_date = earliest_date
-    args.from_date = arg_date.strftime("%Y-%m-%d")
-    args.years_back = this_year - arg_date.year
-
     return args
 
 
@@ -316,9 +287,12 @@ def query_arxiv(args, session):
     """
     Query ArXiv OAI-PMH API and return information about CC licensed articles.
     """
+    if args.limit == -1:
+        count_desc = "all"
+    else:
+        count_desc = f"a maximum of {args.limit}"
     LOGGER.info(
-        f"Querying articles from {args.from_date} onwards ({args.years_back}"
-        " years back)"
+        f"Fetching {count_desc} articles starting form add date 2008-02-05"
     )
 
     # Data structures for counting
@@ -353,7 +327,7 @@ def query_arxiv(args, session):
             params = {
                 "verb": "ListRecords",
                 "metadataPrefix": "arXiv",
-                "from": args.from_date,
+                "from": "2008-02-05",  # First addition of CC licensed articles
             }
             verb = "starting"
 
@@ -542,12 +516,9 @@ def write_provence(args, cc_articles_found):
     provenance_data = {
         "api_description": desc,
         "api_endpoint": BASE_URL,
-        "arguments": {
-            "from_date": args.from_date,
-            "limit": args.limit,
-            "years_back": args.years_back,
-        },
         "cc_articles_found": cc_articles_found,
+        "fetch_limit": args.limit,
+        "from_add_date": "2008-02-05",
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
     }
