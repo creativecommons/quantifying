@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Fetch ArXiv articles with CC license information using OAI-PMH API.
+Fetch arXiv articles that use a CC legal tool using the OAI-PMH API.
 OAI-PMH: Open Archives Initiative Protocol for Metadata Havesting.
 """
 # Standard library
@@ -55,7 +55,7 @@ HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
 HEADER_CATEGORY_REPORT = [
     "TOOL_IDENTIFIER",
     "CATEGORY_CODE",
-    "CATEGORY_LABEL",
+    "CATEGORY_NAME",
     "COUNT",
 ]
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
@@ -65,11 +65,8 @@ QUARTER = os.path.basename(PATHS["data_quarter"])
 
 # parsing arguments function
 def parse_arguments():
-    """Parse command-line options, returns parsed argument namespace.
-
-    Note: The --limit parameter sets the total number of articles to fetch.
-    The --years-back parameter limits harvesting to recent years where
-    CC licensing is more common.
+    """
+    Parse command-line options, returns parsed argument namespace.
     """
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
@@ -92,6 +89,11 @@ def parse_arguments():
             f" {DEFAULT_FETCH_LIMIT}). Use a value of -1 to fetch all articles"
             " (remove limit)."
         ),
+    )
+    parser.add_argument(
+        "--show-added",
+        action="store_true",
+        help="Log additional information about when articles were added",
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
@@ -124,25 +126,25 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET)
 
 
-def get_license_mapping():
-    global LICENSE_MAPPING
-    LOGGER.info("Loading CC Legal Tool metadata for license mapping")
+def get_identifier_mapping():
+    global IDENTIER_MAPPING
+    LOGGER.info("Loading CC Legal Tool metadata for CC identifer mapping")
     file_path = shared.path_join(PATHS["data"], "cc-legal-tools.csv")
-    license_mapping = {}
+    identifier_mapping = {}
     with open(file_path, "r", encoding="utf-8") as file_obj:
         rows = csv.DictReader(file_obj, dialect="unix")
         for row in rows:
             simple_url = row["CANONICAL_URL"].replace("https://", "")
             simple_url = simple_url.rstrip("/")
             identifier = row["IDENTIFIER"]
-            license_mapping[simple_url] = identifier
+            identifier_mapping[simple_url] = identifier
 
     # Add legacy entry
     simple_url = "creativecommons.org/licenses/publicdomain"
-    license_mapping[simple_url] = "CERTIFICATION 1.0 US"
+    identifier_mapping[simple_url] = "CERTIFICATION 1.0 US"
 
-    LICENSE_MAPPING = dict(
-        sorted(license_mapping.items(), key=lambda item: item[1])
+    IDENTIER_MAPPING = dict(
+        sorted(identifier_mapping.items(), key=lambda item: item[1])
     )
 
 
@@ -185,10 +187,11 @@ def query_category_mapping(args, session):
     CATEGORY_MAPPING = dict(sorted(CATEGORY_MAPPING.items()))
 
 
-def extract_record_license(record):
+def extract_record_cc_legal_tool_identifier(record):
     """
-    Extract CC license information from OAI-PMH XML record.
-    Returns normalized license identifier or specific error indicator.
+    Extract CC legal tool identifier from OAI-PMH XML record.
+
+    Returns normalized legal tool identifier or specific error indicator.
     """
     # Find license element in arXiv namespace
     license_element = record.find(".//{http://arxiv.org/OAI/arXiv/}license")
@@ -199,78 +202,83 @@ def extract_record_license(record):
         simple_url = simple_url.replace("https://", "")
         simple_url = simple_url.rstrip("/")
         # Check exact mapping first
-        if simple_url in LICENSE_MAPPING:
-            return LICENSE_MAPPING[simple_url]
+        if simple_url in IDENTIER_MAPPING:
+            identifer = IDENTIER_MAPPING[simple_url]
         # Validate CC URLs more strictly
         elif "creativecommons.org" in license_url.lower():
-            return f"CC (ambiguous): {license_url}"
+            identifer = f"CC (ambiguous): {license_url}"
         else:
-            return "Non-CC"
+            identifer = "N/A: non-CC"
     else:
-        return "No license field"
+        identifer = "N/A: article missing license field"
+
+    return identifer
 
 
-def extract_record_metadata(record):
+def extract_record_metadata(args, record):
     """
     Extract paper metadata from OAI-PMH XML record.
 
-    Returns dict with author_count, category, year, and license info.
+    Returns metadata dictionary.
     """
+    metadata = {}
 
-    # Extract license first to avoid unnecessary work
-    license_info = extract_record_license(record)
-    if not license_info.startswith("CC"):
+    # Extract identifer first to avoid unnecessary work
+    identifer = extract_record_cc_legal_tool_identifier(record)
+    if not identifer.startswith("CC"):
         return {}
+    # metadata value set below to ensure natural order of keys
 
-    #  # Extract added on
-    #  added_on_elem = record.find(
-    #      ".//{http://www.openarchives.org/OAI/2.0/}datestamp"
-    #  )
-    #  if added_on_elem is not None and added_on_elem.text:
-    #      added_on = added_on_elem.text.strip()
+    if args.show_added:
+        # Extract added on
+        added_on_elem = record.find(
+            ".//{http://www.openarchives.org/OAI/2.0/}datestamp"
+        )
+        if added_on_elem is not None and added_on_elem.text:
+            metadata["added_on"] = added_on_elem.text.strip()
+        else:
+            metadata["added_on"] = False
 
     # Extract author count
     authors = record.findall(".//{http://arxiv.org/OAI/arXiv/}author")
-    author_count = len(authors) if authors else 0
+    metadata["author_count"] = len(authors) if authors else 0
 
     # Extract category (primary category from categories field)
     categories_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}categories")
     if categories_elem is not None and categories_elem.text:
         # Take first category as primary
-        category = categories_elem.text.strip().split()[0]
+        metadata["category"] = categories_elem.text.strip().split()[0]
     else:
-        category = "Unknown"
+        metadata["category"] = "Unknown"
+
+    # Set identifer
+    metadata["identifer"] = identifer
 
     # Extract year from 1) updated, 2) created
     updated_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}updated")
     if updated_elem is not None and updated_elem.text:
         try:
-            year = updated_elem.text.strip()[:4]  # Extract year
+            metadata["year"] = updated_elem.text.strip()[:4]  # Extract year
         except (AttributeError, IndexError) as e:
             LOGGER.error(
                 f"Failed to extract year from '{updated_elem.text}': {e}"
             )
-            year = "Unknown"
+            metadata["year"] = "Unknown"
     else:
         created_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}created")
         if created_elem is not None and created_elem.text:
             try:
-                year = created_elem.text.strip()[:4]  # Extract year
+                metadata["year"] = created_elem.text.strip()[
+                    :4
+                ]  # Extract year
             except (AttributeError, IndexError) as e:
                 LOGGER.error(
                     f"Failed to extract year from '{created_elem.text}': {e}"
                 )
-                year = "Unknown"
+                metadata["year"] = "Unknown"
         else:
-            year = "Unknown"
+            metadata["year"] = "Unknown"
 
-    metadata = {
-        #  "added_on": added_on,
-        "author_count": author_count,
-        "category": category,
-        "license": license_info,
-        "year": year,
-    }
     return metadata
 
 
@@ -285,7 +293,11 @@ def bucket_author_count(author_count):
 
 def query_arxiv(args, session):
     """
-    Query ArXiv OAI-PMH API and return information about CC licensed articles.
+    Query arXiv OAI-PMH API starting from addition date 2008-02-05 and return
+    information about articles using a CC legal tool.
+
+    2008-02-05 was the first date that articles using a CC legal tool were
+    added to arXiv.
     """
     if args.limit == -1:
         count_desc = "all"
@@ -296,7 +308,7 @@ def query_arxiv(args, session):
     )
 
     # Data structures for counting
-    license_counts = defaultdict(int)
+    tool_counts = defaultdict(int)
     category_counts = defaultdict(lambda: defaultdict(int))
     year_counts = defaultdict(lambda: defaultdict(int))
     author_counts = defaultdict(lambda: defaultdict(int))
@@ -304,7 +316,8 @@ def query_arxiv(args, session):
     batch = 1
     total_fetched = 0
     cc_articles_found = 0
-    #  min_added_on = False
+    if args.show_added:
+        cc_articles_added = []
     resumption_token = None
 
     # Proceed is set to False when limit reached or end of records (missing
@@ -327,7 +340,7 @@ def query_arxiv(args, session):
             params = {
                 "verb": "ListRecords",
                 "metadataPrefix": "arXiv",
-                "from": "2008-02-05",  # First addition of CC licensed articles
+                "from": "2008-02-05",  # First addition of articles using CC
             }
             verb = "starting"
 
@@ -368,40 +381,39 @@ def query_arxiv(args, session):
                 break
             total_fetched += 1
 
-            metadata = extract_record_metadata(record)
-            if not metadata:  # Only true for CC licensed articles
+            metadata = extract_record_metadata(args, record)
+            if not metadata:  # Only true for articles using a CC legal tool
                 continue
 
-            #  added_on = metadata["added_on"]
-            #  if not min_added_on or added_on < min_added_on:
-            #      min_added_on = added_on
+            if args.show_added and metadata["added_on"]:
+                cc_articles_added.append(metadata["added_on"])
 
-            license_info = metadata["license"]
+            identifer = metadata["identifer"]
 
-            # Count by author count and license
+            # Count by author count and identifer
             author_count = metadata["author_count"]
-            author_counts[license_info][author_count] += 1
+            author_counts[identifer][author_count] += 1
 
-            # Count by category and license
+            # Count by category and identifer
             category = metadata["category"]
-            category_counts[license_info][category] += 1
+            category_counts[identifer][category] += 1
 
-            # Count by license
-            license_counts[license_info] += 1
+            # Count by identifer
+            tool_counts[identifer] += 1
 
-            # Count by year and license
+            # Count by year and identifer
             year = metadata["year"]
-            year_counts[license_info][year] += 1
+            year_counts[identifer][year] += 1
 
             batch_cc_count += 1
             cc_articles_found += 1
 
-        #  if min_added_on:
-        #      LOGGER.info(f"  Earliest CC article addition: {min_added_on}")
+        if args.show_added and cc_articles_added:
+            LOGGER.info(f"  CC articles added: {', '.join(cc_articles_added)}")
 
         LOGGER.info(
-            f"  Batch CC licensed articles: {batch_cc_count}, Total"
-            f" CC-licensed articles: {cc_articles_found}"
+            f"  Batch CC legal tool articles: {batch_cc_count}, Total"
+            f" CC legal tool articles: {cc_articles_found}"
         )
 
         # Check for resumption token
@@ -424,7 +436,7 @@ def query_arxiv(args, session):
     data = {
         "author_counts": author_counts,
         "category_counts": category_counts,
-        "license_counts": license_counts,
+        "tool_counts": tool_counts,
         "year_counts": year_counts,
     }
     return data, cc_articles_found
@@ -448,18 +460,19 @@ def write_data(args, data):
     Write fetched data to CSV files.
     """
     # Save author buckets report
-    # fetched_data["author_counts"]: {license: {author_count: count}}
+    # fetched_data["author_counts"]: {identifer: {author_count: count}}
     rows = []
-    for license_name, author_count_data in data["author_counts"].items():
-        # build buckets across licenses
+    for identifier, author_count_data in data["author_counts"].items():
+        # build buckets across CC legal tool identifiers
         bucket_counts = Counter()
         for author_count, count in author_count_data.items():
             bucket = bucket_author_count(author_count)
             bucket_counts[bucket] += count
+        # add rows
         for bucket, count in bucket_counts.items():
             rows.append(
                 {
-                    "TOOL_IDENTIFIER": license_name,
+                    "TOOL_IDENTIFIER": identifier,
                     "AUTHOR_BUCKET": bucket,
                     "COUNT": count,
                 }
@@ -467,38 +480,40 @@ def write_data(args, data):
     rows.sort(key=itemgetter("TOOL_IDENTIFIER", "AUTHOR_BUCKET"))
     rows_to_csv(args, HEADER_AUTHOR_BUCKET, rows, FILE_ARXIV_AUTHOR_BUCKET)
 
-    # Save category report with labels
-    # fetched_data["category_counts"]: {license: {category_code: count}}
+    # Save category report
+    # fetched_data["category_counts"]: {identifer: {category_code: count}}
     rows = []
-    for license_name, categories in data["category_counts"].items():
+    for identifier, categories in data["category_counts"].items():
         for code, count in categories.items():
-            label = CATEGORY_MAPPING.get(code, code)
+            # map category codes to names
+            name = CATEGORY_MAPPING.get(code, code)
+            # append row
             rows.append(
                 {
-                    "TOOL_IDENTIFIER": license_name,
+                    "TOOL_IDENTIFIER": identifier,
                     "CATEGORY_CODE": code,
-                    "CATEGORY_LABEL": label,
+                    "CATEGORY_NAME": name,
                     "COUNT": count,
                 }
             )
     rows.sort(key=itemgetter("TOOL_IDENTIFIER", "CATEGORY_CODE"))
     rows_to_csv(args, HEADER_CATEGORY_REPORT, rows, FILE_ARXIV_CATEGORY_REPORT)
 
-    # Save license counts report
-    # fetched_data["license_counts"]: {license: count}
+    # Save tool counts report
+    # fetched_data["tool_counts"]: {identfier: count}
     rows = []
-    for license_name, count in data["license_counts"].items():
-        rows.append({"TOOL_IDENTIFIER": license_name, "COUNT": count})
+    for identifier, count in data["tool_counts"].items():
+        rows.append({"TOOL_IDENTIFIER": identifier, "COUNT": count})
     rows.sort(key=itemgetter("TOOL_IDENTIFIER"))
     rows_to_csv(args, HEADER_COUNT, rows, FILE_ARXIV_COUNT)
 
     # Save year count report
-    # fetched_data["year_counts"]: {license: {year: count}}
+    # fetched_data["year_counts"]: {identifer: {year: count}}
     rows = []
-    for license_name, years in data["year_counts"].items():
+    for identifier, years in data["year_counts"].items():
         for year, count in years.items():
             rows.append(
-                {"TOOL_IDENTIFIER": license_name, "YEAR": year, "COUNT": count}
+                {"TOOL_IDENTIFIER": identifier, "YEAR": year, "COUNT": count}
             )
     rows.sort(key=itemgetter("TOOL_IDENTIFIER", "YEAR"))
     rows_to_csv(args, HEADER_YEAR, rows, FILE_ARXIV_YEAR)
@@ -540,7 +555,7 @@ def main():
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     initialize_all_data_files(args)
-    get_license_mapping()
+    get_identifier_mapping()
     session = shared.get_session()
     query_category_mapping(args, session)
     data, cc_articles_found = query_arxiv(args, session)
@@ -550,7 +565,7 @@ def main():
         args,
         PATHS["repo"],
         PATHS["data_quarter"],
-        f"Add and commit new ArXiv CC license data for {QUARTER}",
+        f"Add and commit new arXiv data for {QUARTER}",
     )
     shared.git_push_changes(args, PATHS["repo"])
 
