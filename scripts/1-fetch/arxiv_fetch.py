@@ -13,7 +13,6 @@ import time
 import traceback
 from collections import Counter, defaultdict
 from copy import copy
-from datetime import datetime, timezone
 from operator import itemgetter
 
 # Third-party
@@ -36,167 +35,7 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 BASE_URL = "https://oaipmh.arxiv.org/oai"
 # Defaults should result in quick operation (not complete operation)
-# ArXiv Categories - manually curated from ArXiv official taxonomy
-# Source: https://arxiv.org/category_taxonomy
-CATEGORIES = {
-    # Computer Science
-    "cs.AI": "Artificial Intelligence",
-    "cs.AR": "Hardware Architecture",
-    "cs.CC": "Computational Complexity",
-    "cs.CE": "Computational Engineering, Finance, and Science",
-    "cs.CG": "Computational Geometry",
-    "cs.CL": "Computation and Language",
-    "cs.CR": "Cryptography and Security",
-    "cs.CV": "Computer Vision and Pattern Recognition",
-    "cs.CY": "Computers and Society",
-    "cs.DB": "Databases",
-    "cs.DC": "Distributed, Parallel, and Cluster Computing",
-    "cs.DL": "Digital Libraries",
-    "cs.DM": "Discrete Mathematics",
-    "cs.DS": "Data Structures and Algorithms",
-    "cs.ET": "Emerging Technologies",
-    "cs.FL": "Formal Languages and Automata Theory",
-    "cs.GL": "General Literature",
-    "cs.GR": "Graphics",
-    "cs.GT": "Computer Science and Game Theory",
-    "cs.HC": "Human-Computer Interaction",
-    "cs.IR": "Information Retrieval",
-    "cs.IT": "Information Theory",
-    "cs.LG": "Machine Learning",
-    "cs.LO": "Logic in Computer Science",
-    "cs.MA": "Multiagent Systems",
-    "cs.MM": "Multimedia",
-    "cs.MS": "Mathematical Software",
-    "cs.NA": "Numerical Analysis",
-    "cs.NE": "Neural and Evolutionary Computing",
-    "cs.NI": "Networking and Internet Architecture",
-    "cs.OH": "Other Computer Science",
-    "cs.OS": "Operating Systems",
-    "cs.PF": "Performance",
-    "cs.PL": "Programming Languages",
-    "cs.RO": "Robotics",
-    "cs.SC": "Symbolic Computation",
-    "cs.SD": "Sound",
-    "cs.SE": "Software Engineering",
-    "cs.SI": "Social and Information Networks",
-    "cs.SY": "Systems and Control",
-    # Mathematics
-    "math.AC": "Commutative Algebra",
-    "math.AG": "Algebraic Geometry",
-    "math.AP": "Analysis of PDEs",
-    "math.AT": "Algebraic Topology",
-    "math.CA": "Classical Analysis and ODEs",
-    "math.CO": "Combinatorics",
-    "math.CT": "Category Theory",
-    "math.CV": "Complex Variables",
-    "math.DG": "Differential Geometry",
-    "math.DS": "Dynamical Systems",
-    "math.FA": "Functional Analysis",
-    "math.GM": "General Mathematics",
-    "math.GN": "General Topology",
-    "math.GR": "Group Theory",
-    "math.GT": "Geometric Topology",
-    "math.HO": "History and Overview",
-    "math.IT": "Information Theory",
-    "math.KT": "K-Theory and Homology",
-    "math.LO": "Logic",
-    "math.MG": "Metric Geometry",
-    "math.MP": "Mathematical Physics",
-    "math.NA": "Numerical Analysis",
-    "math.NT": "Number Theory",
-    "math.OA": "Operator Algebras",
-    "math.OC": "Optimization and Control",
-    "math.PR": "Probability",
-    "math.QA": "Quantum Algebra",
-    "math.RA": "Rings and Algebras",
-    "math.RT": "Representation Theory",
-    "math.SG": "Symplectic Geometry",
-    "math.SP": "Spectral Theory",
-    "math.ST": "Statistics Theory",
-    # Physics
-    "physics.acc-ph": "Accelerator Physics",
-    "physics.ao-ph": "Atmospheric and Oceanic Physics",
-    "physics.app-ph": "Applied Physics",
-    "physics.atm-clus": "Atomic and Molecular Clusters",
-    "physics.atom-ph": "Atomic Physics",
-    "physics.bio-ph": "Biological Physics",
-    "physics.chem-ph": "Chemical Physics",
-    "physics.class-ph": "Classical Physics",
-    "physics.comp-ph": "Computational Physics",
-    "physics.data-an": "Data Analysis, Statistics and Probability",
-    "physics.ed-ph": "Physics Education",
-    "physics.flu-dyn": "Fluid Dynamics",
-    "physics.gen-ph": "General Physics",
-    "physics.geo-ph": "Geophysics",
-    "physics.hist-ph": "History and Philosophy of Physics",
-    "physics.ins-det": "Instrumentation and Detectors",
-    "physics.med-ph": "Medical Physics",
-    "physics.optics": "Optics",
-    "physics.plasm-ph": "Plasma Physics",
-    "physics.pop-ph": "Popular Physics",
-    "physics.soc-ph": "Physics and Society",
-    "physics.space-ph": "Space Physics",
-    # Statistics
-    "stat.AP": "Applications",
-    "stat.CO": "Computation",
-    "stat.ME": "Methodology",
-    "stat.ML": "Machine Learning",
-    "stat.OT": "Other Statistics",
-    "stat.TH": "Statistics Theory",
-    # Quantitative Biology
-    "q-bio.BM": "Biomolecules",
-    "q-bio.CB": "Cell Behavior",
-    "q-bio.GN": "Genomics",
-    "q-bio.MN": "Molecular Networks",
-    "q-bio.NC": "Neurons and Cognition",
-    "q-bio.OT": "Other Quantitative Biology",
-    "q-bio.PE": "Populations and Evolution",
-    "q-bio.QM": "Quantitative Methods",
-    "q-bio.SC": "Subcellular Processes",
-    "q-bio.TO": "Tissues and Organs",
-    # Economics
-    "econ.EM": "Econometrics",
-    "econ.GN": "General Economics",
-    "econ.TH": "Theoretical Economics",
-    # Electrical Engineering
-    "eess.AS": "Audio and Speech Processing",
-    "eess.IV": "Image and Video Processing",
-    "eess.SP": "Signal Processing",
-    "eess.SY": "Systems and Control",
-    # High Energy Physics
-    "hep-ex": "High Energy Physics - Experiment",
-    "hep-lat": "High Energy Physics - Lattice",
-    "hep-ph": "High Energy Physics - Phenomenology",
-    "hep-th": "High Energy Physics - Theory",
-    # Other Physics
-    "astro-ph": "Astrophysics",
-    "astro-ph.CO": "Cosmology and Nongalactic Astrophysics",
-    "astro-ph.EP": "Earth and Planetary Astrophysics",
-    "astro-ph.GA": "Astrophysics of Galaxies",
-    "astro-ph.HE": "High Energy Astrophysical Phenomena",
-    "astro-ph.IM": "Instrumentation and Methods for Astrophysics",
-    "astro-ph.SR": "Solar and Stellar Astrophysics",
-    "cond-mat.dis-nn": "Disordered Systems and Neural Networks",
-    "cond-mat.mes-hall": "Mesoscale and Nanoscale Physics",
-    "cond-mat.mtrl-sci": "Materials Science",
-    "cond-mat.other": "Other Condensed Matter",
-    "cond-mat.quant-gas": "Quantum Gases",
-    "cond-mat.soft": "Soft Condensed Matter",
-    "cond-mat.stat-mech": "Statistical Mechanics",
-    "cond-mat.str-el": "Strongly Correlated Electrons",
-    "cond-mat.supr-con": "Superconductivity",
-    "gr-qc": "General Relativity and Quantum Cosmology",
-    "nlin.AO": "Adaptation and Self-Organizing Systems",
-    "nlin.CD": "Chaotic Dynamics",
-    "nlin.CG": "Cellular Automata and Lattice Gases",
-    "nlin.PS": "Pattern Formation and Solitons",
-    "nlin.SI": "Exactly Solvable and Integrable Systems",
-    "nucl-ex": "Nuclear Experiment",
-    "nucl-th": "Nuclear Theory",
-    "quant-ph": "Quantum Physics",
-}
-DEFAULT_FETCH_LIMIT = 1000
-DEFAULT_YEARS_BACK = 5
+DEFAULT_FETCH_LIMIT = 4500  # Fetch 3 batches of 1,500 articles each
 # CSV file paths
 FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
@@ -250,40 +89,13 @@ def parse_arguments():
         default=DEFAULT_FETCH_LIMIT,
         help=(
             "Limit number of fetched articles (default:"
-            f" {DEFAULT_FETCH_LIMIT}). Use a value of -1 to remove limit."
+            f" {DEFAULT_FETCH_LIMIT}). Use a value of -1 to fetch all articles"
+            " (remove limit)."
         ),
     )
-    parser.add_argument(
-        "--years-back",
-        type=int,
-        default=DEFAULT_YEARS_BACK,
-        help=(
-            "Number of years back from current year to fetch (default:"
-            f" {DEFAULT_YEARS_BACK}). Use a value of -1 to specify 2008-02-05"
-            " (first date a CC licensed article was added)."
-        ),
-    )
-
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
-    # Restrict args.years_back to earliest datetime and initialize
-    # args.from_date
-    #
-    # Survey of records indicated the first CC licenced article was added on
-    # 2008-02-05
-    earliest_date = datetime(2008, 2, 5, tzinfo=timezone.utc)
-    this_year = datetime.now(timezone.utc).year
-    if args.years_back == -1:
-        arg_date = earliest_date
-    else:
-        start_year = this_year - args.years_back
-        arg_date = datetime(start_year, 1, 1, tzinfo=timezone.utc)
-        if arg_date < earliest_date:
-            arg_date = earliest_date
-    args.from_date = arg_date.strftime("%Y-%m-%d")
-    args.years_back = this_year - arg_date.year
-
     return args
 
 
@@ -332,6 +144,45 @@ def get_license_mapping():
     LICENSE_MAPPING = dict(
         sorted(license_mapping.items(), key=lambda item: item[1])
     )
+
+
+def query_category_mapping(args, session):
+    """
+    Query to establish mapping of category codes and names.
+
+    Also see https://arxiv.org/category_taxonomy
+    """
+    global CATEGORY_MAPPING
+
+    params = {"verb": "ListSets"}
+    try:
+        response = session.get(BASE_URL, params=params, timeout=60)
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
+    except requests.RequestException as e:
+        raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+
+    root = etree.fromstring(response.content)
+    CATEGORY_MAPPING = {}
+    sets = root.findall(".//{http://www.openarchives.org/OAI/2.0/}set")
+    for set_ in sets:
+        spec, name = set_.getchildren()
+        # Ensure category code (key) matches code used in articles
+        spec_list = spec.text.split(":")
+        if len(spec_list) > 1:
+            # Remove parent category and replace colon with period
+            # 3 part examples:
+            #     match:math:AC       => math.AC
+            #     physics:astro-ph:CO => astro-ph.CO
+            # 2 part examples
+            #     physics:astro-ph    => astro-ph
+            #     physics:quant-ph    => quant-ph
+            spec_text = ".".join(spec_list[1:])
+        else:
+            spec_text = spec.text
+        CATEGORY_MAPPING[spec_text] = name.text
+    CATEGORY_MAPPING = dict(sorted(CATEGORY_MAPPING.items()))
 
 
 def extract_record_license(record):
@@ -436,9 +287,12 @@ def query_arxiv(args, session):
     """
     Query ArXiv OAI-PMH API and return information about CC licensed articles.
     """
+    if args.limit == -1:
+        count_desc = "all"
+    else:
+        count_desc = f"a maximum of {args.limit}"
     LOGGER.info(
-        f"Querying articles from {args.from_date} onwards ({args.years_back}"
-        " years back)"
+        f"Fetching {count_desc} articles starting form add date 2008-02-05"
     )
 
     # Data structures for counting
@@ -457,19 +311,23 @@ def query_arxiv(args, session):
     # resumption token)
     proceed = True
     while proceed:
+        if args.limit > 0 and args.limit <= total_fetched:
+            proceed = False
+            break
+
         if resumption_token:
             # Continue with resumption token
-            query_params = {
+            params = {
                 "verb": "ListRecords",
                 "resumptionToken": resumption_token,
             }
             verb = "resuming"
         else:
             # Initial request with date range
-            query_params = {
+            params = {
                 "verb": "ListRecords",
                 "metadataPrefix": "arXiv",
-                "from": args.from_date,
+                "from": "2008-02-05",  # First addition of CC licensed articles
             }
             verb = "starting"
 
@@ -481,7 +339,7 @@ def query_arxiv(args, session):
 
         try:
             # Build OAI-PMH request URL
-            response = session.get(BASE_URL, params=query_params, timeout=60)
+            response = session.get(BASE_URL, params=params, timeout=60)
             response.raise_for_status()
         except requests.HTTPError as e:
             raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
@@ -614,7 +472,7 @@ def write_data(args, data):
     rows = []
     for license_name, categories in data["category_counts"].items():
         for code, count in categories.items():
-            label = CATEGORIES.get(code, code)
+            label = CATEGORY_MAPPING.get(code, code)
             rows.append(
                 {
                     "TOOL_IDENTIFIER": license_name,
@@ -658,12 +516,9 @@ def write_provence(args, cc_articles_found):
     provenance_data = {
         "api_description": desc,
         "api_endpoint": BASE_URL,
-        "arguments": {
-            "from_date": args.from_date,
-            "limit": args.limit,
-            "years_back": args.years_back,
-        },
         "cc_articles_found": cc_articles_found,
+        "fetch_limit": args.limit,
+        "from_add_date": "2008-02-05",
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
     }
@@ -687,6 +542,7 @@ def main():
     initialize_all_data_files(args)
     get_license_mapping()
     session = shared.get_session()
+    query_category_mapping(args, session)
     data, cc_articles_found = query_arxiv(args, session)
     write_data(args, data)
     write_provence(args, cc_articles_found)
