@@ -8,6 +8,7 @@ cachetools = "*"  # Required by google-api-python-client
 feedparser = "*"
 GitPython = "*"
 google-api-python-client = "*"
+lxml = "*"
 matplotlib = "*"
 pandas = "*"
 Pygments = "*"
