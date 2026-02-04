@@ -1,24 +1,25 @@
 #!/usr/bin/env python
 """
-Fetch ArXiv papers with CC license information and generate count reports.
+Fetch ArXiv articles with CC license information using OAI-PMH API.
+OAI-PMH: Open Archives Initiative Protocol for Metadata Havesting.
 """
 # Standard library
 import argparse
 import csv
 import os
-import re
 import sys
 import textwrap
 import time
 import traceback
-import urllib.parse
 from collections import Counter, defaultdict
+from copy import copy
+from datetime import datetime, timezone
 from operator import itemgetter
 
 # Third-party
-import feedparser
 import requests
 import yaml
+from lxml import etree
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -33,62 +34,8 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
-# API Configuration
-BASE_URL = "https://export.arxiv.org/api/query?"
-DEFAULT_FETCH_LIMIT = 800  # Default total papers to fetch
-
-# CSV Headers
-HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
-HEADER_CATEGORY_REPORT = [
-    "TOOL_IDENTIFIER",
-    "CATEGORY_CODE",
-    "CATEGORY_LABEL",
-    "COUNT",
-]
-HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
-HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
-
-# Search Queries
-SEARCH_QUERIES = [
-    'all:"creative commons"',
-    'all:"CC BY"',
-    'all:"CC-BY"',
-    'all:"CC BY-NC"',
-    'all:"CC-BY-NC"',
-    'all:"CC BY-SA"',
-    'all:"CC-BY-SA"',
-    'all:"CC BY-ND"',
-    'all:"CC-BY-ND"',
-    'all:"CC BY-NC-SA"',
-    'all:"CC-BY-NC-SA"',
-    'all:"CC BY-NC-ND"',
-    'all:"CC-BY-NC-ND"',
-    'all:"CC0"',
-    'all:"CC 0"',
-    'all:"CC-0"',
-]
-
-# Compiled regex patterns for CC license detection
-CC_PATTERNS = [
-    (re.compile(r"\bCC[-\s]?0\b", re.IGNORECASE), "CC0"),
-    (
-        re.compile(r"\bCC[-\s]?BY[-\s]?NC[-\s]?ND\b", re.IGNORECASE),
-        "CC BY-NC-ND",
-    ),
-    (
-        re.compile(r"\bCC[-\s]?BY[-\s]?NC[-\s]?SA\b", re.IGNORECASE),
-        "CC BY-NC-SA",
-    ),
-    (re.compile(r"\bCC[-\s]?BY[-\s]?ND\b", re.IGNORECASE), "CC BY-ND"),
-    (re.compile(r"\bCC[-\s]?BY[-\s]?SA\b", re.IGNORECASE), "CC BY-SA"),
-    (re.compile(r"\bCC[-\s]?BY[-\s]?NC\b", re.IGNORECASE), "CC BY-NC"),
-    (re.compile(r"\bCC[-\s]?BY\b", re.IGNORECASE), "CC BY"),
-    (
-        re.compile(r"\bCREATIVE\s+COMMONS\b", re.IGNORECASE),
-        "UNKNOWN CC legal tool",
-    ),
-]
-
+BASE_URL = "https://oaipmh.arxiv.org/oai"
+# Defaults should result in quick operation (not complete operation)
 # ArXiv Categories - manually curated from ArXiv official taxonomy
 # Source: https://arxiv.org/category_taxonomy
 CATEGORIES = {
@@ -248,8 +195,9 @@ CATEGORIES = {
     "nucl-th": "Nuclear Theory",
     "quant-ph": "Quantum Physics",
 }
-
-# File Paths
+DEFAULT_FETCH_LIMIT = 1000
+DEFAULT_YEARS_BACK = 5
+# CSV file paths
 FILE_ARXIV_AUTHOR_BUCKET = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_4_count_by_author_bucket.csv"
 )
@@ -260,12 +208,19 @@ FILE_ARXIV_COUNT = shared.path_join(PATHS["data_1-fetch"], "arxiv_1_count.csv")
 FILE_ARXIV_YEAR = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_3_count_by_year.csv"
 )
-# records metadata for each run for audit, reproducibility, and provenance
 FILE_PROVENANCE = shared.path_join(
     PATHS["data_1-fetch"], "arxiv_provenance.yaml"
 )
-
-# Runtime variables
+# CSV headers
+HEADER_AUTHOR_BUCKET = ["TOOL_IDENTIFIER", "AUTHOR_BUCKET", "COUNT"]
+HEADER_CATEGORY_REPORT = [
+    "TOOL_IDENTIFIER",
+    "CATEGORY_CODE",
+    "CATEGORY_LABEL",
+    "COUNT",
+]
+HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
+HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
 
@@ -273,25 +228,12 @@ QUARTER = os.path.basename(PATHS["data_quarter"])
 def parse_arguments():
     """Parse command-line options, returns parsed argument namespace.
 
-    Note: The --limit parameter sets the total number of papers to fetch
-    across all search queries, not per query. ArXiv API recommends
-    maximum of 30000 results per session for optimal performance.
+    Note: The --limit parameter sets the total number of articles to fetch.
+    The --years-back parameter limits harvesting to recent years where
+    CC licensing is more common.
     """
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=DEFAULT_FETCH_LIMIT,
-        help=(
-            f"Total limit of papers to fetch across all search queries "
-            f"(default: {DEFAULT_FETCH_LIMIT}). Maximum recommended: 30000. "
-            f"Note: Individual queries limited to 500 results "
-            f"(implementation choice). "
-            f"See ArXiv API documentation: "
-            f"https://info.arxiv.org/help/api/user-manual.html"
-        ),
-    )
     parser.add_argument(
         "--enable-save",
         action="store_true",
@@ -302,9 +244,46 @@ def parse_arguments():
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=DEFAULT_FETCH_LIMIT,
+        help=(
+            "Limit number of fetched articles (default:"
+            f" {DEFAULT_FETCH_LIMIT}). Use a value of -1 to remove limit."
+        ),
+    )
+    parser.add_argument(
+        "--years-back",
+        type=int,
+        default=DEFAULT_YEARS_BACK,
+        help=(
+            "Number of years back from current year to fetch (default:"
+            f" {DEFAULT_YEARS_BACK}). Use a value of -1 to specify 2008-02-05"
+            " (first date a CC licensed article was added)."
+        ),
+    )
+
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
+    # Restrict args.years_back to earliest datetime and initialize
+    # args.from_date
+    #
+    # Survey of records indicated the first CC licenced article was added on
+    # 2008-02-05
+    earliest_date = datetime(2008, 2, 5, tzinfo=timezone.utc)
+    this_year = datetime.now(timezone.utc).year
+    if args.years_back == -1:
+        arg_date = earliest_date
+    else:
+        start_year = this_year - args.years_back
+        arg_date = datetime(start_year, 1, 1, tzinfo=timezone.utc)
+        if arg_date < earliest_date:
+            arg_date = earliest_date
+    args.from_date = arg_date.strftime("%Y-%m-%d")
+    args.years_back = this_year - arg_date.year
+
     return args
 
 
@@ -333,196 +312,134 @@ def initialize_all_data_files(args):
     initialize_data_file(FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET)
 
 
-def normalize_license_text(raw_text):
+def get_license_mapping():
+    global LICENSE_MAPPING
+    LOGGER.info("Loading CC Legal Tool metadata for license mapping")
+    file_path = shared.path_join(PATHS["data"], "cc-legal-tools.csv")
+    license_mapping = {}
+    with open(file_path, "r", encoding="utf-8") as file_obj:
+        rows = csv.DictReader(file_obj, dialect="unix")
+        for row in rows:
+            simple_url = row["CANONICAL_URL"].replace("https://", "")
+            simple_url = simple_url.rstrip("/")
+            identifier = row["IDENTIFIER"]
+            license_mapping[simple_url] = identifier
+
+    # Add legacy entry
+    simple_url = "creativecommons.org/licenses/publicdomain"
+    license_mapping[simple_url] = "CERTIFICATION 1.0 US"
+
+    LICENSE_MAPPING = dict(
+        sorted(license_mapping.items(), key=lambda item: item[1])
+    )
+
+
+def extract_record_license(record):
     """
-    Convert raw license text to standardized CC license identifiers.
-
-    Uses regex patterns to identify CC licenses from paper text.
-    Returns specific license (e.g., "CC BY", "CC0") or "Unknown".
+    Extract CC license information from OAI-PMH XML record.
+    Returns normalized license identifier or specific error indicator.
     """
-    if not raw_text:
-        return "Unknown"
+    # Find license element in arXiv namespace
+    license_element = record.find(".//{http://arxiv.org/OAI/arXiv/}license")
 
-    for pattern, license_type in CC_PATTERNS:
-        if pattern.search(raw_text):
-            return license_type
+    if license_element is not None and license_element.text:
+        license_url = license_element.text.strip()
+        simple_url = copy(license_url).replace("http://", "")
+        simple_url = simple_url.replace("https://", "")
+        simple_url = simple_url.rstrip("/")
+        # Check exact mapping first
+        if simple_url in LICENSE_MAPPING:
+            return LICENSE_MAPPING[simple_url]
+        # Validate CC URLs more strictly
+        elif "creativecommons.org" in license_url.lower():
+            return f"CC (ambiguous): {license_url}"
+        else:
+            return "Non-CC"
+    else:
+        return "No license field"
 
-    return "Unknown"
 
-
-def extract_license_info(entry):
+def extract_record_metadata(record):
     """
-    Extract CC license information from ArXiv paper entry.
+    Extract paper metadata from OAI-PMH XML record.
 
-    Checks rights field first, then summary field for license patterns.
-    Returns normalized license identifier or "Unknown".
+    Returns dict with author_count, category, year, and license info.
     """
-    # checking through the rights field first then summary
-    if hasattr(entry, "rights") and entry.rights:
-        license_info = normalize_license_text(entry.rights)
-        if license_info != "Unknown":
-            return license_info
-    if hasattr(entry, "summary") and entry.summary:
-        license_info = normalize_license_text(entry.summary)
-        if license_info != "Unknown":
-            return license_info
-    return "Unknown"
 
+    # Extract license first to avoid unnecessary work
+    license_info = extract_record_license(record)
+    if not license_info.startswith("CC"):
+        return {}
 
-def extract_category_from_entry(entry):
-    """Extract primary category from ArXiv entry."""
-    if (
-        hasattr(entry, "arxiv_primary_category")
-        and entry.arxiv_primary_category
-    ):
-        return entry.arxiv_primary_category.get("term", "Unknown")
-    if hasattr(entry, "tags") and entry.tags:
-        # Get first category from tags
-        for tag in entry.tags:
-            if hasattr(tag, "term"):
-                return tag.term
-    return "Unknown"
+    #  # Extract added on
+    #  added_on_elem = record.find(
+    #      ".//{http://www.openarchives.org/OAI/2.0/}datestamp"
+    #  )
+    #  if added_on_elem is not None and added_on_elem.text:
+    #      added_on = added_on_elem.text.strip()
 
+    # Extract author count
+    authors = record.findall(".//{http://arxiv.org/OAI/arXiv/}author")
+    author_count = len(authors) if authors else 0
 
-def extract_year_from_entry(entry):
-    """Extract publication year from ArXiv entry."""
-    if hasattr(entry, "published") and entry.published:
+    # Extract category (primary category from categories field)
+    categories_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}categories")
+    if categories_elem is not None and categories_elem.text:
+        # Take first category as primary
+        category = categories_elem.text.strip().split()[0]
+    else:
+        category = "Unknown"
+
+    # Extract year from 1) updated, 2) created
+    updated_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}updated")
+    if updated_elem is not None and updated_elem.text:
         try:
-            return entry.published[:4]  # Extract year from date string
+            year = updated_elem.text.strip()[:4]  # Extract year
         except (AttributeError, IndexError) as e:
-            LOGGER.debug(
-                f"Failed to extract year from '{entry.published}': {e}"
+            LOGGER.error(
+                f"Failed to extract year from '{updated_elem.text}': {e}"
             )
-    return "Unknown"
+            year = "Unknown"
+    else:
+        created_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}created")
+        if created_elem is not None and created_elem.text:
+            try:
+                year = created_elem.text.strip()[:4]  # Extract year
+            except (AttributeError, IndexError) as e:
+                LOGGER.error(
+                    f"Failed to extract year from '{created_elem.text}': {e}"
+                )
+                year = "Unknown"
+        else:
+            year = "Unknown"
+
+    metadata = {
+        #  "added_on": added_on,
+        "author_count": author_count,
+        "category": category,
+        "license": license_info,
+        "year": year,
+    }
+    return metadata
 
 
-def extract_author_count_from_entry(entry):
-    """Extract number of authors from ArXiv entry."""
-    if hasattr(entry, "authors") and entry.authors:
-        try:
-            return len(entry.authors)
-        except Exception as e:
-            LOGGER.debug(f"Failed to count authors from entry.authors: {e}")
-    if hasattr(entry, "author") and entry.author:
-        return 1
-    return "Unknown"
-
-
-def bucket_author_count(n):
+def bucket_author_count(author_count):
     """
-    Convert author count to predefined buckets for analysis.
-
-    Buckets: "1", "2", "3", "4", "5+", "Unknown"
-    Reduces granularity for better statistical analysis.
+    Convert author count to predefined buckets: "1", "2", "3", "4", "5+".
     """
-    if n == 1:
-        return "1"
-    if n == 2:
-        return "2"
-    if n == 3:
-        return "3"
-    if n == 4:
-        return "4"
-    if n >= 5:
-        return "5+"
-    return "Unknown"
+    if author_count <= 4:
+        return str(author_count)
+    return "5+"
 
 
-def save_count_data(
-    license_counts, category_counts, year_counts, author_counts
-):
+def query_arxiv(args, session):
     """
-    Save all collected data to CSV files.
-
+    Query ArXiv OAI-PMH API and return information about CC licensed articles.
     """
-    # license_counts: {license: count}
-    # category_counts: {license: {category_code: count}}
-    # year_counts: {license: {year: count}}
-    # author_counts: {license: {author_count(int|None): count}}
-
-    # Save license counts
-    data = []
-    for lic, c in license_counts.items():
-        data.append({"TOOL_IDENTIFIER": lic, "COUNT": c})
-    data.sort(key=itemgetter("TOOL_IDENTIFIER"))
-    with open(FILE_ARXIV_COUNT, "w", encoding="utf-8", newline="\n") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_COUNT, dialect="unix")
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-    # Save category report with labels
-    data = []
-    for lic, cats in category_counts.items():
-        for code, c in cats.items():
-            label = CATEGORIES.get(code, code)
-            data.append(
-                {
-                    "TOOL_IDENTIFIER": lic,
-                    "CATEGORY_CODE": code,
-                    "CATEGORY_LABEL": label,
-                    "COUNT": c,
-                }
-            )
-    data.sort(key=itemgetter("TOOL_IDENTIFIER", "CATEGORY_CODE"))
-    with open(
-        FILE_ARXIV_CATEGORY_REPORT, "w", encoding="utf-8", newline="\n"
-    ) as fh:
-        writer = csv.DictWriter(
-            fh, fieldnames=HEADER_CATEGORY_REPORT, dialect="unix"
-        )
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-    # Save year counts
-    data = []
-    for lic, years in year_counts.items():
-        for year, c in years.items():
-            data.append({"TOOL_IDENTIFIER": lic, "YEAR": year, "COUNT": c})
-    data.sort(key=itemgetter("TOOL_IDENTIFIER", "YEAR"))
-    with open(FILE_ARXIV_YEAR, "w", encoding="utf-8", newline="\n") as fh:
-        writer = csv.DictWriter(fh, fieldnames=HEADER_YEAR, dialect="unix")
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-    # Save author buckets summary
-    data = []
-    for lic, acs in author_counts.items():
-        # build buckets across licenses
-        bucket_counts = Counter()
-        for ac, c in acs.items():
-            b = bucket_author_count(ac)
-            bucket_counts[b] += c
-        for b, c in bucket_counts.items():
-            data.append(
-                {"TOOL_IDENTIFIER": lic, "AUTHOR_BUCKET": b, "COUNT": c}
-            )
-    data.sort(key=itemgetter("TOOL_IDENTIFIER", "AUTHOR_BUCKET"))
-    with open(
-        FILE_ARXIV_AUTHOR_BUCKET, "w", encoding="utf-8", newline="\n"
-    ) as fh:
-        writer = csv.DictWriter(
-            fh, fieldnames=HEADER_AUTHOR_BUCKET, dialect="unix"
-        )
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-
-def query_arxiv(args):
-    """
-    Main function to query ArXiv API and collect CC license data.
-
-    """
-
-    LOGGER.info("Beginning to fetch results from ArXiv API")
-    session = shared.get_session()
-
-    results_per_iteration = 50
-
-    search_queries = SEARCH_QUERIES
+    LOGGER.info(
+        f"Querying articles from {args.from_date} onwards ({args.years_back}"
+        " years back)"
+    )
 
     # Data structures for counting
     license_counts = defaultdict(int)
@@ -530,116 +447,249 @@ def query_arxiv(args):
     year_counts = defaultdict(lambda: defaultdict(int))
     author_counts = defaultdict(lambda: defaultdict(int))
 
+    batch = 1
     total_fetched = 0
+    cc_articles_found = 0
+    #  min_added_on = False
+    resumption_token = None
 
-    for search_query in search_queries:
-        if total_fetched >= args.limit:
-            break
+    # Proceed is set to False when limit reached or end of records (missing
+    # resumption token)
+    proceed = True
+    while proceed:
+        if resumption_token:
+            # Continue with resumption token
+            query_params = {
+                "verb": "ListRecords",
+                "resumptionToken": resumption_token,
+            }
+            verb = "resuming"
+        else:
+            # Initial request with date range
+            query_params = {
+                "verb": "ListRecords",
+                "metadataPrefix": "arXiv",
+                "from": args.from_date,
+            }
+            verb = "starting"
 
-        LOGGER.info(f"Searching for: {search_query}")
-        papers_found_for_query = 0
+        # Make API request
+        LOGGER.info(
+            f"Fetching batch {batch} {verb} from record {total_fetched}"
+        )
+        batch += 1
 
-        for start in range(
-            0,
-            min(args.limit - total_fetched, 500),
-            results_per_iteration,
-        ):
-            encoded_query = urllib.parse.quote_plus(search_query)
-            query = (
-                f"search_query={encoded_query}&start={start}"
-                f"&max_results={results_per_iteration}"
+        try:
+            # Build OAI-PMH request URL
+            response = session.get(BASE_URL, params=query_params, timeout=60)
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
+        except requests.RequestException as e:
+            raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+
+        root = etree.fromstring(response.content)
+
+        # Check for errors
+        error_element = root.find(
+            ".//{http://www.openarchives.org/OAI/2.0/}error"
+        )
+        if error_element is not None:
+            raise shared.QuantifyingException(
+                f"OAI-PMH Error: {error_element.text}", 1
             )
 
-            papers_found_in_batch = 0
-
-            try:
-                LOGGER.info(
-                    f"Fetching results {start} - "
-                    f"{start + results_per_iteration}"
-                )
-                response = session.get(BASE_URL + query, timeout=30)
-                response.raise_for_status()
-                feed = feedparser.parse(response.content)
-
-                for entry in feed.entries:
-                    if total_fetched >= args.limit:
-                        break
-
-                    license_info = extract_license_info(entry)
-
-                    if license_info != "Unknown":
-
-                        category = extract_category_from_entry(entry)
-                        year = extract_year_from_entry(entry)
-                        author_count = extract_author_count_from_entry(entry)
-
-                        # Count by license
-                        license_counts[license_info] += 1
-
-                        # Count by category and license
-                        category_counts[license_info][category] += 1
-
-                        # Count by year and license
-                        year_counts[license_info][year] += 1
-
-                        # Count by author count and license
-                        author_counts[license_info][author_count] += 1
-
-                        total_fetched += 1
-                        papers_found_in_batch += 1
-                        papers_found_for_query += 1
-
-                # arXiv recommends a 3-seconds delay between consecutive
-                # api calls for efficiency
-                time.sleep(3)
-            except requests.HTTPError as e:
-                raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
-            except requests.RequestException as e:
-                raise shared.QuantifyingException(f"Request Exception: {e}", 1)
-            except KeyError as e:
-                raise shared.QuantifyingException(f"KeyError: {e}", 1)
-
-            if papers_found_in_batch == 0:
+        # Process batch of article records
+        records = root.findall(
+            ".//{http://www.openarchives.org/OAI/2.0/}record"
+        )
+        batch_cc_count = 0
+        for record in records:
+            if args.limit > 0 and args.limit <= total_fetched:
+                proceed = False
                 break
+            total_fetched += 1
+
+            metadata = extract_record_metadata(record)
+            if not metadata:  # Only true for CC licensed articles
+                continue
+
+            #  added_on = metadata["added_on"]
+            #  if not min_added_on or added_on < min_added_on:
+            #      min_added_on = added_on
+
+            license_info = metadata["license"]
+
+            # Count by author count and license
+            author_count = metadata["author_count"]
+            author_counts[license_info][author_count] += 1
+
+            # Count by category and license
+            category = metadata["category"]
+            category_counts[license_info][category] += 1
+
+            # Count by license
+            license_counts[license_info] += 1
+
+            # Count by year and license
+            year = metadata["year"]
+            year_counts[license_info][year] += 1
+
+            batch_cc_count += 1
+            cc_articles_found += 1
+
+        #  if min_added_on:
+        #      LOGGER.info(f"  Earliest CC article addition: {min_added_on}")
 
         LOGGER.info(
-            f"Query '{search_query}' completed: "
-            f"{papers_found_for_query} papers found"
+            f"  Batch CC licensed articles: {batch_cc_count}, Total"
+            f" CC-licensed articles: {cc_articles_found}"
         )
 
-    # Save results
-    if args.enable_save:
-        save_count_data(
-            license_counts, category_counts, year_counts, author_counts
+        # Check for resumption token
+        resumption_element = root.find(
+            ".//{http://www.openarchives.org/OAI/2.0/}resumptionToken"
         )
+        if not proceed:
+            break
+        elif resumption_element is not None and resumption_element.text:
+            resumption_token = resumption_element.text
+        else:
+            LOGGER.info("No more records available")
+            proceed = False
+            break
 
-    # save provenance
+        # OAI-PMH requires a 3 second delay between requests
+        # https://info.arxiv.org/help/api/tou.html#rate-limits
+        time.sleep(3)
+
+    data = {
+        "author_counts": author_counts,
+        "category_counts": category_counts,
+        "license_counts": license_counts,
+        "year_counts": year_counts,
+    }
+    return data, cc_articles_found
+
+
+def rows_to_csv(args, fieldnames, rows, file_path):
+    if not args.enable_save:
+        return args
+
+    with open(file_path, "w", encoding="utf-8", newline="\n") as file_handle:
+        writer = csv.DictWriter(
+            file_handle, fieldnames=fieldnames, dialect="unix"
+        )
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+
+
+def write_data(args, data):
+    """
+    Write fetched data to CSV files.
+    """
+    # Save author buckets report
+    # fetched_data["author_counts"]: {license: {author_count: count}}
+    rows = []
+    for license_name, author_count_data in data["author_counts"].items():
+        # build buckets across licenses
+        bucket_counts = Counter()
+        for author_count, count in author_count_data.items():
+            bucket = bucket_author_count(author_count)
+            bucket_counts[bucket] += count
+        for bucket, count in bucket_counts.items():
+            rows.append(
+                {
+                    "TOOL_IDENTIFIER": license_name,
+                    "AUTHOR_BUCKET": bucket,
+                    "COUNT": count,
+                }
+            )
+    rows.sort(key=itemgetter("TOOL_IDENTIFIER", "AUTHOR_BUCKET"))
+    rows_to_csv(args, HEADER_AUTHOR_BUCKET, rows, FILE_ARXIV_AUTHOR_BUCKET)
+
+    # Save category report with labels
+    # fetched_data["category_counts"]: {license: {category_code: count}}
+    rows = []
+    for license_name, categories in data["category_counts"].items():
+        for code, count in categories.items():
+            label = CATEGORIES.get(code, code)
+            rows.append(
+                {
+                    "TOOL_IDENTIFIER": license_name,
+                    "CATEGORY_CODE": code,
+                    "CATEGORY_LABEL": label,
+                    "COUNT": count,
+                }
+            )
+    rows.sort(key=itemgetter("TOOL_IDENTIFIER", "CATEGORY_CODE"))
+    rows_to_csv(args, HEADER_CATEGORY_REPORT, rows, FILE_ARXIV_CATEGORY_REPORT)
+
+    # Save license counts report
+    # fetched_data["license_counts"]: {license: count}
+    rows = []
+    for license_name, count in data["license_counts"].items():
+        rows.append({"TOOL_IDENTIFIER": license_name, "COUNT": count})
+    rows.sort(key=itemgetter("TOOL_IDENTIFIER"))
+    rows_to_csv(args, HEADER_COUNT, rows, FILE_ARXIV_COUNT)
+
+    # Save year count report
+    # fetched_data["year_counts"]: {license: {year: count}}
+    rows = []
+    for license_name, years in data["year_counts"].items():
+        for year, count in years.items():
+            rows.append(
+                {"TOOL_IDENTIFIER": license_name, "YEAR": year, "COUNT": count}
+            )
+    rows.sort(key=itemgetter("TOOL_IDENTIFIER", "YEAR"))
+    rows_to_csv(args, HEADER_YEAR, rows, FILE_ARXIV_YEAR)
+
+
+def write_provence(args, cc_articles_found):
+    """
+    Write provenance information to YAML file.
+    """
+    if not args.enable_save:
+        return args
+
+    # Save provenance
+    desc = "Open Archives Initiative Protocol for Metadata Havesting (OAI-PMH)"
     provenance_data = {
-        "total_fetched": total_fetched,
-        "queries": search_queries,
-        "limit": args.limit,
+        "api_description": desc,
+        "api_endpoint": BASE_URL,
+        "arguments": {
+            "from_date": args.from_date,
+            "limit": args.limit,
+            "years_back": args.years_back,
+        },
+        "cc_articles_found": cc_articles_found,
         "quarter": QUARTER,
         "script": os.path.basename(__file__),
     }
 
-    # write provenance YAML for auditing
-    try:
-        with open(FILE_PROVENANCE, "w", encoding="utf-8", newline="\n") as fh:
-            yaml.dump(provenance_data, fh, default_flow_style=False, indent=2)
-    except Exception as e:
-        LOGGER.warning("Failed to write provenance file: %s", e)
-
-    LOGGER.info(f"Total CC licensed papers fetched: {total_fetched}")
+    # Write provenance YAML for auditing
+    with open(
+        FILE_PROVENANCE, "w", encoding="utf-8", newline="\n"
+    ) as file_handle:
+        yaml.dump(
+            provenance_data,
+            file_handle,
+            default_flow_style=False,
+            indent=2,
+        )
 
 
 def main():
-    """Main function."""
-    LOGGER.info("Script execution started.")
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     initialize_all_data_files(args)
-    query_arxiv(args)
+    get_license_mapping()
+    session = shared.get_session()
+    data, cc_articles_found = query_arxiv(args, session)
+    write_data(args, data)
+    write_provence(args, cc_articles_found)
     args = shared.git_add_and_commit(
         args,
         PATHS["repo"],

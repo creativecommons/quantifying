@@ -6,21 +6,28 @@ public domain. Below are the sources and their respective information:
 
 ## arXiv
 
-**Description:** arXiv is a free distribution service and an open-access archive for scholarly articles in physics, mathematics, computer science, quantitative biology, quantitative finance, statistics, electrical engineering and systems science, and economics. All arXiv articles are available under various open licenses or are in the public domain.
+**Description:** arXiv is a free distribution service and an open-access
+archive for scholarly articles in physics, mathematics, computer science,
+quantitative biology, quantitative finance, statistics, electrical engineering
+and systems science, and economics. All arXiv articles are available under
+various open licenses or are in the public domain.
 
 **API documentation link:**
-- [arXiv API User Manual](https://arxiv.org/help/api/user-manual)
-- [arXiv API Reference](https://arxiv.org/help/api)
-- [Base URL](http://export.arxiv.org/api/query)
+- [arXiv OAI-PMH Interface](https://info.arxiv.org/help/oa/index.html)
+- [Base URL (OAI-PMH)](https://oaipmh.arxiv.org/oai)
 - [arXiv Subject Classifications](https://arxiv.org/category_taxonomy)
 - [Terms of Use for arXiv APIs](https://info.arxiv.org/help/api/tou.html)
 
 **API information:**
 - No API key required
 - Query limit: No official limit, but requests should be made responsibly
-- Data available through Atom XML format
-- Supports search by fields: title (ti), author (au), abstract (abs), comment (co), journal reference (jr), subject category (cat), report number (rn), id, all (searches all fields), and submittedDate (date filter)
-- Metadata includes licensing information for each paper
+- **Data format**: OAI-PMH XML format with structured metadata fields
+- **OAI-PMH Interface** (used by `arxiv_fetch.py`):
+  - Structured metadata harvesting with resumption tokens
+  - License information extracted from `{http://arxiv.org/OAI/arXiv/}license` XML field
+  - Recommended 3-second delays between requests
+  - Supports date-based filtering for bulk harvesting
+- Metadata includes comprehensive licensing information for each paper
 
 
 ## CC Legal Tools
