@@ -270,6 +270,8 @@ def extract_record_metadata(args, record):
         metadata["categories"] = categories_elem.text.strip().split()
         for index, code in enumerate(metadata["categories"]):
             metadata["categories"][index] = SUBSUMED_CATEGORIES.get(code, code)
+        metadata["categories"] = list(set(metadata["categories"]))
+        metadata["categories"].sort()
     else:
         metadata["categories"] = False
 
@@ -432,6 +434,8 @@ def query_arxiv(args, session):
             cc_articles_found += 1
 
         if args.show_added and cc_articles_added:
+            cc_articles_added = list(set(cc_articles_added))
+            cc_articles_added.sort()
             LOGGER.info(f"  CC articles added: {', '.join(cc_articles_added)}")
 
         LOGGER.info(
