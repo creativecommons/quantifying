@@ -20,13 +20,8 @@ various open licenses or are in the public domain.
 
 **API information:**
 - No API key required
-- Query limit: No official limit, but requests should be made responsibly
+- Query limit: 3 second delay between requests
 - **Data format**: OAI-PMH XML format with structured metadata fields
-- **OAI-PMH Interface** (used by `arxiv_fetch.py`):
-  - Structured metadata harvesting with resumption tokens
-  - License information extracted from `{http://arxiv.org/OAI/arXiv/}license` XML field
-  - Recommended 3-second delays between requests
-  - Supports date-based filtering for bulk harvesting
 - Metadata includes comprehensive licensing information for each paper
 
 
@@ -58,7 +53,10 @@ the `./dev/update_legal_tools_data.sh` command.
 ## Europeana
 
 **Description:**
-The **Europeana Search API** provides access to digital cultural heritage metadata records aggregated from museums, libraries, and archives across Europe. This project uses the API to fetch aggregated counts of cultural heritage records by data provider, rights statement, and theme.
+The **Europeana Search API** provides access to digital cultural heritage
+metadata records aggregated from museums, libraries, and archives across
+Europe. This project uses the API to fetch aggregated counts of cultural
+heritage records by data provider, rights statement, and theme.
 
 **Official API Documentation:**
 - [Search API Documentation](https://europeana.atlassian.net/wiki/spaces/EF/pages/2385739812/Search+API+Documentation)
