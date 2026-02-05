@@ -2,6 +2,7 @@
 """
 Process Google Custom Search (GCS) data.
 """
+
 # Standard library
 import argparse
 import os

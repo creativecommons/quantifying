@@ -3,6 +3,7 @@
 This file is dedicated to visualizing and analyzing the data collected
 from Wikipedia.
 """
+
 # Standard library
 import argparse
 import os

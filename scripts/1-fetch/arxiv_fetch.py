@@ -3,6 +3,7 @@
 Fetch arXiv articles that use a CC legal tool using the OAI-PMH API.
 OAI-PMH: Open Archives Initiative Protocol for Metadata Havesting.
 """
+
 # Standard library
 import argparse
 import csv
@@ -61,6 +62,26 @@ HEADER_CATEGORY_REPORT = [
 HEADER_COUNT = ["TOOL_IDENTIFIER", "COUNT"]
 HEADER_YEAR = ["TOOL_IDENTIFIER", "YEAR", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
+SUBSUMED_CATEGORIES = {
+    # https://arxiv.org/archive/alg-geom
+    # "The alg-geom archive has been subsumed into Algebraic Geometry
+    # (math.AG)."
+    "alg-geom": "math.AG",
+    # https://arxiv.org/archive/chao-dyn
+    # "The chao-dyn archive has been subsumed into Chaotic Dynamics (nlin.CD)."
+    "chao-dyn": "nlin.CD",
+    # https://arxiv.org/archive/dg-ga
+    # "The dg-ga archive has been subsumed into Differential Geometry
+    # (math.DG)."
+    "dg-ga": "math.DG",
+    # https://arxiv.org/archive/solv-int
+    # "The solv-int archive has been subsumed into Exactly Solvable and
+    # Integrable Systems (nlin.SI)."
+    "solv-int": "nlin.SI",
+    # https://arxiv.org/archive/q-alg
+    # "The q-alg archive has been subsumed into Quantum Algebra (math.QA)."
+    "q-alg": "math.QA",
+}
 
 
 # parsing arguments function
@@ -247,6 +268,10 @@ def extract_record_metadata(args, record):
     categories_elem = record.find(".//{http://arxiv.org/OAI/arXiv/}categories")
     if categories_elem is not None and categories_elem.text:
         metadata["categories"] = categories_elem.text.strip().split()
+        for index, code in enumerate(metadata["categories"]):
+            metadata["categories"][index] = SUBSUMED_CATEGORIES.get(code, code)
+        metadata["categories"] = list(set(metadata["categories"]))
+        metadata["categories"].sort()
     else:
         metadata["categories"] = False
 
@@ -409,6 +434,8 @@ def query_arxiv(args, session):
             cc_articles_found += 1
 
         if args.show_added and cc_articles_added:
+            cc_articles_added = list(set(cc_articles_added))
+            cc_articles_added.sort()
             LOGGER.info(f"  CC articles added: {', '.join(cc_articles_added)}")
 
         LOGGER.info(
