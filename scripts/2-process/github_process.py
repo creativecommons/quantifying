@@ -3,15 +3,14 @@
 This file is dedicated to processing GitHub data
 for analysis and comparison between quarters.
 """
+
 # Standard library
 import argparse
-import csv
 import os
 import sys
 import traceback
 
 # Third-party
-# import pandas as pd
 import pandas as pd
 
 # Add parent directory so shared can be imported
@@ -25,12 +24,17 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
+FILE_PATHS = [
+    shared.path_join(PATHS["data_phase"], "github_totals_by_license.csv"),
+    shared.path_join(PATHS["data_phase"], "github_totals_by_restriction.csv"),
+]
 
 
 def parse_arguments():
     """
     Parse command-line options, returns parsed argument namespace.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -49,25 +53,25 @@ def parse_arguments():
         help="Enable git actions such as fetch, merge, add, commit, and push"
         " (default: False)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if processed files already exist",
+    )
+
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
-        global PATHS
+        global FILE_PATHS, PATHS
+        FILE_PATHS = shared.paths_list_update(
+            LOGGER, FILE_PATHS, QUARTER, args.quarter
+        )
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
-
-
-def data_to_csv(args, data, file_path):
-    if not args.enable_save:
-        return
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-    # emulate csv.unix_dialect
-    data.to_csv(
-        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
-    )
 
 
 def process_totals_by_license(args, count_data):
@@ -92,7 +96,7 @@ def process_totals_by_license(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_license.csv"
     )
-    data_to_csv(args, data, file_path)
+    shared.data_to_csv(args, data, file_path)
 
 
 def process_totals_by_restriction(args, count_data):
@@ -126,59 +130,18 @@ def process_totals_by_restriction(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "github_totals_by_restriction.csv"
     )
-    data_to_csv(args, data, file_path)
-
-
-# def load_quarter_data(quarter):
-#     """
-#     Load data for a specific quarter.
-#     """
-#     file_path = os.path.join(PATHS["data"], f"{quarter}",
-#       "1-fetch", "github_fetched")
-#     if not os.path.exists(file_path):
-#         LOGGER.error(f"Data file for quarter {quarter} not found.")
-#         return None
-#     return pd.read_csv(file_path)
-
-
-# def compare_data(current_quarter, previous_quarter):
-#     """
-#     Compare data between two quarters.
-#     """
-#     current_data = load_quarter_data(current_quarter)
-#     previous_data = load_quarter_data(previous_quarter)
-
-#     if current_data is None or previous_data is None:
-#         return
-
-#     Process data to compare totals
-
-
-# def parse_arguments():
-#     """
-#     Parses command-line arguments, returns parsed arguments.
-#     """
-#     LOGGER.info("Parsing command-line arguments")
-#     parser = argparse.ArgumentParser(
-#       description="Google Custom Search Comparison Report")
-#     parser.add_argument(
-#         "--current_quarter", type=str, required=True,
-#       help="Current quarter for comparison (e.g., 2024Q3)"
-#     )
-#     parser.add_argument(
-#         "--previous_quarter", type=str, required=True,
-#           help="Previous quarter for comparison (e.g., 2024Q2)"
-#     )
-#     return parser.parse_args()
+    shared.data_to_csv(args, data, file_path)
 
 
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-
+    shared.check_completion_file_exists(args, FILE_PATHS)
     file_count = shared.path_join(PATHS["data_1-fetch"], "github_1_count.csv")
-    count_data = pd.read_csv(file_count, usecols=["TOOL_IDENTIFIER", "COUNT"])
+    count_data = shared.open_data_file(
+        LOGGER, file_count, usecols=["TOOL_IDENTIFIER", "COUNT"]
+    )
     process_totals_by_license(args, count_data)
     process_totals_by_restriction(args, count_data)
 
@@ -200,7 +163,7 @@ if __name__ == "__main__":
             LOGGER.info(e.message)
         else:
             LOGGER.error(e.message)
-        sys.exit(e.code)
+        sys.exit(e.exit_code)
     except SystemExit as e:
         LOGGER.error(f"System exit with code: {e.code}")
         sys.exit(e.code)

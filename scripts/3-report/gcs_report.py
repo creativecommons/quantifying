@@ -3,15 +3,16 @@
 This file is dedicated to visualizing and analyzing the data collected
 from Google Custom Search (GCS).
 """
+
 # Standard library
 import argparse
 import os
 import sys
 import textwrap
 import traceback
+from pathlib import Path
 
 # Third-party
-import pandas as pd
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -28,13 +29,15 @@ LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "Google Custom Search (GCS)"
+SECTION_FILE = Path(__file__).name
+SECTION_TITLE = "Google Custom Search (GCS)"
 
 
 def parse_arguments():
     """
     Parses command-line arguments, returns parsed arguments.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line arguments")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -58,12 +61,18 @@ def parse_arguments():
         help="Enable git actions such as fetch, merge, add, commit, and push"
         " (default: False)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if report files exist",
+    )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
         global PATHS
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
@@ -80,11 +89,12 @@ def gcs_intro(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     total_count = f"{data['Count'].sum():,d}"
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         "Overview",
         None,
         None,
@@ -92,7 +102,7 @@ def gcs_intro(args):
         " API for search queries of the legal tool URLs (quoted and using"
         " `linkSite` for accuracy), countries codes, and language codes.\n"
         "\n"
-        f"**The results indicate there are a total of {total_count} online"
+        f"**The results indicate there are approximately {total_count} online"
         " works in the commons--documents that are licensed or put in the"
         " public domain using a Creative Commons (CC) legal tool.**\n"
         "\n"
@@ -111,7 +121,8 @@ def plot_products(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+
     data = data[::-1]  # reverse order
 
     title = "Products totals and percentages"
@@ -137,7 +148,8 @@ def plot_products(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing Creative Commons (CC) legal tool product totals and"
@@ -156,7 +168,7 @@ def plot_tool_status(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "CC legal tools status"
@@ -180,7 +192,8 @@ def plot_tool_status(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing Creative Commons (CC) legal tool status totals and"
@@ -199,7 +212,7 @@ def plot_latest_tools(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Latest CC legal tools"
@@ -223,7 +236,8 @@ def plot_latest_tools(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing latest Creative Commons (CC) legal tool totals and"
@@ -241,7 +255,7 @@ def plot_prior_tools(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Prior CC legal tools"
@@ -265,7 +279,8 @@ def plot_prior_tools(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing prior Creative Commons (CC) legal tool totals and"
@@ -286,7 +301,7 @@ def plot_retired_tools(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Retired CC legal tools"
@@ -311,7 +326,8 @@ def plot_retired_tools(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing retired Creative Commons (CC) legal tools total and"
@@ -332,7 +348,7 @@ def plot_countries_highest_usage(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Country"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     total_count = f"{data['Count'].sum():,d}"
     data.sort_values(data_label, ascending=False, inplace=True)
     data = data[:10]  # limit to highest 10
@@ -360,7 +376,8 @@ def plot_countries_highest_usage(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing countries with the highest useage of the latest"
@@ -385,7 +402,7 @@ def plot_languages_highest_usage(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Language"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     total_count = f"{data['Count'].sum():,d}"
     data.sort_values(data_label, ascending=False, inplace=True)
     data = data[:10]  # limit to highest 10
@@ -413,7 +430,8 @@ def plot_languages_highest_usage(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing languages with the highest useage of the latest"
@@ -439,7 +457,7 @@ def plot_free_culture(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Category"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
 
     title = "Approved for Free Cultural Works"
     plt = plot.combined_plot(
@@ -460,7 +478,8 @@ def plot_free_culture(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing Approved for Free Cultural Works legal tool usage.",
@@ -480,7 +499,8 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-
+    last_entry = shared.path_join(PATHS["data_phase"], "gcs_free_culture.png")
+    shared.check_completion_file_exists(args, last_entry)
     gcs_intro(args)
     plot_products(args)
     plot_tool_status(args)
