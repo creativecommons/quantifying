@@ -143,7 +143,6 @@ Quantifying/
 │   │   │   └── README.md  # All generated reports are displayed in the README
 │   └── ...
 ├── dev/
-├── pre-automation/  # All Quantifying work prior to adding automation system
 ├── scripts/  # Run scripts for all phases
 │   ├── 1-fetch/
 │   ├── 2-process/
@@ -227,6 +226,13 @@ pipenv run ./scripts/1-fetch/github_fetch.py -h
 When run this way, the shared library (`scripts/shared.py`) provides easy access
 to all of the necessary paths and all of the modules managed by pipenv are
 available.
+
+In order for scripts to be run directly (as shown above), the script must be
+executable. For more information on making files executable, please see:
+[File Permissions - Foundational technologies — Creative Commons Open
+Source][file-perms].
+
+[file-perms]: https://opensource.creativecommons.org/contributing-code/foundational-tech/#file-permissions
 
 
 ### Static analysis

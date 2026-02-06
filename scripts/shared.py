@@ -1,4 +1,5 @@
 # Standard library
+import csv
 import logging
 import os
 import sys
@@ -34,6 +35,34 @@ class QuantifyingException(Exception):
         self.exit_code = exit_code if exit_code is not None else 1
         self.message = message
         super().__init__(self.message)
+
+
+def data_to_csv(args, data, file_path):
+    if not args.enable_save:
+        return
+    os.makedirs(args.paths["data_phase"], exist_ok=True)
+    # emulate csv.unix_dialect
+    data.to_csv(
+        file_path, index=False, quoting=csv.QUOTE_ALL, lineterminator="\n"
+    )
+
+
+def check_completion_file_exists(args, file_paths):
+    """ "
+    This function checks if expected output files
+    exists. If any exist and --force is not provided,
+    the script exits early by raising a QuantifyingException.
+    In the case of a report file, we check if last output exists.
+    """
+    if args.force:
+        return
+    if isinstance(file_paths, str):
+        file_paths = [file_paths]
+    for path in file_paths:
+        if os.path.exists(path):
+            raise QuantifyingException(
+                f"Output files already exists for {args.quarter}", 0
+            )
 
 
 def get_session(accept_header=None, session=None):
@@ -197,6 +226,13 @@ def paths_update(logger, paths, old_quarter, new_quarter):
     return paths
 
 
+def paths_list_update(logger, paths_list, old_quarter, new_quarter):
+    logger.info(f"Updating paths: replacing {old_quarter} with {new_quarter}")
+    for index, path in enumerate(paths_list):
+        paths_list[index] = path.replace(old_quarter, new_quarter)
+    return paths_list
+
+
 class ColoredFormatter(logging.Formatter):
     """Adds colors to log messages."""
 
@@ -251,7 +287,6 @@ def setup(current_file):
     # Paths
     paths = {}
     paths["repo"] = os.path.dirname(path_join(__file__, ".."))
-    paths["dotenv"] = path_join(paths["repo"], ".env")
     paths["data"] = os.path.dirname(
         os.path.abspath(os.path.realpath(current_file))
     )
@@ -269,8 +304,16 @@ def setup(current_file):
     return logger, paths
 
 
+def section_order():
+    report_dir = os.path.join(os.path.dirname(__file__), "3-report")
+    report_files = os.listdir(report_dir)
+    report_files.sort()
+    return report_files
+
+
 def update_readme(
     args,
+    section_file,
     section_title,
     entry_title,
     image_path,
@@ -280,6 +323,12 @@ def update_readme(
     """
     Update the README.md file with the generated images and descriptions.
     """
+    logger = args.logger
+    paths = args.paths
+    ordered_sections = section_order()
+    logger.info(f"ordered_sections: {ordered_sections}")
+    logger.info(f"section_title: {section_title}")
+
     if not args.enable_save:
         return
     if image_path and not image_caption:
@@ -293,18 +342,15 @@ def update_readme(
             " caption is provided"
         )
 
-    logger = args.logger
-    paths = args.paths
-
     readme_path = path_join(paths["data"], args.quarter, "README.md")
 
     # Define section markers for each data source
-    section_start_line = f"<!-- {section_title} Start -->\n"
-    section_end_line = f"<!-- {section_title} End -->\n"
+    section_start_line = f"<!-- SECTION start {section_file} -->\n"
+    section_end_line = f"<!-- SECTION end {section_file} -->\n"
 
     # Define entry markers for each plot (optional) and description
-    entry_start_line = f"<!-- {entry_title} Start -->\n"
-    entry_end_line = f"<!-- {entry_title} End -->\n"
+    entry_start_line = f"<!-- {section_file} entry start {entry_title} -->\n"
+    entry_end_line = f"<!-- {section_file} entry end {entry_title} -->\n"
 
     if os.path.exists(readme_path):
         with open(readme_path, "r", encoding="utf-8") as f:
@@ -318,26 +364,39 @@ def update_readme(
         lines.insert(0, title_line)
         lines.insert(1, "\n")
 
-    # We only need to know the position of the end to append new entries
+    # Locate the data source section if it is already present
     if section_start_line in lines:
-        # Locate the data source section if it is already present
         section_end_index = lines.index(section_end_line)
     else:
-        # Add the data source section if it is absent
-        lines.extend(
-            [
-                f"{section_start_line}",
-                "\n",
-                "\n",
-                f"## {section_title}\n",
-                "\n",
-                "\n",
-                f"{section_end_line}",
-                "\n",
-            ]
-        )
-        section_end_index = lines.index(section_end_line)
+        insert_index = None
+        # If not present, we find the position to insert the section
+        current_postion = ordered_sections.index(section_file)
+        # Sections that should come before this section
+        sections_before = ordered_sections[:current_postion]
+        # we find the last existing section that comes before this section
+        for prev_section_title in reversed(sections_before):
+            prev_end_line = f"<!-- SECTION end {prev_section_title} -->\n"
+            if prev_end_line in lines:
+                insert_index = lines.index(prev_end_line) + 1
+                break
 
+        # If none exist, insert at the top (after README title)
+        if insert_index is None:
+            insert_index = 2 if len(lines) >= 2 else len(lines)
+        # Insert the new data source section at correct position
+        new_section_line = [
+            f"{section_start_line}",
+            "\n",
+            "\n",
+            f"## {section_title}\n",
+            "\n",
+            "\n",
+            f"{section_end_line}",
+            "\n",
+        ]
+        # Insert the section at the correct position
+        lines = lines[:insert_index] + new_section_line + lines[insert_index:]
+        section_end_index = lines.index(section_end_line)
     # Locate the entry if it is already present
     if entry_start_line in lines:
         entry_start_index = lines.index(entry_start_line)

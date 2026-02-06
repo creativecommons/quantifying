@@ -19,7 +19,6 @@ from operator import itemgetter
 
 # Third-party
 import requests
-from dotenv import load_dotenv
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -31,7 +30,6 @@ import shared  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
-load_dotenv(PATHS["dotenv"])
 
 # Constants
 EUROPEANA_API_KEY = os.getenv("EUROPEANA_API_KEY")

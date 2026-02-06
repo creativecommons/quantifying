@@ -2,6 +2,7 @@
 """
 Fetch CC Legal Tool usage data from Google Custom Search (GCS) API.
 """
+
 # Standard library
 import argparse
 import csv
@@ -16,7 +17,6 @@ from copy import copy
 
 # Third-party
 import googleapiclient.discovery
-from dotenv import load_dotenv
 from googleapiclient.errors import HttpError
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
@@ -30,9 +30,6 @@ import shared  # noqa: E402
 
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
-
-# Load environment variables
-load_dotenv(PATHS["dotenv"])
 
 # Constants
 BASE_URL = "https://www.googleapis.com/customsearch/v1"

@@ -6,46 +6,57 @@ public domain. Below are the sources and their respective information:
 
 ## arXiv
 
-**Description:** arXiv is a free distribution service and an open-access archive for scholarly articles in physics, mathematics, computer science, quantitative biology, quantitative finance, statistics, electrical engineering and systems science, and economics. All arXiv articles are available under various open licenses or are in the public domain.
+**Description:** arXiv is a free distribution service and an open-access
+archive for scholarly articles in physics, mathematics, computer science,
+quantitative biology, quantitative finance, statistics, electrical engineering
+and systems science, and economics. All arXiv articles are available under
+various open licenses or are in the public domain.
 
 **API documentation link:**
-- [arXiv API User Manual](https://arxiv.org/help/api/user-manual)
-- [arXiv API Reference](https://arxiv.org/help/api)
-- [Base URL](http://export.arxiv.org/api/query)
+- [arXiv OAI-PMH Interface](https://info.arxiv.org/help/oa/index.html)
+- [Base URL (OAI-PMH)](https://oaipmh.arxiv.org/oai)
 - [arXiv Subject Classifications](https://arxiv.org/category_taxonomy)
 - [Terms of Use for arXiv APIs](https://info.arxiv.org/help/api/tou.html)
 
 **API information:**
 - No API key required
-- Query limit: No official limit, but requests should be made responsibly
-- Data available through Atom XML format
-- Supports search by fields: title (ti), author (au), abstract (abs), comment (co), journal reference (jr), subject category (cat), report number (rn), id, all (searches all fields), and submittedDate (date filter)
-- Metadata includes licensing information for each paper
+- Query limit: 3 second delay between requests
+- **Data format**: OAI-PMH XML format with structured metadata fields
+- Metadata includes comprehensive licensing information for each paper
 
 
 ## CC Legal Tools
 
-**Description:** A `.txt` file provided by Timid Robot containing all legal
-tool paths.
+**Description:** [`data/cc-lega-tools.csv`][tools_csv] contains metadata for
+all of the Creative Commons legal tools. The file can easily be updated with
+the `./dev/update_legal_tools_data.sh` command.
 
 **API documentation link:**
-- [`google_custom_search/legal-tool-paths.txt`][tools-paths]: a list of all
-  current Creative Commons (CC) legal tool paths
-- [`data/prioritized-tool-urls.txt`][prioritized-tool-urls]: a prioritized list
-  of all current CC legal tool URLs
+- [creativecommons/cc-legal-tools-data][cc-legal-tools-data]: _Legal tool
+  (licenses, public domain dedication, etc.) data for Creative Commons_
+  - [`config/cc-legal-tools.csv`][gh-data-tools-csv]
 
 **API information:**
 - No API key required
 - No query limits
 
-[tools-paths]:data/legal-tool-paths.txt
-[prioritized-tool-urls]: data/prioritized-tool-urls.txt
+**Additional files:**
+- [`dev/update_legal_tools_data.sh`][dev-cc-data-fetch]: Fetch script to update
+  the CC Legal Tools metadata CSV file
+- [`data/cc-lega-tools.csv`][tools_csv]: CC Legal Tools metadata CSV
+
+[tools_csv]: data/cc-legal-tools.csv
+[cc-legal-tools-data]: https://github.com/creativecommons/cc-legal-tools-data/
+[gh-data-tools-csv]: https://github.com/creativecommons/cc-legal-tools-data/blob/main/config/cc-legal-tools.csv
 
 
 ## Europeana
 
 **Description:**
-The **Europeana Search API** provides access to digital cultural heritage metadata records aggregated from museums, libraries, and archives across Europe. This project uses the API to fetch aggregated counts of cultural heritage records by data provider, rights statement, and theme.
+The **Europeana Search API** provides access to digital cultural heritage
+metadata records aggregated from museums, libraries, and archives across
+Europe. This project uses the API to fetch aggregated counts of cultural
+heritage records by data provider, rights statement, and theme.
 
 **Official API Documentation:**
 - [Search API Documentation](https://europeana.atlassian.net/wiki/spaces/EF/pages/2385739812/Search+API+Documentation)
@@ -145,6 +156,21 @@ license_version breakdown.
 - Supports filtering by source, license, media type (images, audio)
 - Media types: `images`, `audio`
 - Supported licenses: `by`, `by-nc`, `by-nc-nd`, `by-nc-sa`, `by-nd`, `by-sa`, `cc0`, `nc-sampling+`, `pdm`, `sampling+`
+
+
+## Smithsonian
+
+**Description:** The Smithsonian Institution Open Access API offers a metrics
+API for stats about CC0 objects/media.
+
+**API documentation link:**
+- [metrics - Documentation](https://edan.si.edu/openaccess/apidocs/#api-metrics)
+- [Developer Manual - api.data.gov](https://api.data.gov/docs/developer-manual/)
+
+**API information:**
+- API key required
+- Hourly Limit: 1,000 requests per hour
+- Data available in a JSON format
 
 
 ## Wikipedia

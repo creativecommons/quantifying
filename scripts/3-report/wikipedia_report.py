@@ -3,12 +3,14 @@
 This file is dedicated to visualizing and analyzing the data collected
 from Wikipedia.
 """
+
 # Standard library
 import argparse
 import os
 import sys
 import textwrap
 import traceback
+from pathlib import Path
 
 # Third-party
 from pygments import highlight
@@ -25,13 +27,15 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "Wikipedia data"
+SECTION_FILE = Path(__file__).name
+SECTION_TITLE = "Wikipedia"
 
 
 def parse_arguments():
     """
     Parses command-line arguments, returns parsed arguments.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line arguments")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -55,12 +59,18 @@ def parse_arguments():
         help="Enable git actions such as fetch, merge, add, commit, and push"
         " (default: False)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if report files exist",
+    )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
         global PATHS
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
@@ -97,7 +107,8 @@ def wikipedia_intro(args):
     language_count = len(data)
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         "Overview",
         None,
         None,
@@ -155,7 +166,8 @@ def plot_language_representation(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing the language representation across different language"
@@ -200,7 +212,8 @@ def plot_highest_language_usage(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing the most represented languages across the different"
@@ -243,7 +256,8 @@ def plot_least_language_usage(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
         "Plots showing the least represented languages across the different"
@@ -255,6 +269,10 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    last_entry = shared.path_join(
+        PATHS["data_phase"], "wikipedia_least_language_usage.png"
+    )
+    shared.check_completion_file_exists(args, last_entry)
     wikipedia_intro(args)
     plot_language_representation(args)
     plot_highest_language_usage(args)
