@@ -3,6 +3,7 @@
 This file is dedicated to visualizing and analyzing the data collected
 from Smithsonian.
 """
+
 # Standard library
 import argparse
 import os

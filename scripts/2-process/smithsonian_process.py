@@ -3,6 +3,7 @@
 This file is dedicated to processing Smithsonian data
 for analysis and comparison between quarters.
 """
+
 # Standard library
 import argparse
 import os
