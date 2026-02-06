@@ -1,0 +1,7 @@
+api_description: Open Archives Initiative Protocol for Metadata Havesting (OAI-PMH)
+api_endpoint: https://oaipmh.arxiv.org/oai
+cc_articles_found: 679435
+fetch_limit: -1
+from_add_date: '2008-02-05'
+quarter: 2026Q1
+script: arxiv_fetch.py
