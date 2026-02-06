@@ -3,6 +3,7 @@
 This file is dedicated to visualizing and analyzing the data collected
 from GitHub.
 """
+
 # Standard library
 import argparse
 import os
@@ -27,13 +28,14 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
 SECTION_FILE = Path(__file__).name
-SECTION_TITLE = "Github"
+SECTION_TITLE = "GitHub"
 
 
 def parse_arguments():
     """
     Parses command-line arguments, returns parsed arguments.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line arguments")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -60,7 +62,7 @@ def parse_arguments():
     parser.add_argument(
         "--force",
         action="store_true",
-        help="Regenerate data even if images files already exist",
+        help="Regenerate data even if report files exist",
     )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
@@ -68,6 +70,7 @@ def parse_arguments():
     if args.quarter != QUARTER:
         global PATHS
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
@@ -120,7 +123,7 @@ def github_intro(args):
         " many more use a non-CC use a Public domain"
         " equivalent legal tools.\n"
         "\n"
-        " The Github data showcases the different level of"
+        " The GitHub data showcases the different level of"
         " rights reserved on repositories We have Public"
         " domain which includes works released under CC0, 0BSD and Unlicense"
         " meaning developers have waived all their rights to a software."
@@ -243,6 +246,10 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    last_entry = shared.path_join(
+        PATHS["data_phase"], "github_restriction.png"
+    )
+    shared.check_completion_file_exists(args, last_entry)
     github_intro(args)
     plot_totals_by_license_type(args)
     plot_totals_by_restriction(args)

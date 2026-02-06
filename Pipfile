@@ -10,8 +10,11 @@ feedparser = "*"
 GitPython = "*"
 google-api-python-client = "*"
 internetarchive = ">=5.5.1"
+lxml = "*"
 matplotlib = "*"
 pandas = "*"
+protobuf = ">=6.33.5"  # Ensure dependency is secure
+pyasn1 = ">=0.6.2"  # Ensure dependency is secure
 Pygments = "*"
 python-iso639 = "*"
 PyYAML = "*"
