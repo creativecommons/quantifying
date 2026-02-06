@@ -2,6 +2,7 @@
 """
 Fetch CC Legal Tool usage data from Google Custom Search (GCS) API.
 """
+
 # Standard library
 import argparse
 import csv

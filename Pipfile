@@ -8,8 +8,11 @@ cachetools = "*"  # Required by google-api-python-client
 feedparser = "*"
 GitPython = "*"
 google-api-python-client = "*"
+lxml = "*"
 matplotlib = "*"
 pandas = "*"
+protobuf = ">=6.33.5"  # Ensure dependency is secure
+pyasn1 = ">=0.6.2"  # Ensure dependency is secure
 Pygments = "*"
 PyYAML = "*"
 requests = ">=2.31.0"

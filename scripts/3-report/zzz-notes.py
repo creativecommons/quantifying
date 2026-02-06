@@ -2,6 +2,7 @@
 """
 Add project references.
 """
+
 # Standard library
 import argparse
 import os
