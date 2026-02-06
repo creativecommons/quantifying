@@ -147,7 +147,7 @@ def plot_totals_by_top10_units(args):
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data["Total_objects"] = data["Total_objects"].astype(int)
     data.sort_values(data_label, ascending=True, inplace=True)
-    data = data.head(10)
+    data = data.tail(10)
     average_unit = data["Total_objects"].mean()
     title = "Top 10 Units"
     plt = plot.combined_plot(
@@ -159,7 +159,7 @@ def plot_totals_by_top10_units(args):
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "smithsonian_totals_by_unit.png"
+        PATHS["data_phase"], "smithsonian_totals_by_top10_units.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
@@ -197,9 +197,9 @@ def plot_totals_by_lowest10_units(args):
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data["Total_objects"] = data["Total_objects"].astype(int)
     data.sort_values(data_label, ascending=True, inplace=True)
-    data = data.tail(10)
+    data = data.head(10)
     average_unit = data["Total_objects"].mean()
-    title = "Totals by Units"
+    title = "Totals by lowest 10 Units"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -209,7 +209,7 @@ def plot_totals_by_lowest10_units(args):
     )
 
     image_path = shared.path_join(
-        PATHS["data_phase"], "smithsonian_totals_by_unit.png"
+        PATHS["data_phase"], "smithsonian_totals_by_lowest10_unit.png"
     )
     LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
 
