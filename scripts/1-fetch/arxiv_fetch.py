@@ -2,6 +2,9 @@
 """
 Fetch arXiv articles that use a CC legal tool using the OAI-PMH API.
 OAI-PMH: Open Archives Initiative Protocol for Metadata Havesting.
+
+Note: This fetch script is ready to fetch data, but is not ready for
+automation. It currently requires approximately 6 hours to execute.
 """
 
 # Standard library
