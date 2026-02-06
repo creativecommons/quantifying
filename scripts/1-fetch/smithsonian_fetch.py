@@ -46,6 +46,49 @@ HEADER_2_UNITS = [
 ]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
+unit_map = {
+    "AAA": "Archives of American Art",
+    "AAG": "Archives of American Gardens",
+    "ACM": "Anacostia Community Museum",
+    "ACMA": "Anacostia Community Museum Archives",
+    "CFCHFOLKLIFE": "Ralph Rinzler Folklife Archives and Collections",
+    "CHNDM": "Cooper Hewitt, Smithsonian Design Museum",
+    "FBR": "Smithsonian Field Book Project",
+    "FSG": "Freer Gallery of Art and Arthur M. Sackler Gallery",
+    "HAC": "Smithsonian Gardens",
+    "HMSG": "Hirshhorn Museum and Sculpture Garden",
+    "HSFA": "Human Studies Film Archives",
+    "NASM": "National Air and Space Museum",
+    "NMAAHC": "National Museum of African American History and Culture",
+    "NMAH": "National Museum of American History",
+    "NMAI": "National Museum of the American Indian",
+    "NMAfA": "National Museum of African Art",
+    "NMNHANTHRO": "NMNH - Anthropology Dept.",
+    "NMNHBIRDS": "NMNH - Vertebrate Zoology - Birds Division",
+    "NMNHBOTANY": "NMNH - Botany Dept.",
+    "NMNHEDUCATION": "NMNH - Education & Outreach",
+    "NMNHENTO": "NMNH - Entomology Dept.",
+    "NMNHFISHES": "NMNH - Vertebrate Zoology - Fishes Division",
+    "NMNHHERPS": "NMNH - Vertebrate Zoology - Herpetology Division",
+    "NMNHINV": "NMNH - Invertebrate Zoology Dept.",
+    "NMNHMAMMALS": "NMNH - Vertebrate Zoology - Mammals Division",
+    "NMNHMINSCI": "NMNH - Mineral Sciences Dept.",
+    "NMNHPALEO": "NMNH - Paleobiology Dept.",
+    "NPG": "National Portrait Gallery",
+    "NPM": "National Postal Museum",
+    "NZP": "Smithsonian's National Zoo & Conservation Biology Institute",
+    "OCIO_DPO3D": "OCIO Digital Preservation & 3D Team",
+    "OFEO-SG": "Office of Facilities Engineering &"
+    " Operations – Smithsonian Gardens",
+    "SAAM": "Smithsonian American Art Museum",
+    "SIA": "Smithsonian Institution Archives",
+    "SIL": "Smithsonian Libraries",
+    "SILAF": "Smithsonian Institution Libraries, African Section",
+    "SILNMAHTL": "Smithsonian Institution Libraries,"
+    " National Museum of American History, Library",
+    "SLA_SRO": "Smithsonian Libraries Archives, Special Research/Operations",
+}
+
 
 def parse_arguments():
     """
@@ -121,6 +164,33 @@ def write_data(args, data_metrics, data_units):
     return args
 
 
+def fetch_unit_codes(session):
+    LOGGER.info("Fetching current unit codes from Smithsonian API")
+    url = "https://api.si.edu/openaccess/api/v1.0/terms/unit_code"
+    params = {"api_key": DATA_GOV_API_KEY}
+    try:
+        with session.get(url, params=params) as response:
+            response.raise_for_status()
+            api_codes = set(response.json()["response"]["terms"])
+    except requests.HTTPError as e:
+        raise shared.QuantifyingException(f"HTTP Error: {e}", 1)
+    except requests.RequestException as e:
+        raise shared.QuantifyingException(f"Request Exception: {e}", 1)
+    except KeyError as e:
+        raise shared.QuantifyingException(f"KeyError: {e}", 1)
+
+    map_codes = set(unit_map.keys())
+    new_codes = sorted(api_codes - map_codes)
+    removed_codes = sorted(map_codes - api_codes)
+
+    if new_codes:
+        LOGGER.warning(f"New unit code(s) not in unit_map: {new_codes}")
+    if removed_codes:
+        LOGGER.warning(f"unit_map code(s) no longer in API: {removed_codes}")
+    if not new_codes and not removed_codes:
+        LOGGER.info("unit_map is up to date")
+
+
 def query_smithsonian(args, session):
     if not DATA_GOV_API_KEY:
         raise shared.QuantifyingException(
@@ -158,7 +228,7 @@ def query_smithsonian(args, session):
             continue
         data_units.append(
             {
-                "UNIT": unit["unit"],
+                "UNIT": unit_map.get(unit["unit"], unit["unit"]),
                 "CC0_RECORDS": unit["metrics"]["CC0_records"],
                 "CC0_RECORDS_WITH_CC0_MEDIA": unit["metrics"][
                     "CC0_records_with_CC0_media"
@@ -176,6 +246,7 @@ def main():
     shared.paths_log(LOGGER, PATHS)
     check_for_completion()
     session = shared.get_session()
+    fetch_unit_codes(session)
     data_metrics, data_units = query_smithsonian(args, session)
     args = write_data(args, data_metrics, data_units)
     args = shared.git_add_and_commit(

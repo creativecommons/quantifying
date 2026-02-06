@@ -127,12 +127,21 @@ def process_totals_by_records(args, count_data):
         .reset_index()
         .rename(columns={"index": "Unit"})
     )
-    data["CC0_RECORDS_PERCENTAGE"] = (
-        (data["CC0_RECORDS"] / data["TOTAL_OBJECTS"]) * 100
+    data["CC0_WITHOUT_MEDIA_PERCENTAGE"] = (
+        (
+            (data["CC0_RECORDS"] - data["CC0_RECORDS_WITH_CC0_MEDIA"])
+            / data["TOTAL_OBJECTS"]
+        )
+        * 100
     ).round(2)
 
-    data["CC0_RECORDS_WITH_CC0_MEDIA_PERCENTAGE"] = (
+    data["CC0_WITH_MEDIA_PERCENTAGE"] = (
         (data["CC0_RECORDS_WITH_CC0_MEDIA"] / data["TOTAL_OBJECTS"]) * 100
+    ).round(2)
+
+    data["OTHERS_PERCENTAGE"] = (
+        ((data["TOTAL_OBJECTS"] - data["CC0_RECORDS"]) / data["TOTAL_OBJECTS"])
+        * 100
     ).round(2)
 
     data.sort_values("Unit", ascending=True, inplace=True)

@@ -100,13 +100,17 @@ def smithsonian_intro(args):
     """
     LOGGER.info(smithsonian_intro.__doc__.strip())
     file_path = shared.path_join(
-        PATHS["data_1-fetch"],
-        "smithsonian_1_metrics.csv",
+        PATHS["data_2-process"],
+        "smithsonian_totals_by_records.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
-    # name_label = "UNIT"
-    # data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
-    # data.sort_values(name_label, ascending=True, inplace=True)
+    data = shared.open_data_file(LOGGER, file_path)
+    total_objects = data["TOTAL_OBJECTS"].sum()
+    cc0_records = data["CC0_RECORDS"].sum()
+    cc0_records_with_media = data["CC0_RECORDS_WITH_CC0_MEDIA"].sum()
+    cc0_media_percentage = f"{data['CC0_WITH_MEDIA_PERCENTAGE'].mean():.2f}%"
+    num_units = len(data)
+    min_unit = data["TOTAL_OBJECTS"].min()
     shared.update_readme(
         args,
         SECTION_FILE,
@@ -114,6 +118,17 @@ def smithsonian_intro(args):
         "Overview",
         None,
         None,
+        "The Smithsonian data returns the overall "
+        " statistics of CC0 legal tool records."
+        " It serves as the main legal tool used by Smithsonian."
+        "\n"
+        f"The results indicate a total record of {total_objects} objects,"
+        f" with a breakdown of {cc0_records} objects without CC0 Media and"
+        f" {cc0_records_with_media} objects with CC0 Media, taking a"
+        f" percentage of {cc0_media_percentage} in each unit."
+        f" There are {num_units} unique units in the data"
+        " representing museums, libraries, zoos and many other"
+        f" with a minimum of {min_unit} objects.",
     )
 
 
@@ -124,13 +139,15 @@ def plot_totals_by_units(args):
     LOGGER.info(plot_totals_by_units.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"],
-        "smithsonian_totals_by_units.csv",
+        "smithsonian_totals_by_records.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Unit"
-    data_label = "Count"
+    data_label = "TOTAL_OBJECTS"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+    data["TOTAL_OBJECTS"] = data["TOTAL_OBJECTS"].astype(int)
     data.sort_values(data_label, ascending=True, inplace=True)
+    average_unit = data["TOTAL_OBJECTS"].mean()
     data = data.head(10)
     title = "Totals by Units"
     plt = plot.combined_plot(
@@ -157,7 +174,11 @@ def plot_totals_by_units(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Coming soon",
+        "Plots showing totals by units.",
+        "This shows the distribution of top 10"
+        " units/ sub providers across smithsonian"
+        f" with an average of {average_unit} objects"
+        " across the sub providers.",
     )
 
 
@@ -173,11 +194,11 @@ def plot_totals_by_records(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Unit"
     stack_labels = [
-        "CC0_RECORDS_PERCENTAGE",
-        "CC0_RECORDS_WITH_CC0_MEDIA_PERCENTAGE",
+        "CC0_WITHOUT_MEDIA_PERCENTAGE",
+        "CC0_WITH_MEDIA_PERCENTAGE",
+        "OTHERS_PERCENTAGE",
     ]
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
-    data.sort_values(stack_labels, ascending=False, inplace=True)
     data = data.head(10)
     title = "Totals by records"
     plt = plot.stacked_barh_plot(
@@ -202,7 +223,9 @@ def plot_totals_by_records(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Coming soon",
+        "Plots showing totals by CC0 records.",
+        "This is the breakdown of CC0 records"
+        " without media and CC0 records with media.",
     )
 
 

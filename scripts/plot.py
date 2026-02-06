@@ -26,7 +26,7 @@ def annotate_ylabels(ax, data, data_label, colors):
 
         # annotate totals
         ax.annotate(
-            f"    {row[data_label]:>15,d}",
+            f"    {int(row[data_label]):>15,d}",
             (indent, i - 0.1),
             xycoords=("axes points", "data"),
             color=colors[c],
@@ -81,7 +81,7 @@ def combined_plot(
     # pad tick labels to make room for annotation
     tick_labels = []
     for index, row in data.iterrows():
-        count = f"{row[data_label]:,d}"
+        count = f"{int(row[data_label]):,d}"
         tick_labels.append(f"{index}\n{' ' * len(count)}")
     if bar_xscale == "log":
         log = True
@@ -185,6 +185,7 @@ def stacked_barh_plot(
         ]
 
     ax.set_xlabel("Number of works")
+    # ax.set_xlim(0, 100)
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(number_formatter))
 
     if ylabel:
