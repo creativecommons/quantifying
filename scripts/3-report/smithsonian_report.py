@@ -105,12 +105,12 @@ def smithsonian_intro(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     data = shared.open_data_file(LOGGER, file_path)
-    total_objects = data["TOTAL_OBJECTS"].sum()
-    cc0_records = data["CC0_RECORDS"].sum()
-    cc0_records_with_media = data["CC0_RECORDS_WITH_CC0_MEDIA"].sum()
-    cc0_media_percentage = f"{data['CC0_WITH_MEDIA_PERCENTAGE'].mean():.2f}%"
+    total_objects = data["Total_objects"].sum()
+    CC0_records = data["CC0_records"].sum()
+    CC0_records_with_media = data["CC0_records_with_CC0_media"].sum()
+    CC0_media_percentage = f"{data['CC0_with_media_percentage'].mean():.2f}%"
     num_units = len(data)
-    min_unit = data["TOTAL_OBJECTS"].min()
+    min_unit = data["Total_objects"].min()
     shared.update_readme(
         args,
         SECTION_FILE,
@@ -123,33 +123,33 @@ def smithsonian_intro(args):
         " It serves as the main legal tool used by Smithsonian."
         "\n"
         f"The results indicate a total record of {total_objects} objects,"
-        f" with a breakdown of {cc0_records} objects without CC0 Media and"
-        f" {cc0_records_with_media} objects with CC0 Media, taking a"
-        f" percentage of {cc0_media_percentage} in each unit."
+        f" with a breakdown of {CC0_records} objects without CC0 Media and"
+        f" {CC0_records_with_media} objects with CC0 Media, taking a"
+        f" percentage of {CC0_media_percentage} in each unit."
         f" There are {num_units} unique units in the data"
         " representing museums, libraries, zoos and many other"
         f" with a minimum of {min_unit} objects.",
     )
 
 
-def plot_totals_by_units(args):
+def plot_totals_by_top10_units(args):
     """
-    Create plots showing totals by units
+    Create plots showing totals by top 10 units
     """
-    LOGGER.info(plot_totals_by_units.__doc__.strip())
+    LOGGER.info(plot_totals_by_top10_units.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"],
-        "smithsonian_totals_by_records.csv",
+        "smithsonian_totals_by_units.csv",
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Unit"
-    data_label = "TOTAL_OBJECTS"
+    data_label = "Total_objects"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
-    data["TOTAL_OBJECTS"] = data["TOTAL_OBJECTS"].astype(int)
+    data["Total_objects"] = data["Total_objects"].astype(int)
     data.sort_values(data_label, ascending=True, inplace=True)
-    average_unit = data["TOTAL_OBJECTS"].mean()
     data = data.head(10)
-    title = "Totals by Units"
+    average_unit = data["Total_objects"].mean()
+    title = "Top 10 Units"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -178,7 +178,57 @@ def plot_totals_by_units(args):
         "This shows the distribution of top 10"
         " units/ sub providers across smithsonian"
         f" with an average of {average_unit} objects"
-        " across the sub providers.",
+        " across the top 10 sub providers.",
+    )
+
+
+def plot_totals_by_lowest10_units(args):
+    """
+    Create plots showing totals by lowest 10 units
+    """
+    LOGGER.info(plot_totals_by_lowest10_units.__doc__.strip())
+    file_path = shared.path_join(
+        PATHS["data_2-process"],
+        "smithsonian_totals_by_units.csv",
+    )
+    LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
+    name_label = "Unit"
+    data_label = "Total_objects"
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+    data["Total_objects"] = data["Total_objects"].astype(int)
+    data.sort_values(data_label, ascending=True, inplace=True)
+    data = data.tail(10)
+    average_unit = data["Total_objects"].mean()
+    title = "Totals by Units"
+    plt = plot.combined_plot(
+        args=args,
+        data=data,
+        title=title,
+        name_label=name_label,
+        data_label=data_label,
+    )
+
+    image_path = shared.path_join(
+        PATHS["data_phase"], "smithsonian_totals_by_unit.png"
+    )
+    LOGGER.info(f"image file: {image_path.replace(PATHS['repo'], '.')}")
+
+    if args.enable_save:
+        # Create the directory if it does not exist
+        os.makedirs(PATHS["data_phase"], exist_ok=True)
+        plt.savefig(image_path)
+
+    shared.update_readme(
+        args,
+        SECTION_FILE,
+        SECTION_TITLE,
+        title,
+        image_path,
+        "Plots showing totals by units.",
+        "This shows the distribution of lowest 10"
+        " units/ sub providers across smithsonian"
+        f" with an average of {average_unit} objects"
+        " across the lowest 10 sub providers.",
     )
 
 
@@ -194,9 +244,9 @@ def plot_totals_by_records(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Unit"
     stack_labels = [
-        "CC0_WITHOUT_MEDIA_PERCENTAGE",
-        "CC0_WITH_MEDIA_PERCENTAGE",
-        "OTHERS_PERCENTAGE",
+        "CC0_without_media_percentage",
+        "CC0_with_media_percentage",
+        "Others_percentage",
     ]
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data = data.head(10)
@@ -225,7 +275,8 @@ def plot_totals_by_records(args):
         image_path,
         "Plots showing totals by CC0 records.",
         "This is the breakdown of CC0 records"
-        " without media and CC0 records with media.",
+        " without media, CC0 records with media and records"
+        " that are not associated with CC0.",
     )
 
 
@@ -238,7 +289,8 @@ def main():
     )
     shared.check_completion_file_exists(args, last_entry)
     smithsonian_intro(args)
-    plot_totals_by_units(args)
+    plot_totals_by_top10_units(args)
+    plot_totals_by_lowest10_units(args)
     plot_totals_by_records(args)
 
     # Add and commit changes

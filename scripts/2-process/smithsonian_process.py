@@ -86,7 +86,7 @@ def process_totals_by_units(args, count_data):
 
         data[unit] = total_objects
 
-    data = pd.DataFrame(data.items(), columns=["Unit", "Count"])
+    data = pd.DataFrame(data.items(), columns=["Unit", "Total_objects"])
     data.sort_values("Unit", ascending=True, inplace=True)
     data.reset_index(drop=True, inplace=True)
     file_path = shared.path_join(
@@ -104,43 +104,43 @@ def process_totals_by_records(args, count_data):
 
     for row in count_data.itertuples(index=False):
         unit = str(row.UNIT)
-        cc0_records = int(row.CC0_RECORDS)
-        cc0_records_with_cc0_media = int(row.CC0_RECORDS_WITH_CC0_MEDIA)
+        CC0_records = int(row.CC0_RECORDS)
+        CC0_records_with_CC0_media = int(row.CC0_RECORDS_WITH_CC0_MEDIA)
         total_objects = int(row.TOTAL_OBJECTS)
 
-        if cc0_records == 0 and cc0_records_with_cc0_media == 0:
+        if CC0_records == 0 and CC0_records_with_CC0_media == 0:
             continue
 
         if unit not in data:
             data[unit] = {
-                "CC0_RECORDS": 0,
-                "CC0_RECORDS_WITH_CC0_MEDIA": 0,
-                "TOTAL_OBJECTS": 0,
+                "CC0_records": 0,
+                "CC0_records_with_CC0_media": 0,
+                "Total_objects": 0,
             }
 
-        data[unit]["CC0_RECORDS"] += cc0_records
-        data[unit]["CC0_RECORDS_WITH_CC0_MEDIA"] += cc0_records_with_cc0_media
-        data[unit]["TOTAL_OBJECTS"] += total_objects
+        data[unit]["CC0_records"] += CC0_records
+        data[unit]["CC0_records_with_CC0_media"] += CC0_records_with_CC0_media
+        data[unit]["Total_objects"] += total_objects
 
     data = (
         pd.DataFrame.from_dict(data, orient="index")
         .reset_index()
         .rename(columns={"index": "Unit"})
     )
-    data["CC0_WITHOUT_MEDIA_PERCENTAGE"] = (
+    data["CC0_without_media_percentage"] = (
         (
-            (data["CC0_RECORDS"] - data["CC0_RECORDS_WITH_CC0_MEDIA"])
-            / data["TOTAL_OBJECTS"]
+            (data["CC0_records"] - data["CC0_records_with_CC0_media"])
+            / data["Total_objects"]
         )
         * 100
     ).round(2)
 
-    data["CC0_WITH_MEDIA_PERCENTAGE"] = (
-        (data["CC0_RECORDS_WITH_CC0_MEDIA"] / data["TOTAL_OBJECTS"]) * 100
+    data["CC0_with_media_percentage"] = (
+        (data["CC0_records_with_CC0_media"] / data["Total_objects"]) * 100
     ).round(2)
 
-    data["OTHERS_PERCENTAGE"] = (
-        ((data["TOTAL_OBJECTS"] - data["CC0_RECORDS"]) / data["TOTAL_OBJECTS"])
+    data["Others_percentage"] = (
+        ((data["Total_objects"] - data["CC0_records"]) / data["Total_objects"])
         * 100
     ).round(2)
 
