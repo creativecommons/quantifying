@@ -3,10 +3,10 @@ name: Fetch Data
 on:
   schedule:
     # Normal schedule
-    # # at 01:15 on all days in first month of each quarter
-    - cron: '15 1 * 1,4,7,10 *'
-    # # at 01:15 on days 1-14 in second month of each quarter
-    - cron: '15 1 1-14 2,5,8,11 *'
+    # # at 03:15 on all days in first month of each quarter
+    - cron: '15 3 * 1,4,7,10 *'
+    # # at 03:15 on days 1-14 in second month of each quarter
+    - cron: '15 3 1-14 2,5,8,11 *'
 
   workflow_dispatch:
 
