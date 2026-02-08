@@ -26,7 +26,7 @@ def annotate_ylabels(ax, data, data_label, colors):
 
         # annotate totals
         ax.annotate(
-            f"    {row[data_label]:>15,d}",
+            f"    {int(row[data_label]):>15,d}",
             (indent, i - 0.1),
             xycoords=("axes points", "data"),
             color=colors[c],
@@ -81,7 +81,7 @@ def combined_plot(
     # pad tick labels to make room for annotation
     tick_labels = []
     for index, row in data.iterrows():
-        count = f"{row[data_label]:,d}"
+        count = f"{int(row[data_label]):,d}"
         tick_labels.append(f"{index}\n{' ' * len(count)}")
     if bar_xscale == "log":
         log = True
@@ -142,3 +142,75 @@ def number_formatter(x, pos):
         return f"{x * 1e-3:,.0f}K"
     else:
         return f"{x:,.0f}"
+
+
+def stacked_barh_plot(
+    args,
+    data,
+    title,
+    name_label,
+    stack_labels,
+    xscale=None,
+    ylabel=None,
+):
+    """
+    Create a stacked horizontal bar plot.
+    """
+    if len(data) > 10:
+        raise shared.QuantifyingException(
+            "stacked_barh_plot() is limited to a maximum of 10 data points"
+        )
+
+    plt.rcParams.update({"font.family": "monospace", "figure.dpi": 300})
+
+    height = max(2.5, 1 + len(data) * 0.5)
+    fig, ax = plt.subplots(figsize=(8, height), layout="constrained")
+
+    colors = colormaps["tab10"].colors
+    left = [0] * len(data)
+
+    # stacked bars
+    for i, label in enumerate(stack_labels):
+        ax.barh(
+            y=data.index,
+            width=data[label],
+            left=left,
+            color=colors[i % len(colors)],
+            label=label,
+            log=(xscale == "log"),
+        )
+        left = [
+            current_left + width
+            for current_left, width in zip(left, data[label])
+        ]
+
+    ax.set_xlabel("Number of works")
+    # ax.set_xlim(0, 100)
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(number_formatter))
+
+    if ylabel:
+        ax.set_ylabel(ylabel)
+    else:
+        ax.set_ylabel(name_label)
+
+    ax.legend(
+        title="Type",
+        fontsize="x-small",
+        title_fontsize="x-small",
+        loc="upper right",
+    )
+
+    plt.suptitle(title)
+    plt.annotate(
+        f"Creative Commons (CC)\nbar x scale: {xscale}, data from"
+        f" {args.quarter}",
+        (0.95, 5),
+        xycoords=("figure fraction", "figure points"),
+        color="gray",
+        fontsize="x-small",
+        horizontalalignment="right",
+    )
+    if args.show_plots:
+        plt.show()
+
+    return plt
