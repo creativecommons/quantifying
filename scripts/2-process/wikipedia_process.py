@@ -103,7 +103,7 @@ def process_highest_language_usage(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_highest_language_usage.csv"
     )
-    shared.data_to_csv(args, top_10, file_path)
+    shared.dataframe_to_csv(args, top_10, file_path)
 
 
 def process_least_language_usage(args, count_data):
@@ -126,7 +126,7 @@ def process_least_language_usage(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_least_language_usage.csv"
     )
-    shared.data_to_csv(args, bottom_10, file_path)
+    shared.dataframe_to_csv(args, bottom_10, file_path)
 
 
 def process_language_representation(args, count_data):
@@ -152,7 +152,7 @@ def process_language_representation(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "wikipedia_language_representation.csv"
     )
-    shared.data_to_csv(args, language_counts, file_path)
+    shared.dataframe_to_csv(args, language_counts, file_path)
 
 
 def main():
