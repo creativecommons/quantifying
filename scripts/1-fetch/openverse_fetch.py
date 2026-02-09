@@ -13,7 +13,6 @@ Note:
 
 # Standard library
 import argparse
-import csv
 import os
 import sys
 import textwrap
@@ -192,27 +191,12 @@ def query_openverse(session):
     return aggregate
 
 
-def write_data(args, data):
-    if not args.enable_save:
-        return
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-    with open(FILE_PATH, "w", encoding="utf-8", newline="") as file_obj:
-        writer = csv.DictWriter(
-            file_obj,
-            fieldnames=OPENVERSE_FIELDS,
-            dialect="unix",
-        )
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-
 def main():
     args = parse_arguments()
     LOGGER.info("Starting Openverse Fetch Script...")
     session = shared.get_session(accept_header="application/json")
     records = query_openverse(session)
-    write_data(args, records)
+    shared.rows_to_csv(args, FILE_PATH, OPENVERSE_FIELDS, records)
     LOGGER.info(f"Fetched {len(records)} unique Openverse records.")
 
 
