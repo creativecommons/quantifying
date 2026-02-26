@@ -242,11 +242,11 @@ def is_multi_language(raw_language):
 def normalize_language(raw_language):
     raw = str(raw_language).strip()
     if not raw:
-        return "Undetermined"
+        return "UNKNOWN"
 
     # 1st: check multi-language
     if is_multi_language(raw):
-        return "Multiple languages"
+        return "MULTIPLE LANGUAGES"
 
     # Prep for subsequent checks by striping noise and normalizing
     cleaned = normalize_key(strip_noise(raw))
@@ -280,7 +280,7 @@ def normalize_language(raw_language):
         except ValueError:
             pass
 
-    return "Undetermined"
+    return "UNKNOWN"
 
 
 def query_internet_archive(args, session, license_mapping):
@@ -319,14 +319,12 @@ def query_internet_archive(args, session, license_mapping):
             license_counter[(normalized_url)] += 1
 
             # Extract and normalize language
-            raw_language = result.get("language", "Undetermined")
+            raw_language = result.get("language", "UNKNOWN")
             if isinstance(raw_language, list):
-                raw_language = (
-                    raw_language[0] if raw_language else "Undetermined"
-                )
+                raw_language = raw_language[0] if raw_language else "UNKNOWN"
 
             normalized_lang = normalize_language(raw_language)
-            if normalized_lang == "Undetermined":
+            if normalized_lang == "UNKNOWN":
                 unmapped_language_counter[raw_language] += 1
 
             language_counter[(normalized_url, normalized_lang)] += 1
@@ -383,48 +381,24 @@ def query_internet_archive(args, session, license_mapping):
     return license_counter, language_counter
 
 
-def write_csv(file_path, header, rows):
-    with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
-        writer = csv.writer(file_obj, dialect="unix")
-        writer.writerow(header)
-        for row in rows:
-            writer.writerow(row)
-    LOGGER.info(f"Wrote {len(rows)} rows to {file_path}")
-
-
 def write_all(args, license_counter, language_counter):
-    if not args.enable_save:
-        return args
-
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-
     # Sort license data by license name
-    sorted_license_rows = sorted(
-        [(license, count) for license, count in license_counter.items()],
-        key=lambda x: x[0],
-    )
+    sorted_license_rows = [
+        {"LICENSE": key, "COUNT": license_counter[key]}
+        for key in sorted(license_counter.keys())
+    ]
+    shared.rows_to_csv(args, FILE1_COUNT, HEADER1, sorted_license_rows)
 
     # Sort language data by license then language
-    sorted_language_rows = sorted(
-        [
-            (license, language, count)
-            for (license, language), count in language_counter.items()
-        ],
-        key=lambda x: (x[0], x[1]),
-    )
-
-    write_csv(
-        FILE1_COUNT,
-        HEADER1,
-        sorted_license_rows,
-    )
-    write_csv(
-        FILE2_LANGUAGE,
-        HEADER2,
-        sorted_language_rows,
-    )
-
-    return args
+    sorted_language_rows = [
+        {
+            "LICENSE": key_tuple[0],
+            "LANGUAGE": key_tuple[1],
+            "COUNT": language_counter[key_tuple],
+        }
+        for key_tuple in sorted(language_counter.keys())
+    ]
+    shared.rows_to_csv(args, FILE2_LANGUAGE, HEADER2, sorted_language_rows)
 
 
 def main():
@@ -442,8 +416,7 @@ def main():
         args, session, license_mapping
     )
 
-    if args.enable_save:
-        write_all(args, license_data, language_data)
+    write_all(args, license_data, language_data)
 
     if args.enable_git:
         args = shared.git_add_and_commit(
