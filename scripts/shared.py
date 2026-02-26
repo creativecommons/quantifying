@@ -37,7 +37,7 @@ class QuantifyingException(Exception):
         super().__init__(self.message)
 
 
-def data_to_csv(args, data, file_path):
+def dataframe_to_csv(args, data, file_path):
     if not args.enable_save:
         return
     os.makedirs(args.paths["data_phase"], exist_ok=True)
@@ -231,6 +231,26 @@ def paths_list_update(logger, paths_list, old_quarter, new_quarter):
     for index, path in enumerate(paths_list):
         paths_list[index] = path.replace(old_quarter, new_quarter)
     return paths_list
+
+
+def rows_to_csv(args, file_path, fieldnames, rows, append=False):
+    """Write rows to a CSV file if saving is enabled."""
+    if not args.enable_save:
+        return
+
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    mode = "a" if append else "w"
+    with open(file_path, mode, encoding="utf-8", newline="\n") as file_obj:
+        writer = csv.DictWriter(
+            file_obj,
+            fieldnames=fieldnames,
+            dialect="unix",
+        )
+        if not append:
+            writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
 
 
 class ColoredFormatter(logging.Formatter):
