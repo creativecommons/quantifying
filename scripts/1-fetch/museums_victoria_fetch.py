@@ -5,7 +5,6 @@ Fetch CC Legal Tool usage from the Museums Victoria Collections API.
 
 # Standard library
 import argparse
-import csv
 import os
 import re
 import sys
@@ -80,24 +79,6 @@ def parse_arguments():
     return args
 
 
-def initialize_data_file(file_path, header):
-    with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
-        writer = csv.DictWriter(file_obj, fieldnames=header, dialect="unix")
-        writer.writeheader()
-
-
-def initialize_all_data_files(args):
-    if not args.enable_save:
-        return
-
-    # Create data directory for this phase
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-
-    initialize_data_file(FILE1_COUNT, HEADER1_COUNT)
-    initialize_data_file(FILE2_MEDIA, HEADER2_MEDIA)
-    initialize_data_file(FILE3_RECORD, HEADER3_RECORD)
-
-
 def write_counts_to_csv(args, data: dict):
     if not args.enable_save:
         return
@@ -135,11 +116,7 @@ def write_counts_to_csv(args, data: dict):
                 }
                 for row in data[1].items()
             ]
-        with open(file_path, "a", encoding="utf-8", newline="\n") as file_obj:
-            writer = csv.DictWriter(
-                file_obj, fieldnames=fieldnames, dialect="unix"
-            )
-            writer.writerows(rows)
+        shared.rows_to_csv(args, file_path, fieldnames, rows)
 
 
 def fetch_museums_victoria_data(args, session):
@@ -188,6 +165,8 @@ def fetch_museums_victoria_data(args, session):
                 media_list = res.get("media", [])
                 for media_item in media_list:
                     license_data = media_item.get("license")
+                    if not license_data:
+                        continue
 
                     # Counting the unique license types
                     license_short_name = license_data.get("shortName")
@@ -243,7 +222,6 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    initialize_all_data_files(args)
     data = fetch_museums_victoria_data(args, shared.get_session())
     write_counts_to_csv(args, data)
     args = shared.git_add_and_commit(
