@@ -28,7 +28,7 @@ import shared  # noqa: E402
 LOGGER, PATHS = shared.setup(__file__)
 
 # Constants
-FILE1_COUNT = os.path.join(PATHS["data_phase"], "github_1_count.csv")
+FILE_COUNT = os.path.join(PATHS["data_phase"], "github_1_count.csv")
 GH_TOKEN = os.getenv("GH_TOKEN")
 # Also see: https://en.wikipedia.org/wiki/Public-domain-equivalent_license
 GITHUB_TOOLS = [
@@ -40,7 +40,7 @@ GITHUB_TOOLS = [
     {"TOOL_IDENTIFIER": "Unlicense", "SPDX_IDENTIFIER": "Unlicense"},
     {"TOOL_IDENTIFIER": "Total public repositories", "SPDX_IDENTIFIER": "N/A"},
 ]
-HEADER1_COUNT = ["TOOL_IDENTIFIER", "SPDX_IDENTIFIER", "COUNT"]
+HEADER_COUNT = ["TOOL_IDENTIFIER", "SPDX_IDENTIFIER", "COUNT"]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
 
@@ -68,7 +68,7 @@ def parse_arguments():
 
 def check_for_completion():
     try:
-        with open(FILE1_COUNT, "r", newline="") as file_obj:
+        with open(FILE_COUNT, "r", encoding="utf-8") as file_obj:
             reader = csv.DictReader(file_obj, dialect="unix")
             if len(list(reader)) == len(GITHUB_TOOLS):
                 raise shared.QuantifyingException(
@@ -76,27 +76,6 @@ def check_for_completion():
                 )
     except FileNotFoundError:
         pass  # File may not be found without --enable-save, etc.
-
-
-def write_data(args, tool_data):
-    if not args.enable_save:
-        return args
-
-    # Create data directory for this phase
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-
-    if len(tool_data) < len(GITHUB_TOOLS):
-        LOGGER.error("Unable to fetch all records. Aborting.")
-        return args
-
-    with open(FILE1_COUNT, "w", encoding="utf-8", newline="\n") as file_obj:
-        writer = csv.DictWriter(
-            file_obj, fieldnames=HEADER1_COUNT, dialect="unix"
-        )
-        writer.writeheader()
-        for row in tool_data:
-            writer.writerow(row)
-    return args
 
 
 def query_github(args, session):
@@ -148,7 +127,10 @@ def main():
         session.headers.update({"authorization": f"Bearer {GH_TOKEN}"})
 
     tool_data = query_github(args, session)
-    args = write_data(args, tool_data)
+    if len(tool_data) < len(GITHUB_TOOLS):
+        LOGGER.error("Unable to fetch all records. Aborting.")
+        return args
+    shared.rows_to_csv(args, FILE_COUNT, HEADER_COUNT, tool_data)
     args = shared.git_add_and_commit(
         args,
         PATHS["repo"],

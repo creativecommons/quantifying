@@ -3,13 +3,10 @@ name: Fetch Data
 on:
   schedule:
     # Normal schedule
-    # # at 01:15 on all days in first month of each quarter
-    # - cron: '15 1 * 1,4,7,10 *'
-    # # at 01:15 on days 1-14 in second month of each quarter
-    # - cron: '15 1 1-14 2,5,8,11 *'
-    # Temp schedule
-    # at 01:15 on all days in all months
-    - cron: '15 1 * * *'
+    # # at 03:15 on all days in first month of each quarter
+    - cron: '15 3 * 1,4,7,10 *'
+    # # at 03:15 on days 1-14 in second month of each quarter
+    - cron: '15 3 1-14 2,5,8,11 *'
 
   workflow_dispatch:
 
@@ -29,7 +26,7 @@ jobs:
           git config --global user.email "${{ secrets.BOT_EMAIL }}"
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # Default fetch-depth is 1, however that value results in errors
           # when GitPython attempts to push changes:
@@ -38,7 +35,7 @@ jobs:
           token: ${{ secrets.BOT_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -50,16 +47,26 @@ jobs:
         run: |
           pipenv sync --system
 
-      # CC Technology team members:
-      #   See cc-quantifying-bot Google Workspace  entry in Bitwarden for
-      #   information on GCS_ secrets
-      - name: Fetch from Google Custom Search (GCS)
-        run: |
-          ./scripts/1-fetch/gcs_fetch.py \
-            --limit=100 --enable-save --enable-git
-        env:
-          GCS_DEVELOPER_KEY: ${{ secrets.GCS_DEVELOPER_KEY }}
-          GCS_CX: ${{ secrets.GCS_CX }}
+      # Fetch from arXiv disabled due to long run time (~6 hours)
+      #
+      # For now, data is fetched manually :/
+
+      # Fetch from Europeana disabled due to being considered incomplete
+      # https://github.com/creativecommons/quantifying/issues/224
+
+      # Fetch from GCS disabled due to Google blocking GitHub Action runners
+      # # CC Technology team members:
+      # #   See cc-quantifying-bot Google Workspace entry in Bitwarden for
+      # #   information on GCS_ secrets
+      # - name: Fetch from Google Custom Search (GCS)
+      #  run: |
+      #     ./scripts/1-fetch/gcs_fetch.py \
+      #       --limit=100 --enable-save --enable-git
+      #   env:
+      #     GCS_DEVELOPER_KEY: ${{ secrets.GCS_DEVELOPER_KEY }}
+      #     GCS_CX: ${{ secrets.GCS_CX }}
+      #
+      # For now, data is fetched manually :/
 
       - name: Fetch from GitHub
         run: |
@@ -67,3 +74,18 @@ jobs:
             --enable-save --enable-git
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      # Fetch from Openverse disabled due to limitations of anonymous API
+      # access
+
+      - name: Fetch from Smithsonian
+        run: |
+          ./scripts/1-fetch/smithsonian_fetch.py \
+            --enable-save --enable-git
+        env:
+          DATA_GOV_API_KEY: ${{ secrets.DATA_GOV_API_KEY }}
+
+      - name: Fetch from Wikipedia
+        run: |
+          ./scripts/1-fetch/wikipedia_fetch.py \
+            --enable-save --enable-git
