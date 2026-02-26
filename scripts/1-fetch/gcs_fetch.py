@@ -99,25 +99,14 @@ def get_search_service():
     )
 
 
-def initialize_data_file(file_path, header):
-    if not os.path.isfile(file_path):
-        with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
-            writer = csv.DictWriter(
-                file_obj, fieldnames=header, dialect="unix"
-            )
-            writer.writeheader()
-
-
 def initialize_all_data_files(args):
-    if not args.enable_save:
-        return
-
-    # Create data directory for this phase
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-
-    initialize_data_file(FILE1_COUNT, HEADER1_COUNT)
-    initialize_data_file(FILE2_LANGUAGE, HEADER2_LANGUAGE)
-    initialize_data_file(FILE3_COUNTRY, HEADER3_COUNTRY)
+    for file_path, header in [
+        (FILE1_COUNT, HEADER1_COUNT),
+        (FILE2_LANGUAGE, HEADER2_LANGUAGE),
+        (FILE3_COUNTRY, HEADER3_COUNTRY),
+    ]:
+        if not os.path.isfile(file_path):
+            shared.rows_to_csv(args, file_path, header, [])
 
 
 def get_last_completed_plan_index():
@@ -150,8 +139,6 @@ def load_plan():
 
 
 def append_data(args, plan_row, index, count):
-    if not args.enable_save:
-        return
     if plan_row["COUNTRY"]:
         file_path = FILE3_COUNTRY
         fieldnames = HEADER3_COUNTRY
@@ -178,11 +165,7 @@ def append_data(args, plan_row, index, count):
             "TOOL_IDENTIFIER": plan_row["TOOL_IDENTIFIER"],
             "COUNT": count,
         }
-    with open(file_path, "a", encoding="utf-8", newline="\n") as file_obj:
-        writer = csv.DictWriter(
-            file_obj, fieldnames=fieldnames, dialect="unix"
-        )
-        writer.writerow(row)
+    shared.rows_to_csv(args, file_path, fieldnames, [row], append=True)
 
 
 def query_gcs(args, service, last_completed_plan_index, plan):

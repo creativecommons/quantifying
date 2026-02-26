@@ -121,7 +121,7 @@ def process_product_totals(args, count_data):
         data.items(), columns=["CC legal tool product", "Count"]
     )
     file_path = shared.path_join(PATHS["data_phase"], "gcs_product_totals.csv")
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_latest_prior_retired_totals(args, count_data):
@@ -202,7 +202,7 @@ def process_latest_prior_retired_totals(args, count_data):
         file_path = shared.path_join(
             PATHS["data_phase"], f"gcs_status_{key}_totals.csv"
         )
-        shared.data_to_csv(args, dataframe, file_path)
+        shared.dataframe_to_csv(args, dataframe, file_path)
 
 
 def process_totals_by_free_cultural(args, count_data):
@@ -235,7 +235,7 @@ def process_totals_by_free_cultural(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_free_cultural.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_totals_by_restrictions(args, count_data):
@@ -269,7 +269,7 @@ def process_totals_by_restrictions(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_restrictions.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_totals_by_language(args, data):
@@ -290,7 +290,7 @@ def process_totals_by_language(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_language.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_totals_by_country(args, data):
@@ -311,7 +311,7 @@ def process_totals_by_country(args, data):
     file_path = shared.path_join(
         PATHS["data_phase"], "gcs_totals_by_country.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def main():

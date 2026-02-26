@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This file is dedicated to processing GitHub data
+This file is dedicated to processing Smithsonian data
 for analysis and comparison between quarters.
 """
 
@@ -25,8 +25,8 @@ LOGGER, PATHS = shared.setup(__file__)
 # Constants
 QUARTER = os.path.basename(PATHS["data_quarter"])
 FILE_PATHS = [
-    shared.path_join(PATHS["data_phase"], "github_totals_by_license.csv"),
-    shared.path_join(PATHS["data_phase"], "github_totals_by_restriction.csv"),
+    shared.path_join(PATHS["data_phase"], "smithsonian_totals_by_units.csv"),
+    shared.path_join(PATHS["data_phase"], "smithsonian_totals_by_records.csv"),
 ]
 
 
@@ -74,61 +74,79 @@ def parse_arguments():
     return args
 
 
-def process_totals_by_license(args, count_data):
+def process_totals_by_units(args, count_data):
     """
-    Processing count data: totals by License
+    Processing count data: totals by units
     """
-    LOGGER.info(process_totals_by_license.__doc__.strip())
+    LOGGER.info(process_totals_by_units.__doc__.strip())
     data = {}
 
     for row in count_data.itertuples(index=False):
-        tool = str(row.TOOL_IDENTIFIER)
-        count = int(row.COUNT)
+        unit = str(row.DATA_SOURCE)
+        total_objects = int(row.TOTAL_OBJECTS)
 
-        if tool == "Total public repositories":
-            continue
+        data[unit] = total_objects
 
-        data[tool] = count
-
-    data = pd.DataFrame(data.items(), columns=["License", "Count"])
-    data.sort_values("License", ascending=True, inplace=True)
+    data = pd.DataFrame(data.items(), columns=["Data_source", "Total_objects"])
+    data.sort_values("Data_source", ascending=True, inplace=True)
     data.reset_index(drop=True, inplace=True)
     file_path = shared.path_join(
-        PATHS["data_phase"], "github_totals_by_license.csv"
+        PATHS["data_phase"], "smithsonian_totals_by_units.csv"
     )
     shared.dataframe_to_csv(args, data, file_path)
 
 
-def process_totals_by_restriction(args, count_data):
+def process_totals_by_records(args, count_data):
     """
-    Processing count data: totals by restriction
+    Processing count data: totals by records
     """
-    # https://creativecommons.org/public-domain/freeworks/
-    LOGGER.info(process_totals_by_restriction.__doc__.strip())
-    data = {"Copyleft": 0, "Permissive": 0, "Public domain": 0}
+    LOGGER.info(process_totals_by_records.__doc__.strip())
+    data = {}
 
     for row in count_data.itertuples(index=False):
-        tool = str(row.TOOL_IDENTIFIER)
-        count = int(row.COUNT)
+        unit = str(row.DATA_SOURCE)
+        CC0_records = int(row.CC0_RECORDS)
+        CC0_records_with_CC0_media = int(row.CC0_RECORDS_WITH_CC0_MEDIA)
+        total_objects = int(row.TOTAL_OBJECTS)
 
-        if tool == "Total public repositories":
-            continue
+        if unit not in data:
+            data[unit] = {
+                "CC0_records": 0,
+                "CC0_records_with_CC0_media": 0,
+                "Total_objects": 0,
+            }
 
-        if tool in ["BSD Zero Clause License", "CC0 1.0", "Unlicense"]:
-            key = "Public domain"
-        elif tool in ["MIT No Attribution", "CC BY 4.0"]:
-            key = "Permissive"
-        elif tool in ["CC BY-SA 4.0"]:
-            key = "Copyleft"
-        else:
-            continue
+        data[unit]["CC0_records"] += CC0_records
+        data[unit]["CC0_records_with_CC0_media"] += CC0_records_with_CC0_media
+        data[unit]["Total_objects"] += total_objects
 
-        data[key] += count
-    data = pd.DataFrame(data.items(), columns=["Category", "Count"])
-    data.sort_values("Category", ascending=True, inplace=True)
+    data = (
+        pd.DataFrame.from_dict(data, orient="index")
+        .reset_index()
+        .rename(columns={"index": "Data_source"})
+    )
+    data["CC0_without_media_percentage"] = (
+        (
+            (data["CC0_records"] - data["CC0_records_with_CC0_media"])
+            / data["Total_objects"]
+        )
+        * 100
+    ).round(2)
+
+    data["CC0_with_media_percentage"] = (
+        (data["CC0_records_with_CC0_media"] / data["Total_objects"]) * 100
+    ).round(2)
+
+    data["Others_percentage"] = (
+        ((data["Total_objects"] - data["CC0_records"]) / data["Total_objects"])
+        * 100
+    ).round(2)
+
+    data.sort_values("Data_source", ascending=True, inplace=True)
     data.reset_index(drop=True, inplace=True)
+
     file_path = shared.path_join(
-        PATHS["data_phase"], "github_totals_by_restriction.csv"
+        PATHS["data_phase"], "smithsonian_totals_by_records.csv"
     )
     shared.dataframe_to_csv(args, data, file_path)
 
@@ -138,12 +156,22 @@ def main():
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     shared.check_completion_file_exists(args, FILE_PATHS)
-    file_count = shared.path_join(PATHS["data_1-fetch"], "github_1_count.csv")
-    count_data = shared.open_data_file(
-        LOGGER, file_count, usecols=["TOOL_IDENTIFIER", "COUNT"]
+    file_count = shared.path_join(
+        PATHS["data_1-fetch"], "smithsonian_2_units.csv"
     )
-    process_totals_by_license(args, count_data)
-    process_totals_by_restriction(args, count_data)
+    count_data = shared.open_data_file(
+        LOGGER,
+        file_count,
+        usecols=[
+            "UNIT_CODE",
+            "DATA_SOURCE",
+            "CC0_RECORDS",
+            "CC0_RECORDS_WITH_CC0_MEDIA",
+            "TOTAL_OBJECTS",
+        ],
+    )
+    process_totals_by_units(args, count_data)
+    process_totals_by_records(args, count_data)
 
     # Push changes
     args = shared.git_add_and_commit(

@@ -125,31 +125,6 @@ def parse_arguments():
     return args
 
 
-def initialize_data_file(file_path, headers):
-    """Initialize CSV file with headers if it doesn't exist."""
-    if not os.path.isfile(file_path):
-        with open(file_path, "w", encoding="utf-8", newline="\n") as file_obj:
-            writer = csv.DictWriter(
-                file_obj, fieldnames=headers, dialect="unix"
-            )
-            writer.writeheader()
-
-
-def initialize_all_data_files(args):
-    """Initialize all data files used by this script.
-
-    Creates the data directory and initializes empty CSVs with headers.
-    """
-    if not args.enable_save:
-        return
-
-    os.makedirs(PATHS["data_1-fetch"], exist_ok=True)
-    initialize_data_file(FILE_ARXIV_COUNT, HEADER_COUNT)
-    initialize_data_file(FILE_ARXIV_CATEGORY_REPORT, HEADER_CATEGORY_REPORT)
-    initialize_data_file(FILE_ARXIV_YEAR, HEADER_YEAR)
-    initialize_data_file(FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET)
-
-
 def get_identifier_mapping():
     global IDENTIER_MAPPING
     LOGGER.info("Loading CC Legal Tool metadata for CC identifer mapping")
@@ -472,19 +447,6 @@ def query_arxiv(args, session):
     return data, cc_articles_found
 
 
-def rows_to_csv(args, fieldnames, rows, file_path):
-    if not args.enable_save:
-        return args
-
-    with open(file_path, "w", encoding="utf-8", newline="\n") as file_handle:
-        writer = csv.DictWriter(
-            file_handle, fieldnames=fieldnames, dialect="unix"
-        )
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(row)
-
-
 def write_data(args, data):
     """
     Write fetched data to CSV files.
@@ -508,7 +470,9 @@ def write_data(args, data):
                 }
             )
     rows.sort(key=itemgetter("TOOL_IDENTIFIER", "AUTHOR_BUCKET"))
-    rows_to_csv(args, HEADER_AUTHOR_BUCKET, rows, FILE_ARXIV_AUTHOR_BUCKET)
+    shared.rows_to_csv(
+        args, FILE_ARXIV_AUTHOR_BUCKET, HEADER_AUTHOR_BUCKET, rows
+    )
 
     # Save category report
     # fetched_data["category_counts"]: {identifer: {category_code: count}}
@@ -527,7 +491,9 @@ def write_data(args, data):
                 }
             )
     rows.sort(key=itemgetter("TOOL_IDENTIFIER", "CATEGORY_CODE"))
-    rows_to_csv(args, HEADER_CATEGORY_REPORT, rows, FILE_ARXIV_CATEGORY_REPORT)
+    shared.rows_to_csv(
+        args, FILE_ARXIV_CATEGORY_REPORT, HEADER_CATEGORY_REPORT, rows
+    )
 
     # Save tool counts report
     # fetched_data["tool_counts"]: {identfier: count}
@@ -535,7 +501,7 @@ def write_data(args, data):
     for identifier, count in data["tool_counts"].items():
         rows.append({"TOOL_IDENTIFIER": identifier, "COUNT": count})
     rows.sort(key=itemgetter("TOOL_IDENTIFIER"))
-    rows_to_csv(args, HEADER_COUNT, rows, FILE_ARXIV_COUNT)
+    shared.rows_to_csv(args, FILE_ARXIV_COUNT, HEADER_COUNT, rows)
 
     # Save year count report
     # fetched_data["year_counts"]: {identifer: {year: count}}
@@ -546,7 +512,7 @@ def write_data(args, data):
                 {"TOOL_IDENTIFIER": identifier, "YEAR": year, "COUNT": count}
             )
     rows.sort(key=itemgetter("TOOL_IDENTIFIER", "YEAR"))
-    rows_to_csv(args, HEADER_YEAR, rows, FILE_ARXIV_YEAR)
+    shared.rows_to_csv(args, FILE_ARXIV_YEAR, HEADER_YEAR, rows)
 
 
 def write_provence(args, cc_articles_found):
@@ -584,7 +550,6 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    initialize_all_data_files(args)
     get_identifier_mapping()
     session = shared.get_session()
     query_category_mapping(args, session)
