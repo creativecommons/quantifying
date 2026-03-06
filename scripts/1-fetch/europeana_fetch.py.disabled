@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 """
+DISABLED:
+    Fetch from Europeana disabled due API limitations
+    https://github.com/creativecommons/quantifying/issues/224
+
 Fetch high-level Europeana statistics for Quantifying the Commons.
 Generates two datasets:
 1) Without themes (aggregated by DATA_PROVIDER, LEGAL_TOOL)
