@@ -51,7 +51,7 @@ jobs:
       #
       # For now, data is fetched manually :/
 
-      # Fetch from Europeana disabled due to being considered incomplete
+      # Fetch from Europeana disabled due API limitations
       # https://github.com/creativecommons/quantifying/issues/224
 
       # Fetch from GCS disabled due to Google blocking GitHub Action runners
@@ -75,8 +75,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN }}
 
-      # Fetch from Openverse disabled due to limitations of anonymous API
-      # access
+      # Fetch from Openverse disabled due to API limitations
+      # https://github.com/creativecommons/quantifying/issues/184
 
       - name: Fetch from Smithsonian
         run: |
