@@ -47,8 +47,8 @@ HEADER_2_UNITS = [
 ]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
-# Manually compiled unit code and name from URL
-# 'https://github.com/Smithsonian/OpenAccess'
+# Manually compiled unit code and name from:
+#   https://github.com/Smithsonian/OpenAccess
 UNIT_MAP = {
     "AAA": "Archives of American Art",
     "AAG": "Archives of American Gardens",
@@ -66,35 +66,35 @@ UNIT_MAP = {
     "NMAH": "National Museum of American History",
     "NMAI": "National Museum of the American Indian",
     "NMAfA": "National Museum of African Art",
-    "NMNHANTHRO": ("National Musuem of Natural History - Anthropology Dept."),
+    "NMNHANTHRO": ("National Museum of Natural History - Anthropology Dept."),
     "NMNHBIRDS": (
-        "National Musuem of Natural History - Vertebrate Zoology - Birds"
+        "National Museum of Natural History - Vertebrate Zoology - Birds"
         " Division"
     ),
-    "NMNHBOTANY": ("National Musuem of Natural History - Botany Dept."),
+    "NMNHBOTANY": ("National Museum of Natural History - Botany Dept."),
     "NMNHEDUCATION": (
-        "National Musuem of Natural History - Education & Outreach"
+        "National Museum of Natural History - Education & Outreach"
     ),
-    "NMNHENTO": ("National Musuem of Natural History - Entomology Dept."),
+    "NMNHENTO": ("National Museum of Natural History - Entomology Dept."),
     "NMNHFISHES": (
-        "National Musuem of Natural History - Vertebrate Zoology - Fishes"
+        "National Museum of Natural History - Vertebrate Zoology - Fishes"
         " Division"
     ),
     "NMNHHERPS": (
-        "National Musuem of Natural History - Vertebrate Zoology - Herpetology"
+        "National Museum of Natural History - Vertebrate Zoology - Herpetology"
         " Division"
     ),
     "NMNHINV": (
-        "National Musuem of Natural History - Invertebrate Zoology Dept."
+        "National Museum of Natural History - Invertebrate Zoology Dept."
     ),
     "NMNHMAMMALS": (
-        "National Musuem of Natural History"
+        "National Museum of Natural History"
         " - Vertebrate Zoology - Mammals Division"
     ),
     "NMNHMINSCI": (
-        "National Musuem of Natural History" " - Mineral Sciences Dept."
+        "National Museum of Natural History" " - Mineral Sciences Dept."
     ),
-    "NMNHPALEO": ("National Musuem of Natural History - Paleobiology Dept."),
+    "NMNHPALEO": ("National Museum of Natural History - Paleobiology Dept."),
     "NPG": "National Portrait Gallery",
     "NPM": "National Postal Museum",
     "NZP": "Smithsonian's National Zoo & Conservation Biology Institute",
