@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 """
-Fetch CC Legal Tool usage from Openverse API.
+DISABLED:
+    Fetch from Openverse disabled due to API limitations
+    https://github.com/creativecommons/quantifying/issues/184
 
-Note:
-    Because anonymous Openverse API access
-    returns a maximum of ~240 result count
-    per source-license combination, this
-    script currently provides approximate counts.
-    It does not include pagination or license_version
-    breakdown.
+Fetch CC Legal Tool usage from Openverse API.
 """
 
 # Standard library
