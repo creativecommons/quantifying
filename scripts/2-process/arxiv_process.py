@@ -93,7 +93,7 @@ def process_totals_by_license(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_totals_by_license.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_totals_by_author_bucket(args, count_data):
@@ -110,7 +110,7 @@ def process_totals_by_author_bucket(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_totals_by_author_bucket.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_3_by_year(args, count_data):
@@ -135,7 +135,7 @@ def process_cc_by_3_by_year(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_3_by_year.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_4_by_year(args, count_data):
@@ -160,7 +160,7 @@ def process_cc_by_4_by_year(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_4_by_year.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_nc_nd_4_by_year(args, count_data):
@@ -185,7 +185,7 @@ def process_cc_by_nc_nd_4_by_year(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_nc_nd_4_by_year.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_nc_sa_3_by_year(args, count_data):
@@ -209,7 +209,7 @@ def process_cc_by_nc_sa_3_by_year(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_nc_sa_3_by_year.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_nc_sa_4_by_year(args, count_data):
@@ -233,7 +233,7 @@ def process_cc_by_nc_sa_4_by_year(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_nc_sa_4_by_year.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_sa_4_by_year(args, count_data):
@@ -257,7 +257,7 @@ def process_cc_by_sa_4_by_year(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_sa_4_by_year.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc0_1_by_year(args, count_data):
@@ -281,7 +281,7 @@ def process_cc0_1_by_year(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc0_1_by_year.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_3_by_category(args, count_data):
@@ -305,7 +305,7 @@ def process_cc_by_3_by_category(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_3_by_category.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_4_by_category(args, count_data):
@@ -329,7 +329,7 @@ def process_cc_by_4_by_category(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_4_by_category.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_nc_nd_4_by_category(args, count_data):
@@ -353,7 +353,7 @@ def process_cc_by_nc_nd_4_by_category(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_nc_nd_4_by_category.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_nc_sa_3_by_category(args, count_data):
@@ -377,7 +377,7 @@ def process_cc_by_nc_sa_3_by_category(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_nc_sa_3_by_category.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_nc_sa_4_by_category(args, count_data):
@@ -401,7 +401,7 @@ def process_cc_by_nc_sa_4_by_category(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_nc_sa_4_by_category.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc_by_sa_4_by_category(args, count_data):
@@ -425,7 +425,7 @@ def process_cc_by_sa_4_by_category(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc_by_sa_4_by_category.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def process_cc0_1_by_category(args, count_data):
@@ -449,7 +449,7 @@ def process_cc0_1_by_category(args, count_data):
     file_path = shared.path_join(
         PATHS["data_phase"], "arxiv_cc0_1_by_category.csv"
     )
-    shared.data_to_csv(args, data, file_path)
+    shared.dataframe_to_csv(args, data, file_path)
 
 
 def main():
