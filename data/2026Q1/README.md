@@ -180,7 +180,7 @@ Plots showing totals by different levels of restrictions. This shows the distrib
 ### Overview
 
 The Smithsonian Institute data returns the overall statistics of CC0 legal tool records. It serves as the main legal tool used by Smithsonian Institute.
-The results indicate a total record of 15,058,654 objects, with a breakdown of 14,395,246 objects without CC0 Media and 5,205,203 objects with CC0 Media, taking a percentage of 16.31% in each institute member. There are 38 unique units in the data representing museums, libraries, zoos and other institutions with a minimum of 57 objects.
+The results indicate a total record of 32,567,783 objects, with a breakdown of 17,586,024 objects without CC0 Media and 5,213,799 objects with CC0 Media, taking a percentage of 11.95% in each institute member. There are 39 unique units in the data representing museums, libraries, zoos and other institutions with a minimum of 410 objects.
 
 <!-- smithsonian_report.py entry end Overview -->
 
@@ -189,9 +189,9 @@ The results indicate a total record of 15,058,654 objects, with a breakdown of 1
 
 ### Totals by 10 Units
 
-![Plots showing totals by units. This shows the distribution of top 10 institute member across Smithsonian Institute with an average of 1,279,971.8 objects across the top 10 Institute members.](3-report/smithsonian_totals_by_top10_units.png)
+![Plots showing totals by units. This shows the distribution of top 10 institute member across Smithsonian Institute with an average of 2,326,055.1 objects across the top 10 Institute members.](3-report/smithsonian_totals_by_top10_units.png)
 
-Plots showing totals by units. This shows the distribution of top 10 institute member across Smithsonian Institute with an average of 1,279,971.8 objects across the top 10 Institute members.
+Plots showing totals by units. This shows the distribution of top 10 institute member across Smithsonian Institute with an average of 2,326,055.1 objects across the top 10 Institute members.
 
 <!-- smithsonian_report.py entry end Totals by 10 Units -->
 
@@ -204,7 +204,7 @@ Plots showing totals by units. This shows the distribution of top 10 institute m
 
 Plots showing totals by units.
 
-This shows the distribution of lowest 10 institute member across Smithsonian Institute with an average of 3264.5 objects across the lowest 10 institute members.
+This shows the distribution of lowest 10 institute member across Smithsonian Institute with an average of 8978.5 objects across the lowest 10 institute members.
 
 <!-- smithsonian_report.py entry end Totals by lowest 10 Units -->
 
