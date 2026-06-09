@@ -47,69 +47,6 @@ HEADER_2_UNITS = [
 ]
 QUARTER = os.path.basename(PATHS["data_quarter"])
 
-# Manually compiled unit code and name from:
-#   https://github.com/Smithsonian/OpenAccess
-UNIT_MAP = {
-    "AAA": "Archives of American Art",
-    "AAG": "Archives of American Gardens",
-    "ACM": "Anacostia Community Museum",
-    "ACMA": "Anacostia Community Museum Archives",
-    "CFCHFOLKLIFE": "Ralph Rinzler Folklife Archives and Collections",
-    "CHNDM": "Cooper Hewitt, Smithsonian Design Museum",
-    "FBR": "Smithsonian Field Book Project",
-    "FSG": "Freer Gallery of Art and Arthur M. Sackler Gallery",
-    "HAC": "Smithsonian Gardens",
-    "HMSG": "Hirshhorn Museum and Sculpture Garden",
-    "HSFA": "Human Studies Film Archives",
-    "NASM": "National Air and Space Museum",
-    "NMAAHC": "National Museum of African American History and Culture",
-    "NMAH": "National Museum of American History",
-    "NMAI": "National Museum of the American Indian",
-    "NMAfA": "National Museum of African Art",
-    "NMNHANTHRO": ("National Museum of Natural History - Anthropology Dept."),
-    "NMNHBIRDS": (
-        "National Museum of Natural History - Vertebrate Zoology - Birds"
-        " Division"
-    ),
-    "NMNHBOTANY": ("National Museum of Natural History - Botany Dept."),
-    "NMNHEDUCATION": (
-        "National Museum of Natural History - Education & Outreach"
-    ),
-    "NMNHENTO": ("National Museum of Natural History - Entomology Dept."),
-    "NMNHFISHES": (
-        "National Museum of Natural History - Vertebrate Zoology - Fishes"
-        " Division"
-    ),
-    "NMNHHERPS": (
-        "National Museum of Natural History - Vertebrate Zoology - Herpetology"
-        " Division"
-    ),
-    "NMNHINV": (
-        "National Museum of Natural History - Invertebrate Zoology Dept."
-    ),
-    "NMNHMAMMALS": (
-        "National Museum of Natural History"
-        " - Vertebrate Zoology - Mammals Division"
-    ),
-    "NMNHMINSCI": (
-        "National Museum of Natural History" " - Mineral Sciences Dept."
-    ),
-    "NMNHPALEO": ("National Museum of Natural History - Paleobiology Dept."),
-    "NPG": "National Portrait Gallery",
-    "NPM": "National Postal Museum",
-    "NZP": "Smithsonian's National Zoo & Conservation Biology Institute",
-    "OCIO_DPO3D": "OCIO Digital Preservation & 3D Team",
-    "OFEO-SG": "Office of Facilities Engineering &"
-    " Operations – Smithsonian Gardens",
-    "SAAM": "Smithsonian American Art Museum",
-    "SIA": "Smithsonian Institution Archives",
-    "SIL": "Smithsonian Libraries",
-    "SILAF": "Smithsonian Institution Libraries, African Section",
-    "SILNMAHTL": "Smithsonian Institution Libraries,"
-    " National Museum of American History, Library",
-    "SLA_SRO": "Smithsonian Libraries Archives, Special Research/Operations",
-}
-
 
 def parse_arguments():
     """
@@ -127,13 +64,20 @@ def parse_arguments():
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Write data even if already exists",
+    )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     return args
 
 
-def check_for_completion():
+def check_for_completion(args):
+    if args.force:
+        return
     completed_metrics = False
     completed_units = False
 
@@ -197,7 +141,7 @@ def query_smithsonian(args, session):
         data_units.append(
             {
                 "UNIT_CODE": unit["unit"],
-                "DATA_SOURCE": UNIT_MAP.get(unit["unit"], unit["unit"]),
+                "DATA_SOURCE": unit["data_source"],
                 "CC0_RECORDS": unit["metrics"]["CC0_records"],
                 "CC0_RECORDS_WITH_CC0_MEDIA": unit["metrics"][
                     "CC0_records_with_CC0_media"
@@ -213,7 +157,7 @@ def query_smithsonian(args, session):
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
-    check_for_completion()
+    check_for_completion(args)
     session = shared.get_session()
     data_metrics, data_units = query_smithsonian(args, session)
     shared.rows_to_csv(args, FILE_1_METRICS, HEADER_1_METRICS, data_metrics)

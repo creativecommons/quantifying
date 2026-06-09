@@ -113,7 +113,7 @@ def gcs_intro(args):
 
 def plot_products(args):
     """
-    Create plots for CC legal tool product totals and percentages
+    Create a plot for CC legal tool product totals and percentages
     """
     LOGGER.info(plot_products.__doc__.strip())
     file_path = shared.path_join(
@@ -152,14 +152,14 @@ def plot_products(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing Creative Commons (CC) legal tool product totals and"
+        "The plot shows Creative Commons (CC) legal tool product totals and"
         " percentages.",
     )
 
 
 def plot_tool_status(args):
     """
-    Create plots for the CC legal tool status totals and percentages
+    Create a plot for the CC legal tool status totals and percentages
     """
     LOGGER.info(plot_tool_status.__doc__.strip())
     file_path = shared.path_join(
@@ -196,14 +196,14 @@ def plot_tool_status(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing Creative Commons (CC) legal tool status totals and"
+        "The plot shows Creative Commons (CC) legal tool status totals and"
         " percentages.",
     )
 
 
 def plot_latest_tools(args):
     """
-    Create plots for latest CC legal tool totals and percentages
+    Create a plot for latest CC legal tool totals and percentages
     """
     LOGGER.info(plot_latest_tools.__doc__.strip())
     file_path = shared.path_join(
@@ -240,14 +240,14 @@ def plot_latest_tools(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing latest Creative Commons (CC) legal tool totals and"
+        "The plot shows the latest Creative Commons (CC) legal tool totals and"
         " percentages.",
     )
 
 
 def plot_prior_tools(args):
     """
-    Create plots for prior CC legal tool totals and percentages
+    Create a plot for prior CC legal tool totals and percentages
     """
     LOGGER.info(plot_prior_tools.__doc__.strip())
     file_path = shared.path_join(
@@ -283,16 +283,15 @@ def plot_prior_tools(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing prior Creative Commons (CC) legal tool totals and"
-        " percentages.",
-        "The unit names have been normalized (~~`CC BY-ND-NC`~~ =>"
-        " `CC BY-NC-ND`).",
+        "The plot shows prior Creative Commons (CC) legal tool totals and"
+        " percentages. The unit names have been normalized (~~`CC BY-ND-NC`~~"
+        " => `CC BY-NC-ND`).",
     )
 
 
 def plot_retired_tools(args):
     """
-    Create plots for retired CC legal tool totals and percentages
+    Create a plot for retired CC legal tool totals and percentages
     """
     LOGGER.info(plot_retired_tools.__doc__.strip())
     file_path = shared.path_join(
@@ -330,16 +329,16 @@ def plot_retired_tools(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing retired Creative Commons (CC) legal tools total and"
-        " percentages.",
-        "For more information on retired legal tools, see [Retired Legal Tools"
-        " - Creative Commons](https://creativecommons.org/retiredlicenses/).",
+        "The plot shows retired Creative Commons (CC) legal tools total and"
+        " percentages. For more information on retired legal tools, see"
+        " [Retired Legal Tools - Creative Commons]"
+        "(https://creativecommons.org/retiredlicenses/).",
     )
 
 
 def plot_countries_highest_usage(args):
     """
-    Create plots for the countries with highest usage of latest tools
+    Create a plot for the countries with highest usage of latest tools
     """
     LOGGER.info(plot_countries_highest_usage.__doc__.strip())
     file_path = shared.path_join(
@@ -380,20 +379,20 @@ def plot_countries_highest_usage(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing countries with the highest useage of the latest"
+        "The plot shows countries with the highest useage of the latest"
         " Creative Commons (CC) legal tools.",
         "The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
         " 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0),"
         " CC0 1.0, and the Public Domain Mark (PDM 1.0).\n"
         "\n"
         f"The complete data set indicates there are a total of {total_count}"
-        " online works using a latest CC legal tool.",
+        " online works using one of the latest CC legal tools.",
     )
 
 
 def plot_languages_highest_usage(args):
     """
-    Create plots for the languages with highest usage of latest tools
+    Create a plot for the languages with highest usage of latest tools
     """
     LOGGER.info(plot_languages_highest_usage.__doc__.strip())
     file_path = shared.path_join(
@@ -434,20 +433,20 @@ def plot_languages_highest_usage(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing languages with the highest useage of the latest"
+        "The plot shows the languages with the highest useage of the latest"
         " Creative Commons (CC) legal tools.",
         "The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
         " 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0),"
         " CC0 1.0, and the Public Domain Mark (PDM 1.0).\n"
         "\n"
         f"The complete data set indicates there are a total of {total_count}"
-        " online works using a latest CC legal tool.",
+        " online works using one of the latest CC legal tools.",
     )
 
 
 def plot_free_culture(args):
     """
-    Create plots for the languages with highest usage of latest tools
+    Create a plot for the languages with highest usage of latest tools
     """
     LOGGER.info(plot_free_culture.__doc__.strip())
     file_path = shared.path_join(
@@ -482,7 +481,7 @@ def plot_free_culture(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing Approved for Free Cultural Works legal tool usage.",
+        "The plot shows Approved for Free Cultural Works legal tool usage.",
         "[Understanding Free Cultural Works - Creative"
         " Commons](https://creativecommons.org/public-domain/freeworks/):\n"
         "\n"

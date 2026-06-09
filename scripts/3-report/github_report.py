@@ -114,44 +114,41 @@ def github_intro(args):
         "Overview",
         None,
         None,
-        "The GitHub data, below, uses the `total_count`"
-        " returned by API for search queries of the various legal tools."
+        "The GitHub data, below, uses the `total_count` returned by the API"
+        " for search queries of the various legal tools.\n"
         "\n"
-        f"**The results indicate that {cc_total} ({cc_percentage})"
-        f"** of the {total_repositories} total public repositories"
-        " on GitHub that use a CC legal tool. Additionally,"
-        " many more use a non-CC use a Public domain"
-        " equivalent legal tools.\n"
+        f"**The results indicate that {cc_total:,} ({cc_percentage})** of the"
+        f" {total_repositories:,} total public repositories on GitHub use a CC"
+        " legal tool. Additionally, many more use a non-CC use a Public"
+        " domain equivalent legal tools. The fetched GitHub data creates a"
+        " a subtotal that showcases the different level of permission that"
+        " works are released under.\n"
         "\n"
-        " The GitHub data showcases the different level of"
-        " rights reserved on repositories We have Public"
-        " domain which includes works released under CC0, 0BSD and Unlicense"
-        " meaning developers have waived all their rights to a software."
-        " Allowing anyone to freely use, modify, and distribute the code"
-        " without restriction."
-        " See more at"
+        "The public-domain-equivalent licenses include 0BSD, CC0, MIT-0 and"
+        " Unlicense. These licenses allow anyone to freely use, modify, and"
+        " distribute the code without restriction. See more at"
         " [Public-domain-equivalent license]"
         "(https://en.wikipedia.org/wiki/Public-domain-equivalent_license).\n"
-        " While a Permissive category of license contains works"
-        " under MIT-0 and CC BY 4.0 allows users to"
-        " reuse the code with some conditions and attribution"
+        "\n"
+        "The CC BY 4.0 license is a permissive license that allows users to"
+        " reuse the code with some conditions and attribution. See more at"
         " [Permissive license]"
-        "(https://en.wikipedia.org/wiki/Permissive_software_license)"
-        " and Copyleft contains works under CC BY-SA 4.0."
-        " which requires any derivative works to be licensed"
-        " under the same terms."
+        "(https://en.wikipedia.org/wiki/Permissive_software_license).\n"
+        "\n"
+        "The CC BY-SA 4.0 license is a copyleft license which requires any"
+        " derivative works to be licensed under the same terms. See more at"
         " [Copyleft](https://en.wikipedia.org/wiki/Copyleft).\n"
         "\n"
-        "Thank you GitHub for providing public API"
-        " access to repository metadata!",
+        "Thank you GitHub for providing public API access to repository"
+        " metadata!",
     )
 
 
-def plot_totals_by_license_type(args):
+def plot_distribution_by_license(args):
     """
-    Create plots showing totals by license type
+    Create a plot showing the subtotal distribution by license
     """
-    LOGGER.info(plot_totals_by_license_type.__doc__.strip())
+    LOGGER.info(plot_distribution_by_license.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"],
         "github_totals_by_license.csv",
@@ -161,7 +158,7 @@ def plot_totals_by_license_type(args):
     data_label = "Count"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(data_label, ascending=True, inplace=True)
-    title = "Totals by license type"
+    title = "Subtotal distribution by license"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -186,22 +183,18 @@ def plot_totals_by_license_type(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing totals by license type."
-        " This shows the distribution of different CC license"
-        " and non CC license used in GitHub repositories."
-        " Allowing Commons to evaluate how freely softwares on"
-        " GitHub are being used, modified, and shared"
-        " and how developers choose to share their works."
-        " See more at [SPDX License List]"
-        "(https://spdx.org/licenses/)",
+        "The plot shows the distribution of the different open content or"
+        " public-domain-equivalent licenses (0BSD, CC BY 4.0, CC BY-SA 4.0,"
+        " CC0 1.0, MIT-0, and Unlicense) used in the subtotal of GitHub"
+        " repositories.",
     )
 
 
-def plot_totals_by_restriction(args):
+def plot_distribution_by_restriction(args):
     """
-    Create plots showing totals by restriction
+    Create a plot showing the subtotal distribution by restriction
     """
-    LOGGER.info(plot_totals_by_restriction.__doc__.strip())
+    LOGGER.info(plot_distribution_by_restriction.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"],
         "github_totals_by_restriction.csv",
@@ -211,7 +204,7 @@ def plot_totals_by_restriction(args):
     data_label = "Count"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
-    title = "Totals by restriction"
+    title = "Subtotal distribution by restriction"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -235,10 +228,9 @@ def plot_totals_by_restriction(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing totals by different levels of restrictions."
-        " This shows the distribution of Public domain,"
-        " Permissive, and Copyleft"
-        " licenses used in GitHub repositories.",
+        "The plot shows the distribution of the different restrictions"
+        " (Copyleft, Permissive, Public domain) used in the subtotal of GitHub"
+        " repositories.",
     )
 
 
@@ -251,8 +243,8 @@ def main():
     )
     shared.check_completion_file_exists(args, last_entry)
     github_intro(args)
-    plot_totals_by_license_type(args)
-    plot_totals_by_restriction(args)
+    plot_distribution_by_license(args)
+    plot_distribution_by_restriction(args)
 
     # Add and commit changes
     args = shared.git_add_and_commit(

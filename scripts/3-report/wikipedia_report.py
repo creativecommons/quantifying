@@ -116,7 +116,7 @@ def wikipedia_intro(args):
         " Attribution 4.0 International across the different language editions"
         " of Wikipedia. The Wikipedia data, below, uses the `Count` field from"
         " the Wikipedia API to quantify the number of articles in"
-        " each language edition of Wikipedia."
+        " each language edition of Wikipedia.\n"
         "\n"
         f"**The total number of Wikipedia articles across"
         f" {language_count} languages is"
@@ -124,7 +124,7 @@ def wikipedia_intro(args):
         f" {top10_articles:,} articles, which is"
         f" {top10_percentage:,.2f}% of the total articles."
         " The average number of articles per language is"
-        f" {average_articles:,.2f}.**"
+        f" {average_articles:,.2f}.**\n"
         "\n"
         "Thank you to the volunteers who curate this data and the Wikimedia"
         " Foundation for making it publicly available!",
@@ -133,7 +133,7 @@ def wikipedia_intro(args):
 
 def plot_language_representation(args):
     """
-    Create plots showing language representation
+    Create a plot showing language representation
     """
     LOGGER.info(plot_language_representation.__doc__.strip())
     file_path = shared.path_join(
@@ -170,8 +170,8 @@ def plot_language_representation(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing the language representation across different language"
-        " editions of Wikipedia. This shows how many languages are"
+        "The plot shows the language representation across the different"
+        " language editions of Wikipedia. It shows how many languages are"
         " underrepresented (below average number of articles) versus"
         " represented (above average number of articles).",
     )
@@ -179,7 +179,7 @@ def plot_language_representation(args):
 
 def plot_highest_language_usage(args):
     """
-    Create plots showing totals by license type
+    Create a plot showing the most represented languages
     """
     LOGGER.info(plot_highest_language_usage.__doc__.strip())
     file_path = shared.path_join(
@@ -216,14 +216,14 @@ def plot_highest_language_usage(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing the most represented languages across the different"
-        "language editions of Wikipedia.",
+        "The plot shows the most represented languages across the different"
+        " language editions of Wikipedia.",
     )
 
 
 def plot_least_language_usage(args):
     """
-    Create plots showing totals by license type
+    Create plots showing the least represented languages
     """
     LOGGER.info(plot_least_language_usage.__doc__.strip())
     file_path = shared.path_join(
@@ -260,7 +260,7 @@ def plot_least_language_usage(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing the least represented languages across the different"
+        "The plot shows the least represented languages across the different"
         " language editions of Wikipedia.",
     )
 

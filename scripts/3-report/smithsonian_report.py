@@ -119,23 +119,23 @@ def smithsonian_intro(args):
         "Overview",
         None,
         None,
-        "The Smithsonian Institute data returns the overall"
-        " statistics of CC0 legal tool records."
-        " It serves as the main legal tool used by Smithsonian Institute."
+        "The Smithsonian Institute data returns the overall statistics of CC0"
+        " legal tool records. CC0 serves as the main legal tool used by the"
+        " Smithsonian Institute.\n"
         "\n"
         f"The results indicate a total record of {total_objects:,} objects,"
         f" with a breakdown of {CC0_records:,} objects without CC0 Media and"
         f" {CC0_records_with_media:,} objects with CC0 Media, taking a"
         f" percentage of {CC0_media_percentage} in each institute member."
-        f" There are {num_units} unique units in the data"
-        " representing museums, libraries, zoos and other institutions"
-        f" with a minimum of {min_object} objects.",
+        f" There are {num_units} unique units in the data representing"
+        " museums, libraries, zoos and other institutions with a minimum of"
+        f" {min_object} objects.",
     )
 
 
 def plot_totals_by_top10_units(args):
     """
-    Create plots showing totals by top 10 units
+    Create a plot showing the totals by top 10 units
     """
     LOGGER.info(plot_totals_by_top10_units.__doc__.strip())
     file_path = shared.path_join(
@@ -176,17 +176,15 @@ def plot_totals_by_top10_units(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing totals by units. This shows the"
-        " distribution of top 10 institute member across"
-        " Smithsonian Institute with an average of"
-        f" {average_unit:,} objects across the top 10"
-        " Institute members.",
+        "The plot shows totals by units. It shows the distribution of top 10"
+        " institute member across the Smithsonian Institute with an average of"
+        f" {average_unit:,} objects across the top 10 Institute members.",
     )
 
 
 def plot_totals_by_lowest10_units(args):
     """
-    Create plots showing totals by lowest 10 units
+    Create a plot showing totals by lowest 10 units
     """
     LOGGER.info(plot_totals_by_lowest10_units.__doc__.strip())
     file_path = shared.path_join(
@@ -227,17 +225,15 @@ def plot_totals_by_lowest10_units(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing totals by units.",
-        "This shows the distribution of lowest 10"
-        " institute member across Smithsonian Institute"
-        f" with an average of {average_unit} objects"
-        " across the lowest 10 institute members.",
+        "The plot shows totals by units. It shows the distribution of lowest"
+        " 10 institute member across Smithsonian Institute with an average of"
+        f" {average_unit} objects across the lowest 10 institute members.",
     )
 
 
 def plot_totals_by_top10_unit_records(args):
     """
-    Create plots showing breakdown of CC0 records by top 10 units
+    Create a plot showing the breakdown of CC0 records by top 10 units
     """
     LOGGER.info(plot_totals_by_top10_unit_records.__doc__.strip())
     file_path = shared.path_join(
@@ -279,16 +275,15 @@ def plot_totals_by_top10_unit_records(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing totals by CC0 records. This is the"
-        " top 10 units with a breakdown of CC0 records"
-        " without media, CC0 records with media and records"
-        " that are not associated with CC0.",
+        "The plot shows totals by CC0 records. It shows the top 10 units with"
+        " a breakdown of CC0 records without media, CC0 records with media and"
+        " records that are not associated with CC0.",
     )
 
 
 def plot_totals_by_lowest10_unit_records(args):
     """
-    Create plots showing breakdown of CC0 records by lowest 10 units
+    Create a plot showing the breakdown of CC0 records by lowest 10 units
     """
     LOGGER.info(plot_totals_by_lowest10_unit_records.__doc__.strip())
     file_path = shared.path_join(
@@ -330,10 +325,9 @@ def plot_totals_by_lowest10_unit_records(args):
         SECTION_TITLE,
         title,
         image_path,
-        "Plots showing totals by CC0 records. This is the"
-        " lowest 10 units with a breakdown of CC0 records"
-        " without media, CC0 records with media and records"
-        " that are not associated with CC0.",
+        "The plot shows totals by CC0 records. It shows the lowest 10 units"
+        " with a breakdown of CC0 records without media, CC0 records with"
+        "  media and records that are not associated with CC0.",
     )
 
 
