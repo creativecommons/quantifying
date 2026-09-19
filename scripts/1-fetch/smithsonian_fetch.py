@@ -114,7 +114,7 @@ def query_smithsonian(args, session):
     url = "https://api.si.edu/openaccess/api/v1.0/stats"
     params = {"api_key": DATA_GOV_API_KEY}
     try:
-        with session.get(url, params=params) as response:
+        with session.get(url, params=params, timeout=30) as response:
             response.raise_for_status()
             data = response.json()["response"]
     except requests.HTTPError as e:

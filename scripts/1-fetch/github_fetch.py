@@ -95,7 +95,7 @@ def query_github(args, session):
         request_url = f"{base_url}{search_parameters}"
 
         try:
-            with session.get(request_url) as response:
+            with session.get(request_url, timeout=30) as response:
                 response.raise_for_status()
                 search_data = response.json()
                 count = search_data["total_count"]
