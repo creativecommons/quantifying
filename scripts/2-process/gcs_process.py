@@ -94,27 +94,29 @@ def process_product_totals(args, count_data):
         "Licenses version 1.0": 0,
         "CC0 1.0": 0,
         "Public Domain Mark 1.0": 0,
-        "Certification 1.0 US": 0,
+        "CERTIFICATION 1.0 US": 0,
     }
     for row in count_data.itertuples(index=False):
         tool = row[0]
         count = row[1]
-        if tool.startswith("PDM"):
+        if tool == "PDM 1.0":
             key = "Public Domain Mark 1.0"
-        elif "CC0" in tool:
-            key = "CC0 1.0"
-        elif "PUBLICDOMAIN" in tool:
-            key = "Certification 1.0 US"
-        elif "4.0" in tool:
+        elif tool == "CC0 1.0":
+            key = tool
+        elif tool == "CERTIFICATION 1.0 US":
+            key = tool
+        elif tool.startswith("CC ") and tool.endswith("4.0"):
             key = "Licenses version 4.0"
-        elif "3.0" in tool:
+        elif tool.startswith("CC ") and "3.0" in tool:
             key = "Licenses version 3.0"
-        elif "2." in tool:
+        elif tool.startswith("CC ") and "2." in tool:
             key = "Licenses version 2.x"
-        elif "1.0" in tool:
+        elif tool.startswith("CC ") and "1.0" in tool:
             key = "Licenses version 1.0"
         else:
-            raise shared.QuantifyingException("Invalid TOOL_IDENTIFIER")
+            raise shared.QuantifyingException(
+                f"Invalid TOOL_IDENTIFIER: {tool}"
+            )
         data[key] += count
 
     data = pd.DataFrame(
@@ -129,7 +131,11 @@ def process_latest_prior_retired_totals(args, count_data):
     Process count data: totals by unit in three categories: latest, prior,
     and retired
     """
-    LOGGER.info(process_latest_prior_retired_totals.__doc__.strip())
+    LOGGER.info(
+        process_latest_prior_retired_totals.__doc__.strip().replace(
+            "\n   ", ""
+        )
+    )
     # https://creativecommons.org/retiredlicenses/
     retired = [
         # DevNations,
@@ -144,14 +150,14 @@ def process_latest_prior_retired_totals(args, count_data):
         "CC NC-SAMPLING+",
         # NonCommercial-ShareAlike
         "CC NC-SA ",
-        # Public Domain Dedication and Certification
-        "CC PUBLICDOMAIN",
         # Sampling
         "CC SAMPLING ",
         # Sampling+
         "CC SAMPLING+ ",
         # ShareAlike
         "CC SA ",
+        # Certification
+        "CERTIFICATION ",
     ]
     data = {"latest": {}, "prior": {}, "retired": {}}
     status = {"Latest": 0, "Prior": 0, "Retired": 0}
@@ -218,7 +224,7 @@ def process_totals_by_free_cultural(args, count_data):
     for row in count_data.itertuples(index=False):
         tool = row[0]
         count = row[1]
-        if tool.startswith("PDM") or "CC0" in tool or "PUBLICDOMAIN" in tool:
+        if tool in ("CERTIFICATION 1.0 US", "CC0 1.0", "PDM 1.0"):
             key = "Approved for Free Cultural Works"
         else:
             parts = tool.split()
@@ -252,7 +258,7 @@ def process_totals_by_restrictions(args, count_data):
     for row in count_data.itertuples(index=False):
         tool = row[0]
         count = row[1]
-        if tool.startswith("PDM") or "CC0" in tool or "PUBLICDOMAIN" in tool:
+        if tool.startswith("PDM") or "CC0" in tool or "CERTIFICATION" in tool:
             key = "level 0 - unrestricted"
         else:
             parts = tool.split()
