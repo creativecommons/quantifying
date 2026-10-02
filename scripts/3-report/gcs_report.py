@@ -122,7 +122,7 @@ def plot_products(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool product"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
-
+    data.index = data.index.map(lambda x: x.replace("CC0 1.0", "CC0 1.0"))
     data = data[::-1]  # reverse order
 
     title = "Products totals and percentages"
@@ -213,6 +213,7 @@ def plot_latest_tools(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+    data.index = data.index.map(lambda x: x.replace(" ", " "))
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Latest CC legal tools"
@@ -242,6 +243,9 @@ def plot_latest_tools(args):
         image_path,
         "The plot shows the latest Creative Commons (CC) legal tool totals and"
         " percentages.",
+        "The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
+        " 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0),"
+        " CC0 1.0, and the Public Domain Mark (PDM 1.0).",
     )
 
 
@@ -256,6 +260,7 @@ def plot_prior_tools(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+    data.index = data.index.map(lambda x: x.replace(" ", " "))
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Prior CC legal tools"
@@ -284,7 +289,8 @@ def plot_prior_tools(args):
         title,
         image_path,
         "The plot shows prior Creative Commons (CC) legal tool totals and"
-        " percentages. The unit names have been normalized (~~`CC BY-ND-NC`~~"
+        " percentages. Prior CC licenses include versions 1.0, 2.0, 2.1, 2.5,"
+        " and 3.0. The unit names have been normalized (~~`CC BY-ND-NC`~~"
         " => `CC BY-NC-ND`).",
     )
 
@@ -301,6 +307,7 @@ def plot_retired_tools(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "CC legal tool"
     data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
+    data.index = data.index.map(lambda x: x.replace(" ", " "))
     data.sort_values(name_label, ascending=False, inplace=True)
 
     title = "Retired CC legal tools"
@@ -379,14 +386,15 @@ def plot_countries_highest_usage(args):
         SECTION_TITLE,
         title,
         image_path,
-        "The plot shows countries with the highest useage of the latest"
+        "The plot shows countries with the highest usage of the latest"
         " Creative Commons (CC) legal tools.",
         "The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
         " 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0),"
         " CC0 1.0, and the Public Domain Mark (PDM 1.0).\n"
         "\n"
-        f"The complete data set indicates there are a total of {total_count}"
-        " online works using one of the latest CC legal tools.",
+        "The complete countries data set indicates there are a total of"
+        f" {total_count} online works using one of the latest CC legal tools."
+        " This conflicts with the languages data set, below.",
     )
 
 
@@ -433,14 +441,15 @@ def plot_languages_highest_usage(args):
         SECTION_TITLE,
         title,
         image_path,
-        "The plot shows the languages with the highest useage of the latest"
+        "The plot shows the languages with the highest usage of the latest"
         " Creative Commons (CC) legal tools.",
         "The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC"
         " 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0),"
         " CC0 1.0, and the Public Domain Mark (PDM 1.0).\n"
         "\n"
-        f"The complete data set indicates there are a total of {total_count}"
-        " online works using one of the latest CC legal tools.",
+        "The complete languages data set indicates there are a total of"
+        f" {total_count} online works using one of the latest CC legal tools."
+        " This conflicts with the countries data set, above.",
     )
 
 
