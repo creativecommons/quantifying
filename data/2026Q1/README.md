@@ -24,9 +24,9 @@ Thank you Google for providing the Programable Search Engine: Custom Search JSON
 
 ### Products totals and percentages
 
-![Plots showing Creative Commons (CC) legal tool product totals and percentages.](3-report/gcs_product_totals.png)
+![The plot shows Creative Commons (CC) legal tool product totals and percentages.](3-report/gcs_product_totals.png)
 
-Plots showing Creative Commons (CC) legal tool product totals and percentages.
+The plot shows Creative Commons (CC) legal tool product totals and percentages.
 
 <!-- gcs_report.py entry end Products totals and percentages -->
 
@@ -35,9 +35,9 @@ Plots showing Creative Commons (CC) legal tool product totals and percentages.
 
 ### CC legal tools status
 
-![Plots showing Creative Commons (CC) legal tool status totals and percentages.](3-report/gcs_tool_status.png)
+![The plot shows Creative Commons (CC) legal tool status totals and percentages.](3-report/gcs_tool_status.png)
 
-Plots showing Creative Commons (CC) legal tool status totals and percentages.
+The plot shows Creative Commons (CC) legal tool status totals and percentages.
 
 <!-- gcs_report.py entry end CC legal tools status -->
 
@@ -46,9 +46,11 @@ Plots showing Creative Commons (CC) legal tool status totals and percentages.
 
 ### Latest CC legal tools
 
-![Plots showing latest Creative Commons (CC) legal tool totals and percentages.](3-report/gcs_status_latest_tools.png)
+![The plot shows the latest Creative Commons (CC) legal tool totals and percentages.](3-report/gcs_status_latest_tools.png)
 
-Plots showing latest Creative Commons (CC) legal tool totals and percentages.
+The plot shows the latest Creative Commons (CC) legal tool totals and percentages.
+
+The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0), CC0 1.0, and the Public Domain Mark (PDM 1.0).
 
 <!-- gcs_report.py entry end Latest CC legal tools -->
 
@@ -57,11 +59,9 @@ Plots showing latest Creative Commons (CC) legal tool totals and percentages.
 
 ### Prior CC legal tools
 
-![Plots showing prior Creative Commons (CC) legal tool totals and percentages.](3-report/gcs_status_prior_tools.png)
+![The plot shows prior Creative Commons (CC) legal tool totals and percentages. Prior CC licenses include versions 1.0, 2.0, 2.1, 2.5, and 3.0. The unit names have been normalized (~~`CC BY-ND-NC`~~ => `CC BY-NC-ND`).](3-report/gcs_status_prior_tools.png)
 
-Plots showing prior Creative Commons (CC) legal tool totals and percentages.
-
-The unit names have been normalized (~~`CC BY-ND-NC`~~ => `CC BY-NC-ND`).
+The plot shows prior Creative Commons (CC) legal tool totals and percentages. Prior CC licenses include versions 1.0, 2.0, 2.1, 2.5, and 3.0. The unit names have been normalized (~~`CC BY-ND-NC`~~ => `CC BY-NC-ND`).
 
 <!-- gcs_report.py entry end Prior CC legal tools -->
 
@@ -70,11 +70,9 @@ The unit names have been normalized (~~`CC BY-ND-NC`~~ => `CC BY-NC-ND`).
 
 ### Retired CC legal tools
 
-![Plots showing retired Creative Commons (CC) legal tools total and percentages.](3-report/gcs_status_retired_tools.png)
+![The plot shows retired Creative Commons (CC) legal tools total and percentages. For more information on retired legal tools, see [Retired Legal Tools - Creative Commons](https://creativecommons.org/retiredlicenses/).](3-report/gcs_status_retired_tools.png)
 
-Plots showing retired Creative Commons (CC) legal tools total and percentages.
-
-For more information on retired legal tools, see [Retired Legal Tools - Creative Commons](https://creativecommons.org/retiredlicenses/).
+The plot shows retired Creative Commons (CC) legal tools total and percentages. For more information on retired legal tools, see [Retired Legal Tools - Creative Commons](https://creativecommons.org/retiredlicenses/).
 
 <!-- gcs_report.py entry end Retired CC legal tools -->
 
@@ -83,13 +81,13 @@ For more information on retired legal tools, see [Retired Legal Tools - Creative
 
 ### Countries with highest usage of latest tools
 
-![Plots showing countries with the highest useage of the latest Creative Commons (CC) legal tools.](3-report/gcs_countries_highest_usage_latest_tools.png)
+![The plot shows countries with the highest usage of the latest Creative Commons (CC) legal tools.](3-report/gcs_countries_highest_usage_latest_tools.png)
 
-Plots showing countries with the highest useage of the latest Creative Commons (CC) legal tools.
+The plot shows countries with the highest usage of the latest Creative Commons (CC) legal tools.
 
 The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0), CC0 1.0, and the Public Domain Mark (PDM 1.0).
 
-The complete data set indicates there are a total of 2,624,944,398 online works using a latest CC legal tool.
+The complete countries data set indicates there are a total of 2,624,944,398 online works using one of the latest CC legal tools. This conflicts with the languages data set, below.
 
 <!-- gcs_report.py entry end Countries with highest usage of latest tools -->
 
@@ -98,13 +96,13 @@ The complete data set indicates there are a total of 2,624,944,398 online works 
 
 ### Languages with highest usage of latest tools
 
-![Plots showing languages with the highest useage of the latest Creative Commons (CC) legal tools.](3-report/gcs_languages_highest_usage_latest_tools.png)
+![The plot shows the languages with the highest usage of the latest Creative Commons (CC) legal tools.](3-report/gcs_languages_highest_usage_latest_tools.png)
 
-Plots showing languages with the highest useage of the latest Creative Commons (CC) legal tools.
+The plot shows the languages with the highest usage of the latest Creative Commons (CC) legal tools.
 
 The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0), CC0 1.0, and the Public Domain Mark (PDM 1.0).
 
-The complete data set indicates there are a total of 1,310,359,425 online works using a latest CC legal tool.
+The complete languages data set indicates there are a total of 1,310,359,425 online works using one of the latest CC legal tools. This conflicts with the countries data set, above.
 
 <!-- gcs_report.py entry end Languages with highest usage of latest tools -->
 
@@ -113,9 +111,9 @@ The complete data set indicates there are a total of 1,310,359,425 online works 
 
 ### Approved for Free Cultural Works
 
-![Plots showing Approved for Free Cultural Works legal tool usage.](3-report/gcs_free_culture.png)
+![The plot shows Approved for Free Cultural Works legal tool usage.](3-report/gcs_free_culture.png)
 
-Plots showing Approved for Free Cultural Works legal tool usage.
+The plot shows Approved for Free Cultural Works legal tool usage.
 
 [Understanding Free Cultural Works - Creative Commons](https://creativecommons.org/public-domain/freeworks/):
 
@@ -135,37 +133,41 @@ Plots showing Approved for Free Cultural Works legal tool usage.
 
 ### Overview
 
-The GitHub data, below, uses the `total_count` returned by API for search queries of the various legal tools.
-**The results indicate that 483877 (0.17%)** of the 289935546 total public repositories on GitHub that use a CC legal tool. Additionally, many more use a non-CC use a Public domain equivalent legal tools.
+The GitHub data, below, uses the `total_count` returned by the API for search queries of the various legal tools.
 
- The GitHub data showcases the different level of rights reserved on repositories We have Public domain which includes works released under CC0, 0BSD and Unlicense meaning developers have waived all their rights to a software. Allowing anyone to freely use, modify, and distribute the code without restriction. See more at [Public-domain-equivalent license](https://en.wikipedia.org/wiki/Public-domain-equivalent_license).
- While a Permissive category of license contains works under MIT-0 and CC BY 4.0 allows users to reuse the code with some conditions and attribution [Permissive license](https://en.wikipedia.org/wiki/Permissive_software_license) and Copyleft contains works under CC BY-SA 4.0. which requires any derivative works to be licensed under the same terms. [Copyleft](https://en.wikipedia.org/wiki/Copyleft).
+**The results indicate that 483,877 (0.17%)** of the 289,935,546 total public repositories on GitHub use a CC legal tool. Additionally, many more use a non-CC use a Public domain equivalent legal tools. The fetched GitHub data creates a a subtotal that showcases the different level of permission that works are released under.
+
+The public-domain-equivalent licenses include 0BSD, CC0, MIT-0 and Unlicense. These licenses allow anyone to freely use, modify, and distribute the code without restriction. See more at [Public-domain-equivalent license](https://en.wikipedia.org/wiki/Public-domain-equivalent_license).
+
+The CC BY 4.0 license is a permissive license that allows users to reuse the code with some conditions and attribution. See more at [Permissive license](https://en.wikipedia.org/wiki/Permissive_software_license).
+
+The CC BY-SA 4.0 license is a copyleft license which requires any derivative works to be licensed under the same terms. See more at [Copyleft](https://en.wikipedia.org/wiki/Copyleft).
 
 Thank you GitHub for providing public API access to repository metadata!
 
 <!-- github_report.py entry end Overview -->
 
 
-<!-- github_report.py entry start Totals by license type -->
+<!-- github_report.py entry start Subtotal distribution by license -->
 
-### Totals by license type
+### Subtotal distribution by license
 
-![Plots showing totals by license type. This shows the distribution of different CC license and non CC license used in GitHub repositories. Allowing Commons to evaluate how freely softwares on GitHub are being used, modified, and shared and how developers choose to share their works. See more at [SPDX License List](https://spdx.org/licenses/)](3-report/github_totals_by_license_type.png)
+![The plot shows the distribution of the different open content or public-domain-equivalent licenses (0BSD, CC BY 4.0, CC BY-SA 4.0, CC0 1.0, MIT-0, and Unlicense) used in the subtotal of GitHub repositories.](3-report/github_totals_by_license_type.png)
 
-Plots showing totals by license type. This shows the distribution of different CC license and non CC license used in GitHub repositories. Allowing Commons to evaluate how freely softwares on GitHub are being used, modified, and shared and how developers choose to share their works. See more at [SPDX License List](https://spdx.org/licenses/)
+The plot shows the distribution of the different open content or public-domain-equivalent licenses (0BSD, CC BY 4.0, CC BY-SA 4.0, CC0 1.0, MIT-0, and Unlicense) used in the subtotal of GitHub repositories.
 
-<!-- github_report.py entry end Totals by license type -->
+<!-- github_report.py entry end Subtotal distribution by license -->
 
 
-<!-- github_report.py entry start Totals by restriction -->
+<!-- github_report.py entry start Subtotal distribution by restriction -->
 
-### Totals by restriction
+### Subtotal distribution by restriction
 
-![Plots showing totals by different levels of restrictions. This shows the distribution of Public domain, Permissive, and Copyleft licenses used in GitHub repositories.](3-report/github_restriction.png)
+![The plot shows the distribution of the different restrictions (Copyleft, Permissive, Public domain) used in the subtotal of GitHub repositories.](3-report/github_restriction.png)
 
-Plots showing totals by different levels of restrictions. This shows the distribution of Public domain, Permissive, and Copyleft licenses used in GitHub repositories.
+The plot shows the distribution of the different restrictions (Copyleft, Permissive, Public domain) used in the subtotal of GitHub repositories.
 
-<!-- github_report.py entry end Totals by restriction -->
+<!-- github_report.py entry end Subtotal distribution by restriction -->
 
 
 <!-- SECTION end github_report.py -->
@@ -179,7 +181,8 @@ Plots showing totals by different levels of restrictions. This shows the distrib
 
 ### Overview
 
-The Smithsonian Institute data returns the overall statistics of CC0 legal tool records. It serves as the main legal tool used by Smithsonian Institute.
+The Smithsonian Institute data returns the overall statistics of CC0 legal tool records. CC0 serves as the main legal tool used by the Smithsonian Institute.
+
 The results indicate a total record of 32,567,783 objects, with a breakdown of 17,586,024 objects without CC0 Media and 5,213,799 objects with CC0 Media, taking a percentage of 11.95% in each institute member. There are 39 unique units in the data representing museums, libraries, zoos and other institutions with a minimum of 410 objects.
 
 <!-- smithsonian_report.py entry end Overview -->
@@ -189,9 +192,9 @@ The results indicate a total record of 32,567,783 objects, with a breakdown of 1
 
 ### Totals by 10 Units
 
-![Plots showing totals by units. This shows the distribution of top 10 institute member across Smithsonian Institute with an average of 2,326,055.1 objects across the top 10 Institute members.](3-report/smithsonian_totals_by_top10_units.png)
+![The plot shows totals by units. It shows the distribution of top 10 institute member across the Smithsonian Institute with an average of 2,326,055.1 objects across the top 10 Institute members.](3-report/smithsonian_totals_by_top10_units.png)
 
-Plots showing totals by units. This shows the distribution of top 10 institute member across Smithsonian Institute with an average of 2,326,055.1 objects across the top 10 Institute members.
+The plot shows totals by units. It shows the distribution of top 10 institute member across the Smithsonian Institute with an average of 2,326,055.1 objects across the top 10 Institute members.
 
 <!-- smithsonian_report.py entry end Totals by 10 Units -->
 
@@ -200,11 +203,9 @@ Plots showing totals by units. This shows the distribution of top 10 institute m
 
 ### Totals by lowest 10 Units
 
-![Plots showing totals by units.](3-report/smithsonian_totals_by_lowest10_unit.png)
+![The plot shows totals by units. It shows the distribution of lowest 10 institute member across Smithsonian Institute with an average of 8978.5 objects across the lowest 10 institute members.](3-report/smithsonian_totals_by_lowest10_unit.png)
 
-Plots showing totals by units.
-
-This shows the distribution of lowest 10 institute member across Smithsonian Institute with an average of 8978.5 objects across the lowest 10 institute members.
+The plot shows totals by units. It shows the distribution of lowest 10 institute member across Smithsonian Institute with an average of 8978.5 objects across the lowest 10 institute members.
 
 <!-- smithsonian_report.py entry end Totals by lowest 10 Units -->
 
@@ -213,9 +214,9 @@ This shows the distribution of lowest 10 institute member across Smithsonian Ins
 
 ### Breakdown of CC0 records by top 10 units
 
-![Plots showing totals by CC0 records. This is the top 10 units with a breakdown of CC0 records without media, CC0 records with media and records that are not associated with CC0.](3-report/smithsonian_by_top10_unit_records.png)
+![The plot shows totals by CC0 records. It shows the top 10 units with a breakdown of CC0 records without media, CC0 records with media and records that are not associated with CC0.](3-report/smithsonian_by_top10_unit_records.png)
 
-Plots showing totals by CC0 records. This is the top 10 units with a breakdown of CC0 records without media, CC0 records with media and records that are not associated with CC0.
+The plot shows totals by CC0 records. It shows the top 10 units with a breakdown of CC0 records without media, CC0 records with media and records that are not associated with CC0.
 
 <!-- smithsonian_report.py entry end Breakdown of CC0 records by top 10 units -->
 
@@ -224,9 +225,9 @@ Plots showing totals by CC0 records. This is the top 10 units with a breakdown o
 
 ### Breakdown of CC0 records by lowest 10 units
 
-![Plots showing totals by CC0 records. This is the lowest 10 units with a breakdown of CC0 records without media, CC0 records with media and records that are not associated with CC0.](3-report/smithsonian_by_lowest10_unit_records.png)
+![The plot shows totals by CC0 records. It shows the lowest 10 units with a breakdown of CC0 records without media, CC0 records with  media and records that are not associated with CC0.](3-report/smithsonian_by_lowest10_unit_records.png)
 
-Plots showing totals by CC0 records. This is the lowest 10 units with a breakdown of CC0 records without media, CC0 records with media and records that are not associated with CC0.
+The plot shows totals by CC0 records. It shows the lowest 10 units with a breakdown of CC0 records without media, CC0 records with  media and records that are not associated with CC0.
 
 <!-- smithsonian_report.py entry end Breakdown of CC0 records by lowest 10 units -->
 
@@ -243,7 +244,9 @@ Plots showing totals by CC0 records. This is the lowest 10 units with a breakdow
 ### Overview
 
 This report provides insights into the usage of the Creative Commons Attribution 4.0 International across the different language editions of Wikipedia. The Wikipedia data, below, uses the `Count` field from the Wikipedia API to quantify the number of articles in each language edition of Wikipedia.
+
 **The total number of Wikipedia articles across 352 languages is 66,542,690. The top 10 languages account for 31,729,774 articles, which is 47.68% of the total articles. The average number of articles per language is 189,041.73.**
+
 Thank you to the volunteers who curate this data and the Wikimedia Foundation for making it publicly available!
 
 <!-- wikipedia_report.py entry end Overview -->
@@ -253,9 +256,9 @@ Thank you to the volunteers who curate this data and the Wikimedia Foundation fo
 
 ### Language Representation
 
-![Plots showing the language representation across different language editions of Wikipedia. This shows how many languages are underrepresented (below average number of articles) versus represented (above average number of articles).](3-report/wikipedia_language_representation.png)
+![The plot shows the language representation across the different language editions of Wikipedia. It shows how many languages are underrepresented (below average number of articles) versus represented (above average number of articles).](3-report/wikipedia_language_representation.png)
 
-Plots showing the language representation across different language editions of Wikipedia. This shows how many languages are underrepresented (below average number of articles) versus represented (above average number of articles).
+The plot shows the language representation across the different language editions of Wikipedia. It shows how many languages are underrepresented (below average number of articles) versus represented (above average number of articles).
 
 <!-- wikipedia_report.py entry end Language Representation -->
 
@@ -264,9 +267,9 @@ Plots showing the language representation across different language editions of 
 
 ### Most represented languages
 
-![Plots showing the most represented languages across the differentlanguage editions of Wikipedia.](3-report/wikipedia_highest_language_usage.png)
+![The plot shows the most represented languages across the different language editions of Wikipedia.](3-report/wikipedia_highest_language_usage.png)
 
-Plots showing the most represented languages across the differentlanguage editions of Wikipedia.
+The plot shows the most represented languages across the different language editions of Wikipedia.
 
 <!-- wikipedia_report.py entry end Most represented languages -->
 
@@ -275,9 +278,9 @@ Plots showing the most represented languages across the differentlanguage editio
 
 ### Least represented languages
 
-![Plots showing the least represented languages across the different language editions of Wikipedia.](3-report/wikipedia_least_language_usage.png)
+![The plot shows the least represented languages across the different language editions of Wikipedia.](3-report/wikipedia_least_language_usage.png)
 
-Plots showing the least represented languages across the different language editions of Wikipedia.
+The plot shows the least represented languages across the different language editions of Wikipedia.
 
 <!-- wikipedia_report.py entry end Least represented languages -->
 
