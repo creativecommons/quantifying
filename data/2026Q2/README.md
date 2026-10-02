@@ -50,6 +50,8 @@ The plot shows Creative Commons (CC) legal tool status totals and percentages.
 
 The plot shows the latest Creative Commons (CC) legal tool totals and percentages.
 
+The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0), CC0 1.0, and the Public Domain Mark (PDM 1.0).
+
 <!-- gcs_report.py entry end Latest CC legal tools -->
 
 
@@ -57,9 +59,9 @@ The plot shows the latest Creative Commons (CC) legal tool totals and percentage
 
 ### Prior CC legal tools
 
-![The plot shows prior Creative Commons (CC) legal tool totals and percentages. The unit names have been normalized (~~`CC BY-ND-NC`~~ => `CC BY-NC-ND`).](3-report/gcs_status_prior_tools.png)
+![The plot shows prior Creative Commons (CC) legal tool totals and percentages. Prior CC licenses include versions 1.0, 2.0, 2.1, 2.5, and 3.0. The unit names have been normalized (~~`CC BY-ND-NC`~~ => `CC BY-NC-ND`).](3-report/gcs_status_prior_tools.png)
 
-The plot shows prior Creative Commons (CC) legal tool totals and percentages. The unit names have been normalized (~~`CC BY-ND-NC`~~ => `CC BY-NC-ND`).
+The plot shows prior Creative Commons (CC) legal tool totals and percentages. Prior CC licenses include versions 1.0, 2.0, 2.1, 2.5, and 3.0. The unit names have been normalized (~~`CC BY-ND-NC`~~ => `CC BY-NC-ND`).
 
 <!-- gcs_report.py entry end Prior CC legal tools -->
 
@@ -79,13 +81,13 @@ The plot shows retired Creative Commons (CC) legal tools total and percentages. 
 
 ### Countries with highest usage of latest tools
 
-![The plot shows countries with the highest useage of the latest Creative Commons (CC) legal tools.](3-report/gcs_countries_highest_usage_latest_tools.png)
+![The plot shows countries with the highest usage of the latest Creative Commons (CC) legal tools.](3-report/gcs_countries_highest_usage_latest_tools.png)
 
-The plot shows countries with the highest useage of the latest Creative Commons (CC) legal tools.
+The plot shows countries with the highest usage of the latest Creative Commons (CC) legal tools.
 
 The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0), CC0 1.0, and the Public Domain Mark (PDM 1.0).
 
-The complete data set indicates there are a total of 2,495,972,054 online works using one of the latest CC legal tools.
+The complete countries data set indicates there are a total of 2,495,972,054 online works using one of the latest CC legal tools. This conflicts with the languages data set, below.
 
 <!-- gcs_report.py entry end Countries with highest usage of latest tools -->
 
@@ -94,13 +96,13 @@ The complete data set indicates there are a total of 2,495,972,054 online works 
 
 ### Languages with highest usage of latest tools
 
-![The plot shows the languages with the highest useage of the latest Creative Commons (CC) legal tools.](3-report/gcs_languages_highest_usage_latest_tools.png)
+![The plot shows the languages with the highest usage of the latest Creative Commons (CC) legal tools.](3-report/gcs_languages_highest_usage_latest_tools.png)
 
-The plot shows the languages with the highest useage of the latest Creative Commons (CC) legal tools.
+The plot shows the languages with the highest usage of the latest Creative Commons (CC) legal tools.
 
 The latest tools include Licenses version 4.0 (CC BY 4.0, CC BY-NC 4.0, CC BY-NC-ND 4.0, CC BY-NC-SA 4.0, CC-BY-ND 4.0, CC BY-SA 4.0), CC0 1.0, and the Public Domain Mark (PDM 1.0).
 
-The complete data set indicates there are a total of 1,380,525,825 online works using one of the latest CC legal tools.
+The complete languages data set indicates there are a total of 1,380,525,825 online works using one of the latest CC legal tools. This conflicts with the countries data set, above.
 
 <!-- gcs_report.py entry end Languages with highest usage of latest tools -->
 
