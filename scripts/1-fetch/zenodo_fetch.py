@@ -10,6 +10,7 @@ license detection. Benefits include:
 - JSON parsing
 - Standardized license identifiers
 """
+
 # Standard library
 import argparse
 import csv
@@ -44,7 +45,8 @@ LOGGER, PATHS = shared.setup(__file__)
 DEFAULT_FETCH_LIMIT = (
     100000  # Increased to capture more CC licenses from 5.5M+ records
 )
-# API limitation: Zenodo supports 25 records per request for unauthenticated calls
+# API limitation: Zenodo supports 25 records per request for unauthenticated
+# calls
 MAX_RECORDS_PER_REQUEST = 25
 ZENODO_API_BASE_URL = "https://zenodo.org/api/records"
 
@@ -278,7 +280,7 @@ def fetch_zenodo_records(session, page=1, size=100, query=""):
         "page": page,
         "sort": "newest",
     }
-    
+
     # Only add query parameter if not empty
     if query:
         params["q"] = query
