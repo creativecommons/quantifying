@@ -103,7 +103,7 @@ def wikipedia_intro(args):
     )
     top10_articles = top10["Count"].sum()
     top10_percentage = (top10_articles / total_articles) * 100
-    average_articles = total_articles / len(data)
+    average_articles = total_articles / len(data) if len(data) > 0 else 0
     language_count = len(data)
     shared.update_readme(
         args,

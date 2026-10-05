@@ -178,7 +178,7 @@ def main():
         args,
         PATHS["repo"],
         PATHS["data_quarter"],
-        f"Add and commit new GitHub data for {QUARTER}",
+        f"Add and commit new Smithsonian data for {QUARTER}",
     )
     shared.git_push_changes(args, PATHS["repo"])
 
