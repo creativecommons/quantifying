@@ -63,20 +63,18 @@ def parse_arguments():
     return args
 
 
-def write_data(args, tool_data):
-    if not args.enable_save:
-        return args
-    LOGGER.info("Saving fetched data")
-    os.makedirs(PATHS["data_phase"], exist_ok=True)
-
-    with open(FILE_LANGUAGES, "w", encoding="utf-8", newline="\n") as file_obj:
-        writer = csv.DictWriter(
-            file_obj, fieldnames=HEADER_LANGUAGES, dialect="unix"
-        )
-        writer.writeheader()
-        for row in tool_data:
-            writer.writerow(row)
-    return args
+def check_for_completion():
+    try:
+        with open(
+            FILE_LANGUAGES, "r", encoding="utf-8", newline=""
+        ) as file_obj:
+            reader = csv.DictReader(file_obj, dialect="unix")
+            if len(list(reader)) > 300:
+                raise shared.QuantifyingException(
+                    f"Data fetch completed for {QUARTER}", 0
+                )
+    except FileNotFoundError:
+        pass  # File may not be found without --enable-save, etc.
 
 
 def query_wikipedia_languages(session):
@@ -157,10 +155,11 @@ def query_wikipedia_languages(session):
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
+    check_for_completion()
     shared.git_fetch_and_merge(args, PATHS["repo"])
     session = shared.get_session()
     tool_data = query_wikipedia_languages(session)
-    args = write_data(args, tool_data)
+    shared.rows_to_csv(args, FILE_LANGUAGES, HEADER_LANGUAGES, tool_data)
     args = shared.git_add_and_commit(
         args,
         PATHS["repo"],

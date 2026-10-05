@@ -3,15 +3,16 @@
 This file is dedicated to visualizing and analyzing the data collected
 from GitHub.
 """
+
 # Standard library
 import argparse
 import os
 import sys
 import textwrap
 import traceback
+from pathlib import Path
 
 # Third-party
-import pandas as pd
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import PythonTracebackLexer
@@ -26,13 +27,15 @@ import shared  # noqa: E402
 # Setup
 LOGGER, PATHS = shared.setup(__file__)
 QUARTER = os.path.basename(PATHS["data_quarter"])
-SECTION = "GitHub data"
+SECTION_FILE = Path(__file__).name
+SECTION_TITLE = "GitHub"
 
 
 def parse_arguments():
     """
     Parses command-line arguments, returns parsed arguments.
     """
+    global QUARTER
     LOGGER.info("Parsing command-line arguments")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -56,12 +59,18 @@ def parse_arguments():
         help="Enable git actions such as fetch, merge, add, commit, and push"
         " (default: False)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Regenerate data even if report files exist",
+    )
     args = parser.parse_args()
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     if args.quarter != QUARTER:
         global PATHS
         PATHS = shared.paths_update(LOGGER, PATHS, QUARTER, args.quarter)
+        QUARTER = args.quarter
     args.logger = LOGGER
     args.paths = PATHS
     return args
@@ -77,11 +86,8 @@ def load_data(args):
         PATHS["data"], f"{selected_quarter}", "1-fetch", "github_1_count.csv"
     )
 
-    if not os.path.exists(file_path):
-        LOGGER.error(f"Data file not found: {file_path}")
-        return pd.DataFrame()
+    data = shared.open_data_file(LOGGER, file_path)
 
-    data = pd.read_csv(file_path)
     LOGGER.info(f"Data loaded from {file_path}")
     return data
 
@@ -97,54 +103,52 @@ def github_intro(args):
     )
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "TOOL_IDENTIFIER"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     total_repositories = data.loc["Total public repositories", "COUNT"]
     cc_total = data[data.index.str.startswith("CC")]["COUNT"].sum()
     cc_percentage = f"{(cc_total / total_repositories) * 100:.2f}%"
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         "Overview",
         None,
         None,
-        "The GitHub data, below, uses the `total_count`"
-        " returned by API for search queries of the various legal tools."
+        "The GitHub data, below, uses the `total_count` returned by the API"
+        " for search queries of the various legal tools.\n"
         "\n"
-        f"**The results indicate that {cc_total} ({cc_percentage})"
-        f"** of the {total_repositories} total public repositories"
-        " on GitHub that use a CC legal tool. Additionally,"
-        " many more use a non-CC use a Public domain"
-        " equivalent legal tools.**\n"
+        f"**The results indicate that {cc_total:,} ({cc_percentage})** of the"
+        f" {total_repositories:,} total public repositories on GitHub use a CC"
+        " legal tool. Additionally, many more use a non-CC use a Public"
+        " domain equivalent legal tools. The fetched GitHub data creates a"
+        " a subtotal that showcases the different level of permission that"
+        " works are released under.\n"
         "\n"
-        " The Github data showcases the different level of"
-        " rights reserved on repositories We have Public"
-        " domain which includes works released under CC0, 0BSD and Unlicense"
-        " meaning developers have waived all their rights to a software."
-        " Allowing anyone to freely use, modify, and distribute the code"
-        " without restriction."
-        " See more at"
+        "The public-domain-equivalent licenses include 0BSD, CC0, MIT-0 and"
+        " Unlicense. These licenses allow anyone to freely use, modify, and"
+        " distribute the code without restriction. See more at"
         " [Public-domain-equivalent license]"
-        "(https://en.wikipedia.org/wiki/Public-domain-equivalent_license)"
-        " While a Permissive category of license contains works"
-        " under MIT-0 and CC BY 4.0 allows users to"
-        " reuse the code with some conditions and attribution"
-        " [Permissive license]"
-        "(https://en.wikipedia.org/wiki/Permissive_software_license)"
-        " and Copyleft contains works under CC BY-SA 4.0."
-        " which requires any derivative works to be licensed"
-        " under the same terms."
-        " [Copyleft](https://en.wikipedia.org/wiki/Copyleft)"
+        "(https://en.wikipedia.org/wiki/Public-domain-equivalent_license).\n"
         "\n"
-        "Thank you GitHub for providing public API"
-        " access to repository metadata!",
+        "The CC BY 4.0 license is a permissive license that allows users to"
+        " reuse the code with some conditions and attribution. See more at"
+        " [Permissive license]"
+        "(https://en.wikipedia.org/wiki/Permissive_software_license).\n"
+        "\n"
+        "The CC BY-SA 4.0 license is a copyleft license which requires any"
+        " derivative works to be licensed under the same terms. See more at"
+        " [Copyleft](https://en.wikipedia.org/wiki/Copyleft).\n"
+        "\n"
+        "Thank you GitHub for providing public API access to repository"
+        " metadata!",
     )
 
 
-def plot_totals_by_license_type(args):
+def plot_distribution_by_license(args):
     """
-    Create plots showing totals by license type
+    Create a plot showing the subtotal distribution by license
     """
-    LOGGER.info(plot_totals_by_license_type.__doc__.strip())
+    LOGGER.info(plot_distribution_by_license.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"],
         "github_totals_by_license.csv",
@@ -152,9 +156,9 @@ def plot_totals_by_license_type(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "License"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(data_label, ascending=True, inplace=True)
-    title = "Totals by license type"
+    title = "Subtotal distribution by license"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -175,25 +179,22 @@ def plot_totals_by_license_type(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
-        "Plots showing totals by license type."
-        " This shows the distribution of different CC license"
-        " and non CC license used in GitHub repositories."
-        " Allowing Commons to evaluate how freely softwares on"
-        " GitHub are being used, modified, and shared"
-        " and how developers choose to share their works."
-        " See more at [SPDX License List]"
-        "(https://spdx.org/licenses/)",
+        "The plot shows the distribution of the different open content or"
+        " public-domain-equivalent licenses (0BSD, CC BY 4.0, CC BY-SA 4.0,"
+        " CC0 1.0, MIT-0, and Unlicense) used in the subtotal of GitHub"
+        " repositories.",
     )
 
 
-def plot_totals_by_restriction(args):
+def plot_distribution_by_restriction(args):
     """
-    Create plots showing totals by restriction
+    Create a plot showing the subtotal distribution by restriction
     """
-    LOGGER.info(plot_totals_by_restriction.__doc__.strip())
+    LOGGER.info(plot_distribution_by_restriction.__doc__.strip())
     file_path = shared.path_join(
         PATHS["data_2-process"],
         "github_totals_by_restriction.csv",
@@ -201,9 +202,9 @@ def plot_totals_by_restriction(args):
     LOGGER.info(f"data file: {file_path.replace(PATHS['repo'], '.')}")
     name_label = "Category"
     data_label = "Count"
-    data = pd.read_csv(file_path, index_col=name_label)
+    data = shared.open_data_file(LOGGER, file_path, index_col=name_label)
     data.sort_values(name_label, ascending=False, inplace=True)
-    title = "Totals by restriction"
+    title = "Subtotal distribution by restriction"
     plt = plot.combined_plot(
         args=args,
         data=data,
@@ -223,13 +224,13 @@ def plot_totals_by_restriction(args):
 
     shared.update_readme(
         args,
-        SECTION,
+        SECTION_FILE,
+        SECTION_TITLE,
         title,
         image_path,
-        "Plots showing totals by different levels of restrictions."
-        " This shows the distribution of Public domain,"
-        " Permissive, and Copyleft"
-        " licenses used in GitHub repositories.",
+        "The plot shows the distribution of the different restrictions"
+        " (Copyleft, Permissive, Public domain) used in the subtotal of GitHub"
+        " repositories.",
     )
 
 
@@ -237,9 +238,13 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
+    last_entry = shared.path_join(
+        PATHS["data_phase"], "github_restriction.png"
+    )
+    shared.check_completion_file_exists(args, last_entry)
     github_intro(args)
-    plot_totals_by_license_type(args)
-    plot_totals_by_restriction(args)
+    plot_distribution_by_license(args)
+    plot_distribution_by_restriction(args)
 
     # Add and commit changes
     args = shared.git_add_and_commit(
