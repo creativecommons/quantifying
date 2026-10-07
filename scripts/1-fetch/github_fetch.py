@@ -98,6 +98,12 @@ def query_github(args, session):
             with session.get(request_url) as response:
                 response.raise_for_status()
                 search_data = response.json()
+
+                if "message" in search_data:
+                    raise shared.QuantifyingException(
+                        f"GitHub API Error: {search_data['message']}", 1
+                    )
+
                 count = search_data["total_count"]
             tool_data.append(
                 {
