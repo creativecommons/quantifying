@@ -73,7 +73,7 @@ def combined_plot(
         height = 2.5
 
     fig, (ax1, ax2) = plt.subplots(
-        1, 2, figsize=(10, height), width_ratios=(2, 1), layout="constrained"
+        1, 2, figsize=(12, height), width_ratios=(2, 1), layout="constrained"
     )
     colors = colormaps["tab10"].colors
 
@@ -114,6 +114,116 @@ def combined_plot(
     plt.suptitle(title)
     plt.annotate(
         f"Creative Commons (CC)\nbar x scale: {bar_xscale}, data from"
+        f" {args.quarter}",
+        (0.95, 5),
+        xycoords=("figure fraction", "figure points"),
+        color="gray",
+        fontsize="x-small",
+        horizontalalignment="right",
+    )
+
+    if args.show_plots:
+        plt.show()
+
+    return plt
+
+
+def line_plot(args, data, title, xlabel=None, ylabel=None):
+    plt.rcParams.update({"font.family": "monospace", "figure.dpi": 300})
+
+    fig, ax = plt.subplots(figsize=(12, 5), layout="constrained")
+    colors = colormaps["tab10"].colors
+
+    for i, col in enumerate(data.columns):
+        ax.plot(
+            data.index,
+            data[col],
+            color=colors[i % len(colors)],
+            label=col,
+        )
+
+    ax.set_title(title)
+    if xlabel:
+        ax.set_xlabel(xlabel)
+    if ylabel:
+        ax.set_ylabel(ylabel)
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(number_formatter))
+    ax.tick_params(axis="x", which="major", labelrotation=45)
+    ax.legend(fontsize="small")
+    ax.grid(True, alpha=0.3)
+
+    plt.annotate(
+        f"Creative Commons (CC)\ndata from {args.quarter}",
+        (0.95, 5),
+        xycoords=("figure fraction", "figure points"),
+        color="gray",
+        fontsize="x-small",
+        horizontalalignment="right",
+    )
+
+    if args.show_plots:
+        plt.show()
+
+    return plt
+
+
+def stacked_barv_plot(
+    args,
+    data,
+    title,
+    name_label,
+    stack_labels,
+    yscale="linear",
+    xlabel=None,
+):
+    """
+    Create a stacked vertical bar plot.
+    """
+    if len(data) > 10:
+        raise shared.QuantifyingException(
+            "stacked_barv_plot() is limited to a maximum of 10 data points"
+        )
+
+    plt.rcParams.update({"font.family": "monospace", "figure.dpi": 300})
+
+    fig, ax = plt.subplots(figsize=(12, 5), layout="constrained")
+    colors = colormaps["tab10"].colors
+    bottom = [0] * len(data)
+
+    for i, label in enumerate(stack_labels):
+        ax.bar(
+            data.index,
+            data[label],
+            bottom=bottom,
+            color=colors[i % len(colors)],
+            label=label,
+            log=(yscale == "log"),
+        )
+        bottom = [
+            current_bottom + height
+            for current_bottom, height in zip(bottom, data[label])
+        ]
+
+    ax.set_ylabel("Number of works")
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(number_formatter))
+    ax.tick_params(axis="x", which="major", labelrotation=45)
+
+    if xlabel:
+        ax.set_xlabel(xlabel)
+    else:
+        ax.set_xlabel(name_label)
+
+    ax.legend(
+        title="Type",
+        fontsize="x-small",
+        title_fontsize="x-small",
+        loc="upper left",
+        bbox_to_anchor=(1.02, 1),
+    )
+
+    plt.suptitle(title)
+    plt.annotate(
+        f"Creative Commons (CC)\nbar y scale: {yscale}, data from"
         f" {args.quarter}",
         (0.95, 5),
         xycoords=("figure fraction", "figure points"),
