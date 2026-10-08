@@ -508,7 +508,7 @@ def main():
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
     last_entry = shared.path_join(PATHS["data_phase"], "gcs_free_culture.png")
-    shared.check_completion_file_exists(args, last_entry)
+    shared.check_for_completion(args, {last_entry: None})
     gcs_intro(args)
     plot_products(args)
     plot_tool_status(args)

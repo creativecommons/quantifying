@@ -47,22 +47,35 @@ def dataframe_to_csv(args, data, file_path):
     )
 
 
-def check_completion_file_exists(args, file_paths):
-    """ "
-    This function checks if expected output files
-    exists. If any exist and --force is not provided,
-    the script exits early by raising a QuantifyingException.
-    In the case of a report file, we check if last output exists.
+def check_for_completion(args, files):
     """
-    if args.force:
+    Check if expected output files exist and have the required number of
+    lines. Can be overridden with --force.
+
+    The files argument is a dictionary with file paths as keys and
+    minimum line counts as values. A minimum line count of 0 or None
+    skips the line count check.
+    """
+    if not args.enable_save or args.force:
         return
-    if isinstance(file_paths, str):
-        file_paths = [file_paths]
-    for path in file_paths:
-        if os.path.exists(path):
-            raise QuantifyingException(
-                f"Output files already exists for {args.quarter}", 0
-            )
+
+    all_files_exist = True
+    all_files_complete = True
+
+    for path, minimum_lines in files.items():
+        if not os.path.exists(path):
+            all_files_exist = False
+        elif minimum_lines is not None and minimum_lines > 0:
+            with open(path, "r", encoding="utf-8") as file_obj:
+                if sum(1 for _ in file_obj) - 1 < minimum_lines:
+                    all_files_complete = False
+
+    if all_files_exist and all_files_complete:
+        raise QuantifyingException(
+            f"All output files are already present and appear complete for "
+            f"{args.quarter}",
+            0,
+        )
 
 
 def get_session(accept_header=None, session=None):

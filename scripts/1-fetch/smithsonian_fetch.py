@@ -52,8 +52,14 @@ def parse_arguments():
     """
     Parse command-line options, returns parsed argument namespace.
     """
+    global FILE_1_METRICS, FILE_2_UNITS, PATHS, QUARTER
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--quarter",
+        default=QUARTER,
+        help=f"Data quarter in format YYYYQx (default: {QUARTER})",
+    )
     parser.add_argument(
         "--enable-save",
         action="store_true",
@@ -70,38 +76,20 @@ def parse_arguments():
         help="Write data even if already exists",
     )
     args = parser.parse_args()
+    if args.quarter != QUARTER:
+        PATHS = shared.paths_update(
+            LOGGER, PATHS, QUARTER, args.quarter
+        )
+        FILE_1_METRICS = shared.path_join(
+            PATHS["data_phase"], "smithsonian_1_metrics.csv"
+        )
+        FILE_2_UNITS = shared.path_join(
+            PATHS["data_phase"], "smithsonian_2_units.csv"
+        )
+        QUARTER = args.quarter
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     return args
-
-
-def check_for_completion(args):
-    if args.force:
-        return
-    completed_metrics = False
-    completed_units = False
-
-    try:
-        with open(FILE_1_METRICS, "r", encoding="utf-8") as file_obj:
-            reader = csv.DictReader(file_obj, dialect="unix")
-            if len(list(reader)) > 0:
-                completed_metrics = True
-    except FileNotFoundError:
-        pass  # File may not be found without --enable-save, etc.
-
-    try:
-        with open(FILE_2_UNITS, "r", encoding="utf-8") as file_obj:
-            reader = csv.DictReader(file_obj, dialect="unix")
-            if len(list(reader)) > 30:
-                completed_units = True
-    except FileNotFoundError:
-        pass  # File may not be found without --enable-save, etc.
-
-    if completed_metrics and completed_units:
-        raise shared.QuantifyingException(
-            f"Data fetch completed for {QUARTER}", 0
-        )
-
 
 def query_smithsonian(args, session):
     if not DATA_GOV_API_KEY:
@@ -157,7 +145,13 @@ def query_smithsonian(args, session):
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
-    check_for_completion(args)
+    shared.check_for_completion(
+        args,
+        {
+            FILE_1_METRICS: 1,
+            FILE_2_UNITS: 31,
+        },
+    )
     session = shared.get_session()
     data_metrics, data_units = query_smithsonian(args, session)
     shared.rows_to_csv(args, FILE_1_METRICS, HEADER_1_METRICS, data_metrics)
