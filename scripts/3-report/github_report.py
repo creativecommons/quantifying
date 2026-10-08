@@ -241,7 +241,7 @@ def main():
     last_entry = shared.path_join(
         PATHS["data_phase"], "github_restriction.png"
     )
-    shared.check_completion_file_exists(args, last_entry)
+    shared.check_for_completion(args, {last_entry: None})
     github_intro(args)
     plot_distribution_by_license(args)
     plot_distribution_by_restriction(args)

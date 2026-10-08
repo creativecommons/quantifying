@@ -272,7 +272,7 @@ def main():
     last_entry = shared.path_join(
         PATHS["data_phase"], "wikipedia_least_language_usage.png"
     )
-    shared.check_completion_file_exists(args, last_entry)
+    shared.check_for_completion(args, {last_entry: None})
     wikipedia_intro(args)
     plot_language_representation(args)
     plot_highest_language_usage(args)
