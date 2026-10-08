@@ -5,7 +5,6 @@ Fetch CC Legal Tool usage from Wikipedia API.
 
 # Standard library
 import argparse
-import csv
 import os
 import sys
 import textwrap
@@ -45,8 +44,14 @@ def parse_arguments():
     """
     Parse command-line options, returns parsed argument namespace.
     """
+    global FILE_LANGUAGES, PATHS, QUARTER
     LOGGER.info("Parsing command-line options")
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--quarter",
+        default=QUARTER,
+        help=f"Data quarter in format YYYYQx (default: {QUARTER})",
+    )
     parser.add_argument(
         "--enable-save",
         action="store_true",
@@ -57,25 +62,23 @@ def parse_arguments():
         action="store_true",
         help="Enable git actions (fetch, merge, add, commit, and push)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Write data even if already exists",
+    )
     args = parser.parse_args()
+    if args.quarter != QUARTER:
+        PATHS = shared.paths_update(
+            LOGGER, PATHS, QUARTER, args.quarter
+        )
+        FILE_LANGUAGES = shared.path_join(
+            PATHS["data_phase"], "wikipedia_1_languages.csv"
+        )
+        QUARTER = args.quarter
     if not args.enable_save and args.enable_git:
         parser.error("--enable-git requires --enable-save")
     return args
-
-
-def check_for_completion():
-    try:
-        with open(
-            FILE_LANGUAGES, "r", encoding="utf-8", newline=""
-        ) as file_obj:
-            reader = csv.DictReader(file_obj, dialect="unix")
-            if len(list(reader)) > 300:
-                raise shared.QuantifyingException(
-                    f"Data fetch completed for {QUARTER}", 0
-                )
-    except FileNotFoundError:
-        pass  # File may not be found without --enable-save, etc.
-
 
 def query_wikipedia_languages(session):
     LOGGER.info("Fetching article counts from all language Wikipedias")
@@ -155,7 +158,10 @@ def query_wikipedia_languages(session):
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
-    check_for_completion()
+    shared.check_for_completion(
+        args,
+        {FILE_LANGUAGES: 301},
+    )
     shared.git_fetch_and_merge(args, PATHS["repo"])
     session = shared.get_session()
     tool_data = query_wikipedia_languages(session)

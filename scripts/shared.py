@@ -51,6 +51,10 @@ def check_for_completion(args, files):
     """
     Check if expected output files exist and have the required number of
     lines. Can be overridden with --force.
+
+    The files argument is a dictionary with file paths as keys and
+    minimum line counts as values. A minimum line count of 0 or None
+    skips the line count check.
     """
     if not args.enable_save or args.force:
         return
