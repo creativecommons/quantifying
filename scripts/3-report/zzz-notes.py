@@ -132,6 +132,59 @@ def usage(args):
     )
 
 
+def latest_report(args):
+    """
+    Update latest report link in repository README
+    """
+    if not args.enable_save:
+        return
+
+    quarters = [
+        d
+        for d in os.listdir(args.paths["data"])
+        if d.startswith("20")
+        and "Q" in d
+        and (
+            d == args.quarter
+            or os.path.isfile(
+                shared.path_join(args.paths["data"], d, "README.md")
+            )
+        )
+    ]
+    if quarters and args.quarter < max(quarters):
+        LOGGER.info(
+            f"Quarter {args.quarter} is older than latest ({max(quarters)}),"
+            " skipping root README update."
+        )
+        return
+
+    readme_path = shared.path_join(args.paths["repo"], "README.md")
+    with open(readme_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    start_marker = "<!-- LATEST_REPORT start -->\n"
+    end_marker = "<!-- LATEST_REPORT end -->\n"
+
+    if start_marker not in lines or end_marker not in lines:
+        LOGGER.warning("LATEST_REPORT markers not found in root README.md")
+        return
+
+    start_idx = lines.index(start_marker)
+    end_idx = lines.index(end_marker)
+
+    label = f"{args.quarter[:4]} {args.quarter[4:]}"
+    new_entry = [f"- [{label} report](data/{args.quarter}/README.md)\n"]
+
+    lines = lines[: start_idx + 1] + new_entry + lines[end_idx:]
+
+    with open(readme_path, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+
+    LOGGER.info(
+        f"Updated repository README latest report link to {args.quarter}"
+    )
+
+
 def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
@@ -139,13 +192,25 @@ def main():
 
     data_locations(args)
     usage(args)
+    latest_report(args)
 
+    enable_git = args.enable_git
     args = shared.git_add_and_commit(
         args,
         PATHS["repo"],
         PATHS["data_quarter"],
         f"Add and commit References for {QUARTER}",
     )
+    quarter_committed = args.enable_git
+    args.enable_git = enable_git
+    root_readme_path = shared.path_join(PATHS["repo"], "README.md")
+    args = shared.git_add_and_commit(
+        args,
+        PATHS["repo"],
+        root_readme_path,
+        f"Update latest report link in README for {args.quarter}",
+    )
+    args.enable_git = quarter_committed or args.enable_git
     shared.git_push_changes(args, PATHS["repo"])
 
 
