@@ -9,7 +9,8 @@ feedparser = "*"
 GitPython = "*"
 google-api-python-client = "*"
 lxml = "*"
-matplotlib = "*"
+# matplotlib on 3.10 until matplotlib/matplotlib/issues/32328 is resolved
+matplotlib = "<3.11,>=3.10.9"
 pandas = "*"
 protobuf = ">=6.33.5"  # Ensure dependency is secure
 pyasn1 = ">=0.6.2"  # Ensure dependency is secure
@@ -25,4 +26,4 @@ isort = "*"
 pre-commit = "*"
 
 [requires]
-python_version = "3.11"
+python_version = "3.12"
