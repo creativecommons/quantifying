@@ -13,6 +13,13 @@ project automates data collection from multiple data sources, processes the
 data, and generates meaningful reports.
 
 
+## Latest report
+
+<!-- LATEST_REPORT start -->
+- [2026 Q3 report](data/2026Q3/README.md)
+<!-- LATEST_REPORT end -->
+
+
 ## Code of conduct
 
 [`CODE_OF_CONDUCT.md`][org-coc]:
