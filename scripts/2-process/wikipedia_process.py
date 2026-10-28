@@ -159,7 +159,9 @@ def main():
     args = parse_arguments()
     shared.paths_log(LOGGER, PATHS)
     shared.git_fetch_and_merge(args, PATHS["repo"])
-    shared.check_completion_file_exists(args, FILE_PATHS)
+    shared.check_for_completion(
+        args, {file_path: None for file_path in FILE_PATHS}
+    )
     file_count = shared.path_join(
         PATHS["data_1-fetch"], "wikipedia_count_by_languages.csv"
     )

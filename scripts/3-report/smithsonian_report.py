@@ -338,7 +338,7 @@ def main():
     last_entry = shared.path_join(
         PATHS["data_phase"], "smithsonian_by_records.png"
     )
-    shared.check_completion_file_exists(args, last_entry)
+    shared.check_for_completion(args, {last_entry: None})
     smithsonian_intro(args)
     plot_totals_by_top10_units(args)
     plot_totals_by_lowest10_units(args)
